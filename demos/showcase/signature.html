@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Signature Pad - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .signature-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .signature-pad {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-xl);
+      margin: var(--space-xl) 0;
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      background: #fafafa;
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-lg);
+    }
+
+    #signatureCanvas {
+      display: block;
+      touch-action: none;
+      cursor: crosshair;
+      border-radius: var(--radius-md);
+      background: white;
+      width: 100%;
+    }
+
+    .signature-placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--gray-400);
+      font-size: 1.25rem;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.3s;
+    }
+
+    .signature-placeholder.hidden {
+      opacity: 0;
+    }
+
+    .signature-line {
+      position: absolute;
+      bottom: 80px;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: var(--gray-300);
+      pointer-events: none;
+    }
+
+    .signature-controls {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .color-options {
+      display: flex;
+      gap: var(--space-sm);
+    }
+
+    .color-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid var(--gray-300);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .color-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .color-btn.active {
+      border-color: var(--gray-900);
+      box-shadow: var(--shadow-md);
+      transform: scale(1.1);
+    }
+
+    .signature-preview {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      box-shadow: var(--shadow-md);
+      margin-top: var(--space-xl);
+      display: none;
+    }
+
+    .signature-preview.show {
+      display: block;
+    }
+
+    .preview-image {
+      max-width: 100%;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      margin-top: var(--space-md);
+    }
+
+    .signature-info {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--space-md);
+      background: var(--gray-100);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-bottom: var(--space-lg);
+    }
+
+    .weight-slider {
+      flex: 1;
+      max-width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container signature-container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Signature Pad</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Sign with your finger or stylus. Smooth, pressure-sensitive drawing.
+      </p>
+
+      <div class="signature-pad">
+        <div class="signature-info">
+          <span>📝 Sign above the line</span>
+          <span id="strokeCount">Strokes: 0</span>
+        </div>
+
+        <div class="canvas-wrapper">
+          <div class="signature-placeholder" id="placeholder">✍️ Sign Here</div>
+          <div class="signature-line"></div>
+          <canvas id="signatureCanvas" width="750" height="400"></canvas>
+        </div>
+
+        <div class="signature-controls">
+          <div style="display: flex; gap: var(--space-md); align-items: center; flex-wrap: wrap;">
+            <span style="font-weight: 600;">Color:</span>
+            <div class="color-options">
+              <div class="color-btn active" data-color="#000000" style="background: #000000;"></div>
+              <div class="color-btn" data-color="#0066cc" style="background: #0066cc;"></div>
+              <div class="color-btn" data-color="#cc0000" style="background: #cc0000;"></div>
+              <div class="color-btn" data-color="#00cc00" style="background: #00cc00;"></div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: var(--space-md); align-items: center;">
+            <span style="font-weight: 600;">Weight:</span>
+            <div class="weight-slider">
+              <input type="range" id="penWeight" min="1" max="5" value="2" style="width: 100%;">
+            </div>
+            <span id="weightValue">2px</span>
+          </div>
+
+          <div style="display: flex; gap: var(--space-sm);">
+            <button class="btn btn-secondary" onclick="clearSignature()">Clear</button>
+            <button class="btn btn-secondary" onclick="undoStroke()">Undo</button>
+            <button class="btn btn-primary" onclick="saveSignature()">Save PNG</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div class="signature-preview" id="signaturePreview">
+        <h3>Signature Preview</h3>
+        <img id="previewImage" class="preview-image" alt="Signature preview">
+        <div style="margin-top: var(--space-lg); display: flex; gap: var(--space-md);">
+          <button class="btn btn-primary" onclick="downloadSignature()">
+            Download Image
+          </button>
+          <button class="btn btn-secondary" onclick="closePreview()">
+            Close Preview
+          </button>
+        </div>
+      </div>
+
+      <!-- Usage Tips -->
+      <div class="demo-info">
+        <h3>Usage Tips</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Draw naturally:</strong> Use your finger or stylus like a pen</li>
+          <li><strong>Pressure support:</strong> Varies line width based on touch force (if supported)</li>
+          <li><strong>Smooth curves:</strong> Uses bezier curves for natural-looking signatures</li>
+          <li><strong>Undo mistakes:</strong> Use the Undo button to remove the last stroke</li>
+          <li><strong>Save as image:</strong> Export your signature as a PNG file</li>
+        </ul>
+      </div>
+
+      <!-- Example Signatures -->
+      <div class="card mt-xl">
+        <h3>Example Use Cases</h3>
+        <div class="card-grid mt-lg">
+          <div class="card">
+            <h4>📄 Documents</h4>
+            <p style="font-size: 0.875rem; color: var(--gray-600);">
+              Sign contracts, forms, and agreements digitally
+            </p>
+          </div>
+          <div class="card">
+            <h4>📧 Emails</h4>
+            <p style="font-size: 0.875rem; color: var(--gray-600);">
+              Add personal signatures to email communications
+            </p>
+          </div>
+          <div class="card">
+            <h4>🎨 Art</h4>
+            <p style="font-size: 0.875rem; color: var(--gray-600);">
+              Create custom signatures for artwork and designs
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.2 - Signature Pad</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const canvas = document.getElementById('signatureCanvas');
+    const ctx = canvas.getContext('2d');
+    const placeholder = document.getElementById('placeholder');
+    const strokeCountEl = document.getElementById('strokeCount');
+
+    // State
+    let isDrawing = false;
+    let currentColor = '#000000';
+    let currentWeight = 2;
+    let points = [];
+    let strokes = [];
+    let strokeCount = 0;
+
+    // Initialize
+    function initCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+    }
+
+    initCanvas();
+
+    // Color selection
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentColor = btn.dataset.color;
+        TouchUtils.vibrate(10);
+      });
+    });
+
+    // Weight selection
+    const penWeight = document.getElementById('penWeight');
+    const weightValue = document.getElementById('weightValue');
+
+    penWeight.addEventListener('input', (e) => {
+      currentWeight = parseInt(e.target.value);
+      weightValue.textContent = currentWeight + 'px';
+      TouchUtils.vibrate(5);
+    });
+
+    // Drawing functions
+    function getCanvasPoint(e) {
+      const rect = canvas.getBoundingClientRect();
+      let clientX, clientY, pressure = 0.5;
+
+      if (e.type.includes('touch')) {
+        const touch = e.touches[0];
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+        pressure = touch.force || 0.5;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+        pressure = e.pressure || 0.5;
+      }
+
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+        pressure: Math.max(0.1, Math.min(1, pressure))
+      };
+    }
+
+    function startDrawing(e) {
+      e.preventDefault();
+      isDrawing = true;
+      placeholder.classList.add('hidden');
+
+      const point = getCanvasPoint(e);
+      points = [point];
+
+      ctx.beginPath();
+      ctx.moveTo(point.x, point.y);
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+
+      const point = getCanvasPoint(e);
+      points.push(point);
+
+      if (points.length < 3) {
+        const lastPoint = points[points.length - 1];
+        ctx.beginPath();
+        ctx.arc(lastPoint.x, lastPoint.y, currentWeight * lastPoint.pressure / 2, 0, Math.PI * 2);
+        ctx.fillStyle = currentColor;
+        ctx.fill();
+        return;
+      }
+
+      const lastTwo = points.slice(-2);
+      const controlPoint = lastTwo[0];
+      const endPoint = {
+        x: (controlPoint.x + lastTwo[1].x) / 2,
+        y: (controlPoint.y + lastTwo[1].y) / 2,
+        pressure: (controlPoint.pressure + lastTwo[1].pressure) / 2
+      };
+
+      ctx.lineWidth = currentWeight * endPoint.pressure;
+      ctx.strokeStyle = currentColor;
+      ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, endPoint.x, endPoint.y);
+      ctx.stroke();
+    }
+
+    function stopDrawing(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+
+      isDrawing = false;
+
+      if (points.length > 0) {
+        strokes.push({
+          points: [...points],
+          color: currentColor,
+          weight: currentWeight
+        });
+        strokeCount++;
+        strokeCountEl.textContent = `Strokes: ${strokeCount}`;
+      }
+
+      points = [];
+    }
+
+    // Event listeners
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+    canvas.addEventListener('touchcancel', stopDrawing);
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+
+    // Functions
+    function clearSignature() {
+      if (strokeCount === 0) return;
+
+      if (confirm('Clear signature?')) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        strokes = [];
+        strokeCount = 0;
+        strokeCountEl.textContent = 'Strokes: 0';
+        placeholder.classList.remove('hidden');
+        closePreview();
+        TouchUtils.vibrate(20);
+      }
+    }
+
+    function undoStroke() {
+      if (strokes.length === 0) return;
+
+      strokes.pop();
+      strokeCount--;
+      strokeCountEl.textContent = `Strokes: ${strokeCount}`;
+      redrawCanvas();
+      TouchUtils.vibrate(10);
+
+      if (strokeCount === 0) {
+        placeholder.classList.remove('hidden');
+      }
+    }
+
+    function redrawCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      strokes.forEach(stroke => {
+        ctx.strokeStyle = stroke.color;
+        ctx.lineWidth = stroke.weight;
+        ctx.beginPath();
+
+        stroke.points.forEach((point, index) => {
+          if (index === 0) {
+            ctx.moveTo(point.x, point.y);
+          } else {
+            const prevPoint = stroke.points[index - 1];
+            const midPoint = {
+              x: (prevPoint.x + point.x) / 2,
+              y: (prevPoint.y + point.y) / 2
+            };
+            ctx.quadraticCurveTo(prevPoint.x, prevPoint.y, midPoint.x, midPoint.y);
+          }
+        });
+
+        ctx.stroke();
+      });
+    }
+
+    function saveSignature() {
+      if (strokeCount === 0) {
+        alert('Please sign first!');
+        return;
+      }
+
+      const preview = document.getElementById('signaturePreview');
+      const previewImage = document.getElementById('previewImage');
+
+      previewImage.src = canvas.toDataURL('image/png');
+      preview.classList.add('show');
+      TouchUtils.vibrate(20);
+    }
+
+    function downloadSignature() {
+      const link = document.createElement('a');
+      link.download = `signature-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      TouchUtils.vibrate(20);
+    }
+
+    function closePreview() {
+      document.getElementById('signaturePreview').classList.remove('show');
+    }
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      initCanvas();
+      ctx.putImageData(imageData, 0, 0);
+    });
+  </script>
+</body>
+</html>

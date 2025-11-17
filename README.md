@@ -1,4 +1,4 @@
-# TouchScreen Demo Showcase v0.1
+# TouchScreen Demo Showcase v0.2
 
 A comprehensive collection of touchscreen interface demos exploring various frameworks, gestures, and UI patterns.
 
@@ -30,11 +30,22 @@ TouchScreen/
 │   ├── components/           # UI component demos
 │   │   ├── menus.html        # Navigation patterns
 │   │   ├── toggles.html      # Switches and toggles
-│   │   └── sliders.html      # Range controls
-│   └── showcase/             # Practical use cases
-│       ├── gallery.html      # Photo gallery
-│       ├── settings.html     # Settings panel
-│       └── media-player.html # Media controls
+│   │   ├── sliders.html      # Range controls
+│   │   ├── carousel.html     # Momentum carousel
+│   │   ├── pull-refresh.html # Pull to refresh
+│   │   └── sortable.html     # Drag and drop lists
+│   ├── showcase/             # Practical use cases
+│   │   ├── gallery.html      # Photo gallery
+│   │   ├── settings.html     # Settings panel
+│   │   ├── media-player.html # Media controls
+│   │   ├── swipe-cards.html  # Tinder-style cards
+│   │   ├── signature.html    # Signature pad
+│   │   └── color-picker.html # Touch color picker
+│   ├── interactive/          # Interactive experiences
+│   │   ├── game.html         # Touch-based game
+│   │   └── keyboard.html     # Virtual keyboard
+│   └── advanced/             # Advanced demos
+│       └── gestures.html     # Complex gestures
 ├── js/
 │   ├── touch-utils.js        # Touch helper utilities
 │   └── components.js         # Reusable components
@@ -97,6 +108,24 @@ Simply open `index.html` in a modern web browser. For best experience:
 - Clean, modern interface
 
 ## 📝 Version History
+
+### v0.2 (Enhanced Release)
+- **New Interactive Demos:**
+  - Swipe cards interface (Tinder-style)
+  - Signature pad with smooth drawing
+  - Touch-based color picker
+  - Touch game (Memory Match)
+  - Virtual keyboard/numpad
+- **Advanced Components:**
+  - Carousel with momentum scrolling
+  - Pull-to-refresh component
+  - Sortable/draggable lists
+  - Advanced gesture combinations
+- **Improvements:**
+  - Enhanced animations
+  - Better touch velocity tracking
+  - Improved visual polish
+  - More interactive experiences
 
 ### v0.1 (Initial Release)
 - Project structure established

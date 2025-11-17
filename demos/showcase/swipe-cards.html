@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Swipe Cards - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .cards-container {
+      max-width: 500px;
+      margin: 0 auto;
+      height: 600px;
+      position: relative;
+      perspective: 1000px;
+    }
+
+    .card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: white;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      transition: transform 0.3s ease-out, opacity 0.3s;
+    }
+
+    .card:active {
+      cursor: grabbing;
+    }
+
+    .card.swiping {
+      transition: none;
+    }
+
+    .card.swiped-right {
+      transform: translateX(150%) rotate(30deg);
+      opacity: 0;
+    }
+
+    .card.swiped-left {
+      transform: translateX(-150%) rotate(-30deg);
+      opacity: 0;
+    }
+
+    .card-image {
+      width: 100%;
+      height: 70%;
+      object-fit: cover;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    .card-info {
+      padding: var(--space-xl);
+    }
+
+    .card-name {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: var(--space-xs);
+    }
+
+    .card-description {
+      color: var(--gray-600);
+      font-size: 1rem;
+    }
+
+    .card-tags {
+      display: flex;
+      gap: var(--space-xs);
+      margin-top: var(--space-md);
+      flex-wrap: wrap;
+    }
+
+    .like-indicator, .nope-indicator {
+      position: absolute;
+      top: 50px;
+      font-size: 4rem;
+      font-weight: 900;
+      padding: var(--space-lg) var(--space-2xl);
+      border: 5px solid;
+      border-radius: var(--radius-lg);
+      opacity: 0;
+      pointer-events: none;
+      transform: rotate(-20deg);
+      transition: opacity 0.2s;
+    }
+
+    .like-indicator {
+      right: 50px;
+      color: var(--success);
+      border-color: var(--success);
+      transform: rotate(20deg);
+    }
+
+    .nope-indicator {
+      left: 50px;
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .card.rotating-right .like-indicator {
+      opacity: 1;
+    }
+
+    .card.rotating-left .nope-indicator {
+      opacity: 1;
+    }
+
+    .action-buttons {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-xl);
+      margin-top: var(--space-2xl);
+    }
+
+    .action-btn {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: none;
+      font-size: 2rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .action-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .action-btn:active {
+      transform: scale(0.95);
+    }
+
+    .action-btn.nope {
+      background: var(--danger);
+      color: white;
+    }
+
+    .action-btn.like {
+      background: var(--success);
+      color: white;
+    }
+
+    .action-btn.super {
+      background: var(--primary);
+      color: white;
+      width: 60px;
+      height: 60px;
+      font-size: 1.5rem;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      max-width: 500px;
+      margin: var(--space-xl) auto 0;
+      padding: var(--space-lg);
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-top: var(--space-xs);
+    }
+
+    .empty-state {
+      display: none;
+      text-align: center;
+      padding: var(--space-2xl);
+    }
+
+    .empty-state.show {
+      display: block;
+    }
+
+    .empty-state-icon {
+      font-size: 5rem;
+      margin-bottom: var(--space-lg);
+    }
+
+    .card-counter {
+      text-align: center;
+      font-weight: 700;
+      color: var(--gray-600);
+      margin-bottom: var(--space-lg);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Swipe Cards</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Tinder-style swipeable cards with smooth animations. Swipe right to like, left to pass!
+      </p>
+
+      <div class="card-counter" id="cardCounter">Card 1 of 8</div>
+
+      <div class="cards-container" id="cardsContainer">
+        <!-- Cards will be dynamically inserted here -->
+        <div class="empty-state" id="emptyState">
+          <div class="empty-state-icon">🎉</div>
+          <h2>All Done!</h2>
+          <p style="color: var(--gray-600); margin: var(--space-lg) 0;">
+            You've reviewed all the cards
+          </p>
+          <button class="btn btn-primary btn-large" onclick="resetCards()">
+            Start Over
+          </button>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="action-btn nope" onclick="swipeLeft()">✕</button>
+        <button class="action-btn super" onclick="superLike()">⭐</button>
+        <button class="action-btn like" onclick="swipeRight()">♥</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat-item">
+          <div class="stat-value" id="passCount">0</div>
+          <div class="stat-label">Passed</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="superCount">0</div>
+          <div class="stat-label">Super Liked</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="likeCount">0</div>
+          <div class="stat-label">Liked</div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>How to Use</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Swipe right:</strong> Like the card ♥</li>
+          <li><strong>Swipe left:</strong> Pass on the card ✕</li>
+          <li><strong>Drag & release:</strong> Card returns if not swiped far enough</li>
+          <li><strong>Click buttons:</strong> Use action buttons below cards</li>
+          <li><strong>Visual feedback:</strong> LIKE/NOPE indicators appear as you swipe</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.2 - Swipe Cards</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    // Card data
+    const cardData = [
+      {
+        name: 'Mountain Adventure',
+        description: 'Hiking enthusiast seeking outdoor companions',
+        tags: ['🏔️ Hiking', '📸 Photography', '🌲 Nature'],
+        image: 'https://picsum.photos/500/700?random=1'
+      },
+      {
+        name: 'Coffee Lover',
+        description: 'Barista and coffee connoisseur',
+        tags: ['☕ Coffee', '📚 Reading', '🎨 Art'],
+        image: 'https://picsum.photos/500/700?random=2'
+      },
+      {
+        name: 'Tech Enthusiast',
+        description: 'Software developer who loves building things',
+        tags: ['💻 Coding', '🎮 Gaming', '🤖 AI'],
+        image: 'https://picsum.photos/500/700?random=3'
+      },
+      {
+        name: 'Fitness Fanatic',
+        description: 'Gym regular and marathon runner',
+        tags: ['🏃 Running', '💪 Fitness', '🥗 Healthy'],
+        image: 'https://picsum.photos/500/700?random=4'
+      },
+      {
+        name: 'Music Maker',
+        description: 'Musician and music producer',
+        tags: ['🎵 Music', '🎸 Guitar', '🎧 DJ'],
+        image: 'https://picsum.photos/500/700?random=5'
+      },
+      {
+        name: 'Travel Bug',
+        description: 'Digital nomad exploring the world',
+        tags: ['✈️ Travel', '🌍 Culture', '📷 Photos'],
+        image: 'https://picsum.photos/500/700?random=6'
+      },
+      {
+        name: 'Foodie',
+        description: 'Chef and restaurant explorer',
+        tags: ['🍕 Food', '👨‍🍳 Cooking', '🍷 Wine'],
+        image: 'https://picsum.photos/500/700?random=7'
+      },
+      {
+        name: 'Book Worm',
+        description: 'Literature lover and writer',
+        tags: ['📖 Books', '✍️ Writing', '☕ Coffee'],
+        image: 'https://picsum.photos/500/700?random=8'
+      }
+    ];
+
+    let currentIndex = 0;
+    let cards = [];
+    let stats = { passed: 0, liked: 0, super: 0 };
+
+    const cardsContainer = document.getElementById('cardsContainer');
+    const emptyState = document.getElementById('emptyState');
+    const cardCounter = document.getElementById('cardCounter');
+
+    // Initialize cards
+    function initCards() {
+      cardsContainer.innerHTML = '';
+      cards = [];
+      currentIndex = 0;
+      stats = { passed: 0, liked: 0, super: 0 };
+      updateStats();
+
+      // Create cards in reverse order (so first card is on top)
+      for (let i = cardData.length - 1; i >= 0; i--) {
+        const card = createCard(cardData[i], i);
+        cardsContainer.appendChild(card);
+        cards.push(card);
+      }
+
+      updateCardCounter();
+      emptyState.classList.remove('show');
+    }
+
+    function createCard(data, index) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.zIndex = cardData.length - index;
+
+      const tagsHTML = data.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+
+      card.innerHTML = `
+        <div class="like-indicator">LIKE</div>
+        <div class="nope-indicator">NOPE</div>
+        <img src="${data.image}" alt="${data.name}" class="card-image">
+        <div class="card-info">
+          <div class="card-name">${data.name}</div>
+          <div class="card-description">${data.description}</div>
+          <div class="card-tags">${tagsHTML}</div>
+        </div>
+      `;
+
+      // Make card draggable
+      let startX = 0, startY = 0;
+      let currentX = 0, currentY = 0;
+      let isDragging = false;
+
+      const onStart = (e) => {
+        if (cards.indexOf(card) !== cards.length - 1) return; // Only drag top card
+
+        isDragging = true;
+        card.classList.add('swiping');
+
+        const point = e.type.includes('touch') ? e.touches[0] : e;
+        startX = point.clientX - currentX;
+        startY = point.clientY - currentY;
+      };
+
+      const onMove = (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+
+        const point = e.type.includes('touch') ? e.touches[0] : e;
+        currentX = point.clientX - startX;
+        currentY = point.clientY - startY;
+
+        const rotation = currentX / 20;
+
+        card.style.transform = `translate(${currentX}px, ${currentY}px) rotate(${rotation}deg)`;
+
+        // Show like/nope indicators
+        if (currentX > 50) {
+          card.classList.add('rotating-right');
+          card.classList.remove('rotating-left');
+        } else if (currentX < -50) {
+          card.classList.add('rotating-left');
+          card.classList.remove('rotating-right');
+        } else {
+          card.classList.remove('rotating-right', 'rotating-left');
+        }
+      };
+
+      const onEnd = (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        card.classList.remove('swiping');
+
+        // Determine if swiped far enough
+        const threshold = 100;
+
+        if (Math.abs(currentX) > threshold) {
+          if (currentX > 0) {
+            animateSwipeRight(card);
+          } else {
+            animateSwipeLeft(card);
+          }
+        } else {
+          // Return to center
+          card.style.transform = '';
+          currentX = 0;
+          currentY = 0;
+          card.classList.remove('rotating-right', 'rotating-left');
+        }
+      };
+
+      card.addEventListener('touchstart', onStart);
+      card.addEventListener('touchmove', onMove);
+      card.addEventListener('touchend', onEnd);
+      card.addEventListener('mousedown', onStart);
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+
+      return card;
+    }
+
+    function animateSwipeRight(card) {
+      card.classList.add('swiped-right');
+      stats.liked++;
+      updateStats();
+      removeCard(card);
+      TouchUtils.vibrate(20);
+    }
+
+    function animateSwipeLeft(card) {
+      card.classList.add('swiped-left');
+      stats.passed++;
+      updateStats();
+      removeCard(card);
+      TouchUtils.vibrate(20);
+    }
+
+    function removeCard(card) {
+      setTimeout(() => {
+        card.remove();
+        currentIndex++;
+        updateCardCounter();
+
+        if (currentIndex >= cardData.length) {
+          emptyState.classList.add('show');
+        }
+      }, 300);
+    }
+
+    function swipeRight() {
+      const topCard = cards[cards.length - 1 - currentIndex];
+      if (topCard) {
+        animateSwipeRight(topCard);
+      }
+    }
+
+    function swipeLeft() {
+      const topCard = cards[cards.length - 1 - currentIndex];
+      if (topCard) {
+        animateSwipeLeft(topCard);
+      }
+    }
+
+    function superLike() {
+      const topCard = cards[cards.length - 1 - currentIndex];
+      if (topCard) {
+        topCard.style.transform = 'translateY(-500px) scale(1.2)';
+        topCard.style.opacity = '0';
+        stats.super++;
+        updateStats();
+        removeCard(topCard);
+        TouchUtils.vibrate([20, 50, 20]);
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('passCount').textContent = stats.passed;
+      document.getElementById('likeCount').textContent = stats.liked;
+      document.getElementById('superCount').textContent = stats.super;
+    }
+
+    function updateCardCounter() {
+      const remaining = cardData.length - currentIndex;
+      if (remaining > 0) {
+        cardCounter.textContent = `Card ${currentIndex + 1} of ${cardData.length}`;
+      } else {
+        cardCounter.textContent = 'No more cards';
+      }
+    }
+
+    function resetCards() {
+      initCards();
+    }
+
+    // Initialize on load
+    initCards();
+  </script>
+</body>
+</html>
