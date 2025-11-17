@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Touch Analytics & Heatmap - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .analytics-container {
+      background: white;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+      margin-bottom: var(--space-xl);
+    }
+
+    .heatmap-canvas {
+      width: 100%;
+      height: 500px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      cursor: pointer;
+      touch-action: none;
+      position: relative;
+    }
+
+    .heatmap-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      mix-blend-mode: multiply;
+      opacity: 0.7;
+    }
+
+    .canvas-hint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+      color: var(--gray-600);
+    }
+
+    .analytics-panel {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-lg);
+      margin-top: var(--space-lg);
+    }
+
+    .metric-card {
+      background: var(--gray-50);
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Monaco', monospace;
+    }
+
+    .metric-label {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-top: var(--space-xs);
+    }
+
+    .metric-change {
+      font-size: 0.75rem;
+      margin-top: var(--space-xs);
+      font-weight: 600;
+    }
+
+    .metric-change.positive {
+      color: var(--success);
+    }
+
+    .controls-bar {
+      padding: var(--space-lg);
+      background: var(--gray-100);
+      border-bottom: 1px solid var(--gray-300);
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .heatmap-controls {
+      display: flex;
+      gap: var(--space-sm);
+      align-items: center;
+    }
+
+    .intensity-slider {
+      width: 150px;
+    }
+
+    .chart-container {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    #timeChart {
+      width: 100%;
+      height: 200px;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+    }
+
+    .event-log {
+      background: var(--gray-900);
+      color: var(--gray-100);
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      font-family: 'Monaco', monospace;
+      font-size: 0.875rem;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .log-entry {
+      padding: var(--space-xs) 0;
+      border-bottom: 1px solid var(--gray-700);
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-tap {
+      color: #3b82f6;
+    }
+
+    .log-swipe {
+      color: #10b981;
+    }
+
+    .log-pinch {
+      color: #f59e0b;
+    }
+
+    .touch-point {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: rgba(99, 102, 241, 0.5);
+      border: 2px solid var(--primary);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: fadeOut 1s forwards;
+    }
+
+    @keyframes fadeOut {
+      to {
+        transform: scale(2);
+        opacity: 0;
+      }
+    }
+
+    .legend {
+      display: flex;
+      gap: var(--space-lg);
+      margin-top: var(--space-md);
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-size: 0.875rem;
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: var(--radius-sm);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Touch Analytics & Heatmap</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Track and visualize touch interactions with real-time analytics and heatmap visualization.
+      </p>
+
+      <!-- Heatmap Canvas -->
+      <div class="analytics-container">
+        <div class="controls-bar">
+          <div class="heatmap-controls">
+            <label style="font-weight: 600;">Heatmap Intensity:</label>
+            <input type="range" class="intensity-slider" id="intensitySlider" min="1" max="10" value="5">
+            <span id="intensityValue" style="font-family: 'Monaco', monospace; color: var(--primary); font-weight: 700;">5</span>
+          </div>
+          <div style="flex: 1;"></div>
+          <button class="btn btn-secondary" onclick="clearHeatmap()">Clear Heatmap</button>
+          <button class="btn btn-primary" onclick="exportData()">Export Data</button>
+        </div>
+
+        <div class="heatmap-canvas" id="heatmapCanvas">
+          <canvas id="heatmap" width="1200" height="500"></canvas>
+          <div class="canvas-hint">
+            <div style="font-size: 3rem; margin-bottom: var(--space-md);">👆</div>
+            <div style="font-size: 1.25rem; font-weight: 600;">Touch anywhere to record interactions</div>
+            <div style="margin-top: var(--space-sm);">Heatmap shows touch frequency and patterns</div>
+          </div>
+          <div id="touchPoints"></div>
+        </div>
+      </div>
+
+      <!-- Real-time Metrics -->
+      <div class="analytics-panel">
+        <h3>Real-time Metrics</h3>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-value" id="totalTouches">0</div>
+            <div class="metric-label">Total Touches</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-value" id="avgDuration">0ms</div>
+            <div class="metric-label">Avg Touch Duration</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-value" id="touchesPerMin">0</div>
+            <div class="metric-label">Touches/Minute</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-value" id="gestureCount">0</div>
+            <div class="metric-label">Gestures Detected</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-value" id="multiTouchCount">0</div>
+            <div class="metric-label">Multi-touch Events</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-value" id="maxSimultaneous">0</div>
+            <div class="metric-label">Max Simultaneous</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Touch Timeline -->
+      <div class="chart-container">
+        <h3>Touch Activity Timeline</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Touches over time (last 60 seconds)
+        </p>
+        <canvas id="timeChart"></canvas>
+
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-color" style="background: #3b82f6;"></div>
+            <span>Single Touch</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #10b981;"></div>
+            <span>Multi-touch</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event Log -->
+      <div class="analytics-panel">
+        <h3>Touch Event Log</h3>
+        <div class="event-log" id="eventLog">
+          <div style="text-align: center; color: var(--gray-500); padding: var(--space-lg);">
+            No events recorded yet
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Analytics Features</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Heatmap visualization:</strong> Visual representation of touch frequency</li>
+          <li><strong>Real-time metrics:</strong> Live statistics on touch behavior</li>
+          <li><strong>Timeline chart:</strong> Historical view of touch activity</li>
+          <li><strong>Gesture detection:</strong> Identify taps, swipes, and pinches</li>
+          <li><strong>Multi-touch tracking:</strong> Monitor simultaneous touches</li>
+          <li><strong>Event logging:</strong> Detailed touch event history</li>
+          <li><strong>Data export:</strong> Download analytics as JSON</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Use Cases</h4>
+        <ul style="margin-left: var(--space-lg);">
+          <li>UX research and usability testing</li>
+          <li>A/B testing touch interface designs</li>
+          <li>Identifying interaction patterns</li>
+          <li>Optimizing button and element placement</li>
+          <li>Measuring engagement and interaction rates</li>
+          <li>Detecting accessibility issues</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.4 - Touch Analytics</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const canvas = document.getElementById('heatmap');
+    const ctx = canvas.getContext('2d');
+    const timeCanvas = document.getElementById('timeChart');
+    const timeCtx = timeCanvas.getContext('2d');
+
+    let heatmapData = [];
+    let touchEvents = [];
+    let metrics = {
+      totalTouches: 0,
+      durations: [],
+      gestures: 0,
+      multiTouch: 0,
+      maxSimultaneous: 0,
+      startTime: Date.now()
+    };
+
+    let heatmapIntensity = 5;
+    let timelineData = Array(60).fill(0);
+
+    // Initialize
+    function initCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = 1200;
+      canvas.height = 500;
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+
+      timeCanvas.width = timeCanvas.offsetWidth;
+      timeCanvas.height = 200;
+    }
+
+    initCanvas();
+
+    // Touch handlers
+    let touchStartTime = 0;
+    let touchStartPos = null;
+
+    document.getElementById('heatmapCanvas').addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      touchStartTime = Date.now();
+
+      Array.from(e.touches).forEach((touch, i) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        const x = (touch.clientX - rect.left) * scaleX;
+        const y = (touch.clientY - rect.top) * scaleY;
+
+        if (i === 0) {
+          touchStartPos = { x, y };
+        }
+
+        recordTouch(x, y);
+        showTouchPoint(touch.clientX, touch.clientY);
+      });
+
+      metrics.totalTouches += e.touches.length;
+      metrics.maxSimultaneous = Math.max(metrics.maxSimultaneous, e.touches.length);
+
+      if (e.touches.length > 1) {
+        metrics.multiTouch++;
+        logEvent('Multi-touch', e.touches.length + ' fingers', 'pinch');
+      }
+
+      updateMetrics();
+    });
+
+    document.getElementById('heatmapCanvas').addEventListener('touchend', (e) => {
+      const duration = Date.now() - touchStartTime;
+      metrics.durations.push(duration);
+
+      if (touchStartPos && e.changedTouches.length === 1) {
+        const touch = e.changedTouches[0];
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        const endX = (touch.clientX - rect.left) * scaleX;
+        const endY = (touch.clientY - rect.top) * scaleY;
+
+        const deltaX = endX - touchStartPos.x;
+        const deltaY = endY - touchStartPos.y;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        if (distance > 50) {
+          metrics.gestures++;
+          const direction = Math.abs(deltaX) > Math.abs(deltaY) ?
+            (deltaX > 0 ? 'right' : 'left') :
+            (deltaY > 0 ? 'down' : 'up');
+          logEvent('Swipe', direction, 'swipe');
+        } else if (duration < 300) {
+          metrics.gestures++;
+          logEvent('Tap', `${Math.round(endX)}, ${Math.round(endY)}`, 'tap');
+        }
+      }
+
+      updateMetrics();
+    });
+
+    // Mouse support
+    document.getElementById('heatmapCanvas').addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      recordTouch(x, y);
+      showTouchPoint(e.clientX, e.clientY);
+
+      metrics.totalTouches++;
+      metrics.gestures++;
+      logEvent('Click', `${Math.round(x)}, ${Math.round(y)}`, 'tap');
+      updateMetrics();
+    });
+
+    // Record touch
+    function recordTouch(x, y) {
+      heatmapData.push({ x, y, timestamp: Date.now() });
+      touchEvents.push({ x, y, timestamp: Date.now(), type: 'touch' });
+
+      drawHeatmap();
+      updateTimeline();
+    }
+
+    // Draw heatmap
+    function drawHeatmap() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      heatmapData.forEach(point => {
+        const gradient = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, 50 * heatmapIntensity);
+        gradient.addColorStop(0, 'rgba(255, 0, 0, 0.5)');
+        gradient.addColorStop(0.5, 'rgba(255, 165, 0, 0.3)');
+        gradient.addColorStop(1, 'rgba(255, 255, 0, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      });
+    }
+
+    // Show touch point
+    function showTouchPoint(x, y) {
+      const point = document.createElement('div');
+      point.className = 'touch-point';
+      point.style.left = x + 'px';
+      point.style.top = y + 'px';
+
+      document.getElementById('touchPoints').appendChild(point);
+
+      setTimeout(() => point.remove(), 1000);
+    }
+
+    // Update metrics
+    function updateMetrics() {
+      document.getElementById('totalTouches').textContent = metrics.totalTouches;
+      document.getElementById('gestureCount').textContent = metrics.gestures;
+      document.getElementById('multiTouchCount').textContent = metrics.multiTouch;
+      document.getElementById('maxSimultaneous').textContent = metrics.maxSimultaneous;
+
+      if (metrics.durations.length > 0) {
+        const avg = metrics.durations.reduce((a, b) => a + b, 0) / metrics.durations.length;
+        document.getElementById('avgDuration').textContent = Math.round(avg) + 'ms';
+      }
+
+      const minutesElapsed = (Date.now() - metrics.startTime) / 60000;
+      const touchesPerMin = metrics.totalTouches / minutesElapsed;
+      document.getElementById('touchesPerMin').textContent = Math.round(touchesPerMin);
+    }
+
+    // Update timeline
+    function updateTimeline() {
+      const currentSecond = Math.floor((Date.now() - metrics.startTime) / 1000) % 60;
+      timelineData[currentSecond] = (timelineData[currentSecond] || 0) + 1;
+
+      drawTimeline();
+    }
+
+    // Draw timeline
+    function drawTimeline() {
+      timeCtx.clearRect(0, 0, timeCanvas.width, timeCanvas.height);
+
+      const maxValue = Math.max(...timelineData, 1);
+      const barWidth = timeCanvas.width / 60;
+
+      timelineData.forEach((value, i) => {
+        const barHeight = (value / maxValue) * (timeCanvas.height - 20);
+
+        timeCtx.fillStyle = value > 1 ? '#10b981' : '#3b82f6';
+        timeCtx.fillRect(i * barWidth, timeCanvas.height - barHeight, barWidth - 2, barHeight);
+      });
+
+      // Draw axis
+      timeCtx.strokeStyle = '#e5e7eb';
+      timeCtx.lineWidth = 2;
+      timeCtx.beginPath();
+      timeCtx.moveTo(0, timeCanvas.height - 1);
+      timeCtx.lineTo(timeCanvas.width, timeCanvas.height - 1);
+      timeCtx.stroke();
+    }
+
+    // Log event
+    function logEvent(type, details, className) {
+      const log = document.getElementById('eventLog');
+
+      // Remove placeholder
+      if (log.querySelector('div[style*="text-align: center"]')) {
+        log.innerHTML = '';
+      }
+
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${className}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${type}: ${details}`;
+
+      log.insertBefore(entry, log.firstChild);
+
+      // Keep only last 50 entries
+      while (log.children.length > 50) {
+        log.removeChild(log.lastChild);
+      }
+    }
+
+    // Controls
+    document.getElementById('intensitySlider').addEventListener('input', (e) => {
+      heatmapIntensity = parseInt(e.target.value);
+      document.getElementById('intensityValue').textContent = heatmapIntensity;
+      drawHeatmap();
+    });
+
+    function clearHeatmap() {
+      if (!confirm('Clear all heatmap data?')) return;
+
+      heatmapData = [];
+      touchEvents = [];
+      metrics = {
+        totalTouches: 0,
+        durations: [],
+        gestures: 0,
+        multiTouch: 0,
+        maxSimultaneous: 0,
+        startTime: Date.now()
+      };
+      timelineData = Array(60).fill(0);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawTimeline();
+      updateMetrics();
+
+      document.getElementById('eventLog').innerHTML = '<div style="text-align: center; color: var(--gray-500); padding: var(--space-lg);">No events recorded yet</div>';
+
+      TouchUtils.vibrate(20);
+    }
+
+    function exportData() {
+      const data = {
+        metrics: {
+          ...metrics,
+          avgDuration: metrics.durations.length > 0 ?
+            metrics.durations.reduce((a, b) => a + b, 0) / metrics.durations.length : 0
+        },
+        touchEvents: touchEvents,
+        heatmapData: heatmapData,
+        timelineData: timelineData,
+        exportDate: new Date().toISOString()
+      };
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `touch-analytics-${Date.now()}.json`;
+      link.click();
+
+      URL.revokeObjectURL(url);
+      TouchUtils.vibrate([20, 50, 20]);
+    }
+
+    // Initial draw
+    drawTimeline();
+
+    // Auto-update timeline
+    setInterval(() => {
+      const currentSecond = Math.floor((Date.now() - metrics.startTime) / 1000) % 60;
+      // Shift data if we've wrapped around
+      if (currentSecond === 0 && timelineData[59] > 0) {
+        timelineData = Array(60).fill(0);
+      }
+      drawTimeline();
+    }, 1000);
+  </script>
+</body>
+</html>

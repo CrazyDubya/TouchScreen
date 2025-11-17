@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Touch Accessibility - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .demo-panel {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .touch-target-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: var(--space-lg);
+      margin-top: var(--space-lg);
+    }
+
+    .touch-target {
+      aspect-ratio: 1;
+      background: var(--gray-100);
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+
+    .touch-target:focus {
+      outline: 3px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .touch-target:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .touch-target.success {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+
+    .touch-target.error {
+      background: var(--danger);
+      color: white;
+      border-color: var(--danger);
+    }
+
+    .target-size {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      font-family: 'Monaco', monospace;
+    }
+
+    .target-label {
+      font-weight: 600;
+    }
+
+    .high-contrast {
+      filter: contrast(150%) saturate(0);
+    }
+
+    .large-text {
+      font-size: 1.25rem;
+    }
+
+    .reduced-motion * {
+      animation: none !important;
+      transition: none !important;
+    }
+
+    .screen-reader-text {
+      position: absolute;
+      left: -10000px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    .focus-indicator {
+      position: fixed;
+      border: 4px solid var(--primary);
+      border-radius: var(--radius-md);
+      pointer-events: none;
+      z-index: 9999;
+      display: none;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    }
+
+    .settings-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-lg);
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-md);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 60px;
+      height: 32px;
+      background: var(--gray-300);
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .toggle-switch.active {
+      background: var(--success);
+    }
+
+    .toggle-knob {
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .toggle-switch.active .toggle-knob {
+      transform: translateX(28px);
+    }
+
+    .gesture-demo {
+      background: var(--gray-100);
+      padding: var(--space-2xl);
+      border-radius: var(--radius-lg);
+      text-align: center;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+
+    .voice-feedback {
+      position: fixed;
+      bottom: var(--space-xl);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--gray-900);
+      color: white;
+      padding: var(--space-lg) var(--space-xl);
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-xl);
+      z-index: 10000;
+      display: none;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Touch Accessibility Features</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Inclusive touch interfaces with accessibility best practices and adaptive features.
+      </p>
+
+      <!-- Accessibility Settings -->
+      <div class="demo-panel">
+        <h3>Accessibility Settings</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Toggle features to see how they improve touch accessibility
+        </p>
+
+        <div class="settings-toggle" onclick="toggleSetting('highContrast')">
+          <div>
+            <div style="font-weight: 600;">High Contrast Mode</div>
+            <div style="font-size: 0.875rem; color: var(--gray-600);">Increase visual distinction</div>
+          </div>
+          <div class="toggle-switch" id="highContrastToggle">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+
+        <div class="settings-toggle" onclick="toggleSetting('largeText')">
+          <div>
+            <div style="font-weight: 600;">Large Text</div>
+            <div style="font-size: 0.875rem; color: var(--gray-600);">Increase font size</div>
+          </div>
+          <div class="toggle-switch" id="largeTextToggle">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+
+        <div class="settings-toggle" onclick="toggleSetting('reducedMotion')">
+          <div>
+            <div style="font-weight: 600;">Reduced Motion</div>
+            <div style="font-size: 0.875rem; color: var(--gray-600);">Minimize animations</div>
+          </div>
+          <div class="toggle-switch" id="reducedMotionToggle">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+
+        <div class="settings-toggle" onclick="toggleSetting('voiceFeedback')">
+          <div>
+            <div style="font-weight: 600;">Voice Feedback</div>
+            <div style="font-size: 0.875rem; color: var(--gray-600);">Audio confirmation</div>
+          </div>
+          <div class="toggle-switch" id="voiceFeedbackToggle">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Touch Target Sizes -->
+      <div class="demo-panel">
+        <h3>Touch Target Sizes</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Minimum 44x44px targets following WCAG guidelines
+        </p>
+
+        <div class="touch-target-grid">
+          <button class="touch-target"
+                  style="min-width: 32px; min-height: 32px;"
+                  onclick="checkTarget(this, 32)"
+                  aria-label="32x32 pixel touch target - Too small">
+            <span class="target-label">32×32</span>
+            <span class="target-size">Too Small</span>
+          </button>
+
+          <button class="touch-target"
+                  style="min-width: 44px; min-height: 44px;"
+                  onclick="checkTarget(this, 44)"
+                  aria-label="44x44 pixel touch target - Minimum recommended">
+            <span class="target-label">44×44</span>
+            <span class="target-size">Minimum</span>
+          </button>
+
+          <button class="touch-target"
+                  style="min-width: 48px; min-height: 48px;"
+                  onclick="checkTarget(this, 48)"
+                  aria-label="48x48 pixel touch target - Good size">
+            <span class="target-label">48×48</span>
+            <span class="target-size">Good</span>
+          </button>
+
+          <button class="touch-target"
+                  style="min-width: 56px; min-height: 56px;"
+                  onclick="checkTarget(this, 56)"
+                  aria-label="56x56 pixel touch target - Excellent size">
+            <span class="target-label">56×56</span>
+            <span class="target-size">Excellent</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Gesture Alternatives -->
+      <div class="demo-panel">
+        <h3>Gesture Alternatives</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Provide multiple ways to perform actions
+        </p>
+
+        <div class="gesture-demo" id="gestureDemo">
+          <div style="font-size: 3rem;">📏</div>
+          <div style="font-weight: 600; font-size: 1.25rem;">Current Size: <span id="currentSize">100%</span></div>
+          <div style="color: var(--gray-600);">
+            Pinch to zoom OR use buttons below
+          </div>
+
+          <div style="display: flex; gap: var(--space-md); margin-top: var(--space-md);">
+            <button class="btn btn-secondary" onclick="adjustSize(-10)" aria-label="Decrease size by 10%">− Decrease</button>
+            <button class="btn btn-secondary" onclick="adjustSize(0)" aria-label="Reset size to 100%">Reset</button>
+            <button class="btn btn-secondary" onclick="adjustSize(10)" aria-label="Increase size by 10%">+ Increase</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Keyboard Navigation -->
+      <div class="demo-panel">
+        <h3>Keyboard & Screen Reader Support</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Tab through interactive elements with proper ARIA labels
+        </p>
+
+        <div style="display: grid; gap: var(--space-md);">
+          <button class="btn btn-primary"
+                  aria-label="Primary action button - Save changes">
+            💾 Save
+            <span class="screen-reader-text">Saves your current changes</span>
+          </button>
+
+          <button class="btn btn-secondary"
+                  aria-label="Secondary action button - Cancel operation">
+            ✕ Cancel
+            <span class="screen-reader-text">Cancels the current operation</span>
+          </button>
+
+          <button class="btn btn-secondary"
+                  aria-label="Help button - Opens help documentation"
+                  aria-describedby="helpDescription">
+            ❓ Help
+            <span id="helpDescription" class="screen-reader-text">
+              Opens the help documentation in a new window
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Accessibility Best Practices</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Touch targets:</strong> Minimum 44×44px (WCAG 2.1 Level AAA)</li>
+          <li><strong>Color contrast:</strong> 4.5:1 ratio for text, 3:1 for UI elements</li>
+          <li><strong>Alternative input:</strong> Keyboard navigation and screen reader support</li>
+          <li><strong>Gesture alternatives:</strong> Buttons for complex gestures</li>
+          <li><strong>Focus indicators:</strong> Visible focus states</li>
+          <li><strong>ARIA labels:</strong> Descriptive labels for assistive technology</li>
+          <li><strong>Reduced motion:</strong> Respect prefers-reduced-motion</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">WCAG 2.1 Guidelines</h4>
+        <ul style="margin-left: var(--space-lg);">
+          <li>2.5.5 Target Size (Level AAA) - 44×44 CSS pixels</li>
+          <li>2.5.1 Pointer Gestures (Level A) - Alternatives for multipoint gestures</li>
+          <li>2.5.2 Pointer Cancellation (Level A) - Up event or abort/undo</li>
+          <li>2.5.3 Label in Name (Level A) - Visible label matches accessible name</li>
+          <li>2.1.1 Keyboard (Level A) - All functionality via keyboard</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Testing Tools</h4>
+        <ul style="margin-left: var(--space-lg);">
+          <li>Screen readers: NVDA, JAWS, VoiceOver</li>
+          <li>Browser DevTools: Accessibility inspector</li>
+          <li>axe DevTools for automated testing</li>
+          <li>Lighthouse accessibility audit</li>
+          <li>Manual testing with keyboard only</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.4 - Touch Accessibility</p>
+    </div>
+  </footer>
+
+  <div class="focus-indicator" id="focusIndicator"></div>
+  <div class="voice-feedback" id="voiceFeedback"></div>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const settings = {
+      highContrast: false,
+      largeText: false,
+      reducedMotion: false,
+      voiceFeedback: false
+    };
+
+    let currentZoom = 100;
+
+    function toggleSetting(setting) {
+      settings[setting] = !settings[setting];
+
+      const toggle = document.getElementById(setting + 'Toggle');
+      toggle.classList.toggle('active', settings[setting]);
+
+      applySetting(setting, settings[setting]);
+      TouchUtils.vibrate(10);
+
+      if (settings.voiceFeedback) {
+        speak(`${setting} ${settings[setting] ? 'enabled' : 'disabled'}`);
+      }
+    }
+
+    function applySetting(setting, enabled) {
+      const body = document.body;
+
+      switch(setting) {
+        case 'highContrast':
+          body.classList.toggle('high-contrast', enabled);
+          break;
+        case 'largeText':
+          body.classList.toggle('large-text', enabled);
+          break;
+        case 'reducedMotion':
+          body.classList.toggle('reduced-motion', enabled);
+          break;
+        case 'voiceFeedback':
+          // Already handled in toggle function
+          break;
+      }
+    }
+
+    function checkTarget(element, size) {
+      element.classList.remove('success', 'error');
+
+      if (size >= 44) {
+        element.classList.add('success');
+        if (settings.voiceFeedback) {
+          speak(`${size} pixels - Good touch target size`);
+        }
+      } else {
+        element.classList.add('error');
+        if (settings.voiceFeedback) {
+          speak(`${size} pixels - Touch target too small`);
+        }
+      }
+
+      setTimeout(() => {
+        element.classList.remove('success', 'error');
+      }, 2000);
+
+      TouchUtils.vibrate(20);
+    }
+
+    function adjustSize(delta) {
+      if (delta === 0) {
+        currentZoom = 100;
+      } else {
+        currentZoom = Math.max(50, Math.min(200, currentZoom + delta));
+      }
+
+      const demo = document.getElementById('gestureDemo');
+      demo.style.transform = `scale(${currentZoom / 100})`;
+      document.getElementById('currentSize').textContent = currentZoom + '%';
+
+      if (settings.voiceFeedback) {
+        speak(`Size ${currentZoom} percent`);
+      }
+
+      TouchUtils.vibrate(10);
+    }
+
+    function speak(text) {
+      const feedback = document.getElementById('voiceFeedback');
+      feedback.textContent = text;
+      feedback.style.display = 'block';
+
+      setTimeout(() => {
+        feedback.style.display = 'none';
+      }, 2000);
+
+      // Use Web Speech API if available
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.2;
+        utterance.pitch = 1;
+        speechSynthesis.speak(utterance);
+      }
+    }
+
+    // Pinch zoom on gesture demo
+    const gestureDemo = document.getElementById('gestureDemo');
+    let initialPinchDistance = 0;
+    let initialZoom = 100;
+
+    gestureDemo.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        initialPinchDistance = TouchUtils.getPinchDistance(e.touches);
+        initialZoom = currentZoom;
+      }
+    });
+
+    gestureDemo.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const currentDistance = TouchUtils.getPinchDistance(e.touches);
+        const scale = currentDistance / initialPinchDistance;
+        currentZoom = Math.max(50, Math.min(200, initialZoom * scale));
+
+        gestureDemo.style.transform = `scale(${currentZoom / 100})`;
+        document.getElementById('currentSize').textContent = Math.round(currentZoom) + '%';
+      }
+    });
+
+    // Focus indicator
+    document.addEventListener('focusin', (e) => {
+      const indicator = document.getElementById('focusIndicator');
+      const rect = e.target.getBoundingClientRect();
+
+      indicator.style.left = rect.left + 'px';
+      indicator.style.top = rect.top + 'px';
+      indicator.style.width = rect.width + 'px';
+      indicator.style.height = rect.height + 'px';
+      indicator.style.display = 'block';
+    });
+
+    document.addEventListener('focusout', () => {
+      document.getElementById('focusIndicator').style.display = 'none';
+    });
+
+    // Check for user preferences
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      toggleSetting('reducedMotion');
+    }
+
+    if (window.matchMedia('(prefers-contrast: high)').matches) {
+      toggleSetting('highContrast');
+    }
+  </script>
+</body>
+</html>
