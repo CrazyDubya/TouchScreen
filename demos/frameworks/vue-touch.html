@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Vue.js Touch Components - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    [v-cloak] {
+      display: none;
+    }
+
+    .vue-app {
+      min-height: 400px;
+    }
+
+    .component-section {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .swipe-card {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: var(--space-2xl);
+      border-radius: var(--radius-xl);
+      text-align: center;
+      user-select: none;
+      touch-action: pan-y;
+      cursor: grab;
+      transition: transform 0.1s;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .swipe-card:active {
+      cursor: grabbing;
+    }
+
+    .swipe-card h3 {
+      margin-bottom: var(--space-md);
+      font-size: 1.5rem;
+    }
+
+    .swipe-card p {
+      opacity: 0.9;
+    }
+
+    .swipe-indicator {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-sm);
+      margin-top: var(--space-lg);
+    }
+
+    .indicator-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--gray-300);
+      transition: all var(--transition-fast);
+    }
+
+    .indicator-dot.active {
+      background: var(--primary);
+      width: 30px;
+      border-radius: var(--radius-full);
+    }
+
+    .draggable-item {
+      background: var(--gray-100);
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-md);
+      cursor: move;
+      user-select: none;
+      touch-action: none;
+      transition: all 0.2s;
+    }
+
+    .draggable-item:active {
+      transform: scale(1.05);
+      box-shadow: var(--shadow-lg);
+      z-index: 10;
+    }
+
+    .draggable-item.dragging {
+      opacity: 0.5;
+    }
+
+    .drop-zone {
+      min-height: 200px;
+      background: var(--gray-50);
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-md);
+    }
+
+    .drop-zone.drag-over {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .drop-zone-title {
+      font-weight: 700;
+      color: var(--gray-700);
+      margin-bottom: var(--space-md);
+    }
+
+    .pinch-zone {
+      width: 100%;
+      height: 400px;
+      background: var(--gray-100);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      position: relative;
+      touch-action: none;
+    }
+
+    .pinch-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--primary);
+      transition: transform 0.1s;
+      user-select: none;
+    }
+
+    .gesture-log {
+      background: var(--gray-900);
+      color: var(--gray-100);
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      font-family: 'Monaco', monospace;
+      font-size: 0.875rem;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: var(--space-lg);
+    }
+
+    .log-entry {
+      padding: var(--space-xs) 0;
+      border-bottom: 1px solid var(--gray-700);
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+
+    .stat-box {
+      background: var(--gray-50);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-bottom: var(--space-xs);
+    }
+
+    .stat-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Monaco', monospace;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .counter-display {
+      font-size: 4rem;
+      font-weight: 700;
+      text-align: center;
+      color: var(--primary);
+      margin: var(--space-xl) 0;
+      font-family: 'Monaco', monospace;
+    }
+
+    .touch-button {
+      min-height: 80px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-lg);
+      font-size: 1.25rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      touch-action: manipulation;
+    }
+
+    .touch-button:active {
+      transform: scale(0.95);
+      background: var(--secondary);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Vue.js Touch Components</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Reactive touch interactions powered by Vue.js 3 - swipe, drag, pinch, and more.
+      </p>
+
+      <div id="app" v-cloak class="vue-app">
+        <!-- Swipe Cards Component -->
+        <div class="component-section">
+          <h3>Swipe Cards</h3>
+          <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+            Swipe left or right to navigate through cards
+          </p>
+
+          <div
+            class="swipe-card"
+            @touchstart="handleSwipeStart"
+            @touchmove="handleSwipeMove"
+            @touchend="handleSwipeEnd"
+            :style="{ transform: `translateX(${swipeOffset}px) rotate(${swipeOffset / 20}deg)` }"
+          >
+            <h3>{{ currentCard.title }}</h3>
+            <p>{{ currentCard.description }}</p>
+          </div>
+
+          <div class="swipe-indicator">
+            <div
+              v-for="(card, index) in cards"
+              :key="index"
+              class="indicator-dot"
+              :class="{ active: index === currentCardIndex }"
+            ></div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-box">
+              <div class="stat-label">Current Card</div>
+              <div class="stat-value">{{ currentCardIndex + 1 }} / {{ cards.length }}</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Swipes</div>
+              <div class="stat-value">{{ swipeCount }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Drag and Drop Component -->
+        <div class="component-section">
+          <h3>Drag & Drop Lists</h3>
+          <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+            Touch and drag items between lists
+          </p>
+
+          <div class="drop-zone" @drop="onDrop($event, 'todo')" @dragover.prevent @dragenter="onDragEnter('todo')" @dragleave="onDragLeave">
+            <div class="drop-zone-title">📝 To Do ({{ todoItems.length }})</div>
+            <div
+              v-for="item in todoItems"
+              :key="item.id"
+              class="draggable-item"
+              draggable="true"
+              @dragstart="startDrag($event, item)"
+              @touchstart="touchStart($event, item)"
+              @touchmove="touchMove"
+              @touchend="touchEnd($event, 'todo')"
+            >
+              {{ item.text }}
+            </div>
+          </div>
+
+          <div class="drop-zone" @drop="onDrop($event, 'done')" @dragover.prevent @dragenter="onDragEnter('done')" @dragleave="onDragLeave">
+            <div class="drop-zone-title">✅ Done ({{ doneItems.length }})</div>
+            <div
+              v-for="item in doneItems"
+              :key="item.id"
+              class="draggable-item"
+              draggable="true"
+              @dragstart="startDrag($event, item)"
+              @touchstart="touchStart($event, item)"
+              @touchmove="touchMove"
+              @touchend="touchEnd($event, 'done')"
+            >
+              {{ item.text }}
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-secondary" @click="resetLists">Reset Lists</button>
+          </div>
+        </div>
+
+        <!-- Pinch Zoom Component -->
+        <div class="component-section">
+          <h3>Pinch to Zoom</h3>
+          <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+            Use two fingers to pinch and zoom
+          </p>
+
+          <div
+            class="pinch-zone"
+            @touchstart="pinchStart"
+            @touchmove="pinchMove"
+            @touchend="pinchEnd"
+          >
+            <div
+              class="pinch-content"
+              :style="{ transform: `scale(${zoomLevel})` }"
+            >
+              <div>
+                <div style="font-size: 4rem;">🖼️</div>
+                <div style="font-size: 1.5rem; margin-top: var(--space-md);">
+                  {{ Math.round(zoomLevel * 100) }}%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-box">
+              <div class="stat-label">Zoom Level</div>
+              <div class="stat-value">{{ Math.round(zoomLevel * 100) }}%</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Min / Max</div>
+              <div class="stat-value">50% / 300%</div>
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-secondary" @click="zoomLevel = 1">Reset Zoom</button>
+            <button class="btn btn-secondary" @click="zoomLevel = Math.min(3, zoomLevel + 0.5)">Zoom In</button>
+            <button class="btn btn-secondary" @click="zoomLevel = Math.max(0.5, zoomLevel - 0.5)">Zoom Out</button>
+          </div>
+        </div>
+
+        <!-- Touch Counter Component -->
+        <div class="component-section">
+          <h3>Touch Counter</h3>
+          <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+            Tap the button to increment, long-press to reset
+          </p>
+
+          <div class="counter-display">{{ counter }}</div>
+
+          <button
+            class="touch-button"
+            @click="incrementCounter"
+            @touchstart="touchCounterStart"
+            @touchend="touchCounterEnd"
+          >
+            Tap to Count
+          </button>
+
+          <div class="stats-row">
+            <div class="stat-box">
+              <div class="stat-label">Total Taps</div>
+              <div class="stat-value">{{ counter }}</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Tap Speed</div>
+              <div class="stat-value">{{ tapSpeed.toFixed(1) }}/s</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gesture Log -->
+        <div class="component-section">
+          <h3>Gesture Event Log</h3>
+          <p style="color: var(--gray-600); margin-bottom: var(--space-md);">
+            Real-time touch event monitoring
+          </p>
+
+          <div class="gesture-log">
+            <div v-for="(log, index) in gestureLog" :key="index" class="log-entry">
+              [{{ log.time }}] {{ log.message }}
+            </div>
+            <div v-if="gestureLog.length === 0" style="text-align: center; color: var(--gray-500); padding: var(--space-lg);">
+              No events yet. Start interacting!
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-secondary" @click="clearLog">Clear Log</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Vue.js Integration</h3>
+        <p>
+          This demo showcases how to build touch-enabled components with Vue.js:
+        </p>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li><strong>Reactive state:</strong> Touch positions and gestures tracked with Vue's reactivity</li>
+          <li><strong>Event handlers:</strong> @touchstart, @touchmove, @touchend bindings</li>
+          <li><strong>Computed properties:</strong> Derived values from touch state</li>
+          <li><strong>Dynamic styling:</strong> CSS transforms driven by reactive data</li>
+          <li><strong>Component composition:</strong> Reusable touch-enabled components</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Key Features</h4>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li>Swipe gesture detection with momentum</li>
+          <li>Drag and drop with touch support</li>
+          <li>Multi-touch pinch zoom</li>
+          <li>Long-press detection</li>
+          <li>Real-time event logging</li>
+          <li>Responsive touch feedback</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.3 - Vue.js Touch Components</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          // Swipe cards
+          cards: [
+            { title: 'Card 1', description: 'Swipe to see more cards' },
+            { title: 'Card 2', description: 'Touch interactions with Vue' },
+            { title: 'Card 3', description: 'Reactive and responsive' },
+            { title: 'Card 4', description: 'Built with Vue.js 3' },
+            { title: 'Card 5', description: 'Final card!' }
+          ],
+          currentCardIndex: 0,
+          swipeOffset: 0,
+          swipeStartX: 0,
+          swipeCount: 0,
+
+          // Drag and drop
+          todoItems: [
+            { id: 1, text: 'Design homepage' },
+            { id: 2, text: 'Write documentation' },
+            { id: 3, text: 'Review pull requests' },
+            { id: 4, text: 'Deploy to production' }
+          ],
+          doneItems: [
+            { id: 5, text: 'Setup project' },
+            { id: 6, text: 'Install dependencies' }
+          ],
+          draggedItem: null,
+          touchDragItem: null,
+
+          // Pinch zoom
+          zoomLevel: 1,
+          initialPinchDistance: 0,
+          initialZoom: 1,
+
+          // Counter
+          counter: 0,
+          tapTimes: [],
+          tapSpeed: 0,
+          longPressTimer: null,
+
+          // Gesture log
+          gestureLog: []
+        };
+      },
+      computed: {
+        currentCard() {
+          return this.cards[this.currentCardIndex];
+        }
+      },
+      methods: {
+        // Swipe cards
+        handleSwipeStart(e) {
+          this.swipeStartX = e.touches[0].clientX;
+          this.logGesture('Swipe started');
+        },
+
+        handleSwipeMove(e) {
+          const currentX = e.touches[0].clientX;
+          this.swipeOffset = currentX - this.swipeStartX;
+        },
+
+        handleSwipeEnd(e) {
+          const threshold = 100;
+
+          if (this.swipeOffset > threshold && this.currentCardIndex > 0) {
+            this.currentCardIndex--;
+            this.swipeCount++;
+            TouchUtils.vibrate(20);
+            this.logGesture('Swiped right to previous card');
+          } else if (this.swipeOffset < -threshold && this.currentCardIndex < this.cards.length - 1) {
+            this.currentCardIndex++;
+            this.swipeCount++;
+            TouchUtils.vibrate(20);
+            this.logGesture('Swiped left to next card');
+          }
+
+          this.swipeOffset = 0;
+        },
+
+        // Drag and drop
+        startDrag(e, item) {
+          this.draggedItem = item;
+          e.dataTransfer.effectAllowed = 'move';
+          this.logGesture(`Started dragging: ${item.text}`);
+        },
+
+        touchStart(e, item) {
+          this.touchDragItem = item;
+          this.logGesture(`Touch drag started: ${item.text}`);
+        },
+
+        touchMove(e) {
+          e.preventDefault();
+        },
+
+        touchEnd(e, fromList) {
+          if (!this.touchDragItem) return;
+
+          const touch = e.changedTouches[0];
+          const element = document.elementFromPoint(touch.clientX, touch.clientY);
+          const dropZone = element.closest('.drop-zone');
+
+          if (dropZone) {
+            const toList = Array.from(document.querySelectorAll('.drop-zone')).indexOf(dropZone) === 0 ? 'todo' : 'done';
+
+            if (fromList !== toList) {
+              this.moveItem(this.touchDragItem, fromList, toList);
+              TouchUtils.vibrate(20);
+            }
+          }
+
+          this.touchDragItem = null;
+        },
+
+        onDrop(e, toList) {
+          e.preventDefault();
+          const fromList = this.todoItems.includes(this.draggedItem) ? 'todo' : 'done';
+          this.moveItem(this.draggedItem, fromList, toList);
+          TouchUtils.vibrate(20);
+        },
+
+        moveItem(item, fromList, toList) {
+          if (fromList === toList) return;
+
+          if (fromList === 'todo') {
+            this.todoItems = this.todoItems.filter(i => i.id !== item.id);
+            this.doneItems.push(item);
+          } else {
+            this.doneItems = this.doneItems.filter(i => i.id !== item.id);
+            this.todoItems.push(item);
+          }
+
+          this.logGesture(`Moved "${item.text}" from ${fromList} to ${toList}`);
+        },
+
+        onDragEnter(list) {
+          event.currentTarget.classList.add('drag-over');
+        },
+
+        onDragLeave(e) {
+          e.currentTarget.classList.remove('drag-over');
+        },
+
+        resetLists() {
+          this.todoItems = [
+            { id: 1, text: 'Design homepage' },
+            { id: 2, text: 'Write documentation' },
+            { id: 3, text: 'Review pull requests' },
+            { id: 4, text: 'Deploy to production' }
+          ];
+          this.doneItems = [
+            { id: 5, text: 'Setup project' },
+            { id: 6, text: 'Install dependencies' }
+          ];
+          TouchUtils.vibrate(10);
+          this.logGesture('Lists reset');
+        },
+
+        // Pinch zoom
+        pinchStart(e) {
+          if (e.touches.length === 2) {
+            this.initialPinchDistance = TouchUtils.getPinchDistance(e.touches);
+            this.initialZoom = this.zoomLevel;
+            this.logGesture('Pinch zoom started');
+          }
+        },
+
+        pinchMove(e) {
+          if (e.touches.length === 2) {
+            e.preventDefault();
+            const currentDistance = TouchUtils.getPinchDistance(e.touches);
+            const scale = currentDistance / this.initialPinchDistance;
+            this.zoomLevel = Math.max(0.5, Math.min(3, this.initialZoom * scale));
+          }
+        },
+
+        pinchEnd(e) {
+          if (e.touches.length < 2) {
+            this.logGesture(`Pinch zoom ended at ${Math.round(this.zoomLevel * 100)}%`);
+          }
+        },
+
+        // Counter
+        incrementCounter() {
+          this.counter++;
+          this.tapTimes.push(Date.now());
+
+          // Keep only last 10 taps for speed calculation
+          if (this.tapTimes.length > 10) {
+            this.tapTimes.shift();
+          }
+
+          // Calculate taps per second
+          if (this.tapTimes.length > 1) {
+            const timeSpan = (this.tapTimes[this.tapTimes.length - 1] - this.tapTimes[0]) / 1000;
+            this.tapSpeed = (this.tapTimes.length - 1) / timeSpan;
+          }
+
+          TouchUtils.vibrate(5);
+        },
+
+        touchCounterStart() {
+          this.longPressTimer = setTimeout(() => {
+            this.counter = 0;
+            this.tapTimes = [];
+            this.tapSpeed = 0;
+            TouchUtils.vibrate([20, 50, 20]);
+            this.logGesture('Counter reset (long press)');
+          }, 1000);
+        },
+
+        touchCounterEnd() {
+          if (this.longPressTimer) {
+            clearTimeout(this.longPressTimer);
+            this.longPressTimer = null;
+          }
+        },
+
+        // Gesture log
+        logGesture(message) {
+          const time = new Date().toLocaleTimeString();
+          this.gestureLog.unshift({ time, message });
+
+          // Keep only last 20 entries
+          if (this.gestureLog.length > 20) {
+            this.gestureLog.pop();
+          }
+        },
+
+        clearLog() {
+          this.gestureLog = [];
+          TouchUtils.vibrate(10);
+        }
+      },
+      mounted() {
+        this.logGesture('Vue.js app initialized');
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

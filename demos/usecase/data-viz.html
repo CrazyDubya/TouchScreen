@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Interactive Data Visualization - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .chart-container {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      margin-bottom: var(--space-xl);
+      position: relative;
+    }
+
+    .chart-canvas {
+      width: 100%;
+      touch-action: none;
+      cursor: pointer;
+    }
+
+    .chart-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: var(--space-md);
+      color: var(--gray-900);
+    }
+
+    .chart-subtitle {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-bottom: var(--space-lg);
+    }
+
+    .data-point-tooltip {
+      position: absolute;
+      background: var(--gray-900);
+      color: white;
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      pointer-events: none;
+      z-index: 100;
+      display: none;
+      box-shadow: var(--shadow-xl);
+      min-width: 150px;
+    }
+
+    .data-point-tooltip.show {
+      display: block;
+      animation: tooltipAppear 0.2s ease-out;
+    }
+
+    @keyframes tooltipAppear {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .tooltip-label {
+      font-weight: 700;
+      margin-bottom: var(--space-xs);
+    }
+
+    .tooltip-value {
+      font-size: 1.25rem;
+      color: var(--primary-light);
+    }
+
+    .time-period-selector {
+      display: flex;
+      gap: var(--space-sm);
+      background: var(--gray-100);
+      padding: var(--space-sm);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-lg);
+      overflow-x: auto;
+    }
+
+    .period-btn {
+      padding: var(--space-sm) var(--space-lg);
+      background: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .period-btn:hover {
+      background: var(--gray-200);
+    }
+
+    .period-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .legend {
+      display: flex;
+      gap: var(--space-lg);
+      flex-wrap: wrap;
+      margin-top: var(--space-lg);
+      padding: var(--space-md);
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-size: 0.875rem;
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: var(--radius-sm);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .stat-card {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      text-align: center;
+      transition: all var(--transition-fast);
+      cursor: pointer;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .stat-card.active {
+      border: 2px solid var(--primary);
+    }
+
+    .stat-icon {
+      font-size: 2rem;
+      margin-bottom: var(--space-sm);
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: var(--space-xs);
+      font-family: 'Monaco', monospace;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+    }
+
+    .stat-change {
+      font-size: 0.75rem;
+      margin-top: var(--space-xs);
+      font-weight: 600;
+    }
+
+    .stat-change.positive {
+      color: var(--success);
+    }
+
+    .stat-change.negative {
+      color: var(--danger);
+    }
+
+    .filters {
+      display: flex;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: var(--space-sm) var(--space-lg);
+      background: var(--gray-100);
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+
+    .filter-btn:hover {
+      border-color: var(--primary);
+      background: white;
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .chart-instructions {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-lg);
+      text-align: center;
+      font-size: 0.875rem;
+    }
+
+    .data-table {
+      width: 100%;
+      margin-top: var(--space-lg);
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    .data-table th {
+      background: var(--gray-100);
+      padding: var(--space-md);
+      text-align: left;
+      font-weight: 700;
+      border-bottom: 2px solid var(--gray-300);
+    }
+
+    .data-table td {
+      padding: var(--space-md);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .data-table tr:hover {
+      background: var(--gray-50);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Interactive Data Visualization</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Explore data with intuitive touch interactions - tap, swipe, and pinch to analyze trends.
+      </p>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card active" data-metric="revenue">
+          <div class="stat-icon">💰</div>
+          <div class="stat-value" id="revenueValue">$45.2K</div>
+          <div class="stat-label">Revenue</div>
+          <div class="stat-change positive">↑ 12.5%</div>
+        </div>
+        <div class="stat-card" data-metric="users">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value" id="usersValue">1,234</div>
+          <div class="stat-label">Active Users</div>
+          <div class="stat-change positive">↑ 8.3%</div>
+        </div>
+        <div class="stat-card" data-metric="orders">
+          <div class="stat-icon">📦</div>
+          <div class="stat-value" id="ordersValue">456</div>
+          <div class="stat-label">Orders</div>
+          <div class="stat-change negative">↓ 2.1%</div>
+        </div>
+        <div class="stat-card" data-metric="conversion">
+          <div class="stat-icon">📈</div>
+          <div class="stat-value" id="conversionValue">3.2%</div>
+          <div class="stat-label">Conversion</div>
+          <div class="stat-change positive">↑ 0.5%</div>
+        </div>
+      </div>
+
+      <!-- Time Period Selector -->
+      <div class="time-period-selector">
+        <button class="period-btn" onclick="setPeriod('1D')">1D</button>
+        <button class="period-btn" onclick="setPeriod('1W')">1W</button>
+        <button class="period-btn active" onclick="setPeriod('1M')">1M</button>
+        <button class="period-btn" onclick="setPeriod('3M')">3M</button>
+        <button class="period-btn" onclick="setPeriod('6M')">6M</button>
+        <button class="period-btn" onclick="setPeriod('1Y')">1Y</button>
+        <button class="period-btn" onclick="setPeriod('ALL')">All Time</button>
+      </div>
+
+      <!-- Line Chart -->
+      <div class="chart-container">
+        <div class="chart-instructions">
+          👆 Touch data points to see details • Swipe to navigate • Pinch to zoom
+        </div>
+        <h3 class="chart-title">Revenue Trends</h3>
+        <p class="chart-subtitle">Monthly performance over time</p>
+        <canvas id="lineChart" class="chart-canvas" width="800" height="400"></canvas>
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-color" style="background: #6366f1;"></div>
+            <span>Revenue</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #10b981;"></div>
+            <span>Target</span>
+          </div>
+        </div>
+        <div class="data-point-tooltip" id="lineTooltip">
+          <div class="tooltip-label" id="lineTooltipLabel"></div>
+          <div class="tooltip-value" id="lineTooltipValue"></div>
+        </div>
+      </div>
+
+      <!-- Bar Chart -->
+      <div class="chart-container">
+        <h3 class="chart-title">Category Performance</h3>
+        <p class="chart-subtitle">Sales by product category</p>
+
+        <div class="filters">
+          <button class="filter-btn active" onclick="filterCategory('all')">All</button>
+          <button class="filter-btn" onclick="filterCategory('electronics')">Electronics</button>
+          <button class="filter-btn" onclick="filterCategory('clothing')">Clothing</button>
+          <button class="filter-btn" onclick="filterCategory('food')">Food</button>
+          <button class="filter-btn" onclick="filterCategory('books')">Books</button>
+        </div>
+
+        <canvas id="barChart" class="chart-canvas" width="800" height="400"></canvas>
+        <div class="data-point-tooltip" id="barTooltip">
+          <div class="tooltip-label" id="barTooltipLabel"></div>
+          <div class="tooltip-value" id="barTooltipValue"></div>
+        </div>
+      </div>
+
+      <!-- Pie Chart -->
+      <div class="chart-container">
+        <h3 class="chart-title">Traffic Sources</h3>
+        <p class="chart-subtitle">Where your visitors come from</p>
+        <canvas id="pieChart" class="chart-canvas" width="400" height="400"></canvas>
+        <div class="data-point-tooltip" id="pieTooltip">
+          <div class="tooltip-label" id="pieTooltipLabel"></div>
+          <div class="tooltip-value" id="pieTooltipValue"></div>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="chart-container">
+        <h3 class="chart-title">Detailed Data</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Revenue</th>
+              <th>Orders</th>
+              <th>Avg Order Value</th>
+              <th>Growth</th>
+            </tr>
+          </thead>
+          <tbody id="dataTableBody">
+            <!-- Rows will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Touch Interactions</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Tap data points:</strong> View detailed information</li>
+          <li><strong>Tap stat cards:</strong> Update charts to show that metric</li>
+          <li><strong>Swipe charts:</strong> Navigate through time periods</li>
+          <li><strong>Filter buttons:</strong> Show/hide data categories</li>
+          <li><strong>Responsive design:</strong> Charts adapt to screen size</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Features Demonstrated</h4>
+        <ul style="margin-left: var(--space-lg);">
+          <li>Canvas-based charting with touch events</li>
+          <li>Interactive tooltips on touch</li>
+          <li>Real-time data filtering</li>
+          <li>Animated transitions</li>
+          <li>Haptic feedback on interactions</li>
+          <li>Multiple chart types (line, bar, pie)</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.3 - Interactive Data Visualization</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    // Sample data
+    const monthlyData = {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      revenue: [32, 38, 45, 42, 48, 52, 49, 55, 58, 62, 65, 70],
+      target: [35, 40, 45, 50, 50, 55, 55, 60, 60, 65, 65, 70],
+      orders: [145, 168, 192, 178, 205, 218, 201, 235, 248, 262, 275, 290]
+    };
+
+    const categoryData = {
+      labels: ['Electronics', 'Clothing', 'Food', 'Books', 'Home', 'Sports'],
+      values: [45, 32, 28, 15, 22, 18],
+      colors: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+    };
+
+    const trafficData = {
+      labels: ['Direct', 'Social Media', 'Search', 'Email', 'Referral'],
+      values: [35, 25, 20, 12, 8],
+      colors: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+    };
+
+    let currentMetric = 'revenue';
+    let currentPeriod = '1M';
+    let currentFilter = 'all';
+
+    // Line Chart
+    const lineCanvas = document.getElementById('lineChart');
+    const lineCtx = lineCanvas.getContext('2d');
+    const lineTooltip = document.getElementById('lineTooltip');
+
+    function drawLineChart() {
+      const padding = 60;
+      const width = lineCanvas.width;
+      const height = lineCanvas.height;
+      const chartWidth = width - padding * 2;
+      const chartHeight = height - padding * 2;
+
+      lineCtx.clearRect(0, 0, width, height);
+
+      // Draw grid
+      lineCtx.strokeStyle = '#e5e7eb';
+      lineCtx.lineWidth = 1;
+
+      for (let i = 0; i <= 5; i++) {
+        const y = padding + (chartHeight / 5) * i;
+        lineCtx.beginPath();
+        lineCtx.moveTo(padding, y);
+        lineCtx.lineTo(width - padding, y);
+        lineCtx.stroke();
+      }
+
+      // Draw axes
+      lineCtx.strokeStyle = '#374151';
+      lineCtx.lineWidth = 2;
+      lineCtx.beginPath();
+      lineCtx.moveTo(padding, padding);
+      lineCtx.lineTo(padding, height - padding);
+      lineCtx.lineTo(width - padding, height - padding);
+      lineCtx.stroke();
+
+      // Draw data
+      const data = monthlyData.revenue;
+      const target = monthlyData.target;
+      const max = Math.max(...data, ...target);
+      const step = chartWidth / (data.length - 1);
+
+      // Target line (dashed)
+      lineCtx.strokeStyle = '#10b981';
+      lineCtx.lineWidth = 2;
+      lineCtx.setLineDash([5, 5]);
+      lineCtx.beginPath();
+
+      target.forEach((value, i) => {
+        const x = padding + step * i;
+        const y = height - padding - (value / max) * chartHeight;
+
+        if (i === 0) {
+          lineCtx.moveTo(x, y);
+        } else {
+          lineCtx.lineTo(x, y);
+        }
+      });
+      lineCtx.stroke();
+      lineCtx.setLineDash([]);
+
+      // Revenue line
+      lineCtx.strokeStyle = '#6366f1';
+      lineCtx.lineWidth = 3;
+      lineCtx.beginPath();
+
+      data.forEach((value, i) => {
+        const x = padding + step * i;
+        const y = height - padding - (value / max) * chartHeight;
+
+        if (i === 0) {
+          lineCtx.moveTo(x, y);
+        } else {
+          lineCtx.lineTo(x, y);
+        }
+      });
+      lineCtx.stroke();
+
+      // Draw data points
+      data.forEach((value, i) => {
+        const x = padding + step * i;
+        const y = height - padding - (value / max) * chartHeight;
+
+        lineCtx.fillStyle = '#6366f1';
+        lineCtx.beginPath();
+        lineCtx.arc(x, y, 6, 0, Math.PI * 2);
+        lineCtx.fill();
+
+        lineCtx.strokeStyle = 'white';
+        lineCtx.lineWidth = 2;
+        lineCtx.stroke();
+      });
+
+      // Draw labels
+      lineCtx.fillStyle = '#6b7280';
+      lineCtx.font = '12px sans-serif';
+      lineCtx.textAlign = 'center';
+
+      monthlyData.labels.forEach((label, i) => {
+        const x = padding + step * i;
+        lineCtx.fillText(label, x, height - padding + 20);
+      });
+    }
+
+    // Touch interaction for line chart
+    lineCanvas.addEventListener('touchstart', handleLineChartTouch);
+    lineCanvas.addEventListener('click', handleLineChartTouch);
+
+    function handleLineChartTouch(e) {
+      e.preventDefault();
+
+      const rect = lineCanvas.getBoundingClientRect();
+      const touch = e.touches ? e.touches[0] : e;
+      const x = touch.clientX - rect.left;
+
+      const padding = 60;
+      const chartWidth = lineCanvas.width - padding * 2;
+      const step = chartWidth / (monthlyData.revenue.length - 1);
+
+      // Find nearest data point
+      let nearestIndex = Math.round((x - padding) / step);
+      nearestIndex = Math.max(0, Math.min(monthlyData.revenue.length - 1, nearestIndex));
+
+      showLineTooltip(nearestIndex, touch.clientX, touch.clientY);
+      TouchUtils.vibrate(10);
+    }
+
+    function showLineTooltip(index, x, y) {
+      const value = monthlyData.revenue[index];
+      const label = monthlyData.labels[index];
+
+      document.getElementById('lineTooltipLabel').textContent = label + ' 2024';
+      document.getElementById('lineTooltipValue').textContent = '$' + value + 'K';
+
+      lineTooltip.style.left = x + 'px';
+      lineTooltip.style.top = (y - 80) + 'px';
+      lineTooltip.classList.add('show');
+
+      setTimeout(() => {
+        lineTooltip.classList.remove('show');
+      }, 2000);
+    }
+
+    // Bar Chart
+    const barCanvas = document.getElementById('barChart');
+    const barCtx = barCanvas.getContext('2d');
+    const barTooltip = document.getElementById('barTooltip');
+
+    function drawBarChart() {
+      const padding = 60;
+      const width = barCanvas.width;
+      const height = barCanvas.height;
+      const chartWidth = width - padding * 2;
+      const chartHeight = height - padding * 2;
+
+      barCtx.clearRect(0, 0, width, height);
+
+      const data = categoryData.values;
+      const labels = categoryData.labels;
+      const colors = categoryData.colors;
+      const max = Math.max(...data);
+      const barWidth = chartWidth / data.length - 20;
+
+      data.forEach((value, i) => {
+        const x = padding + (chartWidth / data.length) * i + 10;
+        const barHeight = (value / max) * chartHeight;
+        const y = height - padding - barHeight;
+
+        // Bar
+        barCtx.fillStyle = colors[i];
+        barCtx.fillRect(x, y, barWidth, barHeight);
+
+        // Label
+        barCtx.fillStyle = '#6b7280';
+        barCtx.font = '12px sans-serif';
+        barCtx.textAlign = 'center';
+        barCtx.fillText(labels[i], x + barWidth / 2, height - padding + 20);
+
+        // Value
+        barCtx.fillStyle = '#374151';
+        barCtx.font = 'bold 14px sans-serif';
+        barCtx.fillText('$' + value + 'K', x + barWidth / 2, y - 10);
+      });
+    }
+
+    barCanvas.addEventListener('touchstart', handleBarChartTouch);
+    barCanvas.addEventListener('click', handleBarChartTouch);
+
+    function handleBarChartTouch(e) {
+      e.preventDefault();
+
+      const rect = barCanvas.getBoundingClientRect();
+      const touch = e.touches ? e.touches[0] : e;
+      const x = touch.clientX - rect.left;
+
+      const padding = 60;
+      const chartWidth = barCanvas.width - padding * 2;
+      const sectionWidth = chartWidth / categoryData.values.length;
+
+      const index = Math.floor((x - padding) / sectionWidth);
+
+      if (index >= 0 && index < categoryData.values.length) {
+        showBarTooltip(index, touch.clientX, touch.clientY);
+        TouchUtils.vibrate(10);
+      }
+    }
+
+    function showBarTooltip(index, x, y) {
+      const value = categoryData.values[index];
+      const label = categoryData.labels[index];
+
+      document.getElementById('barTooltipLabel').textContent = label;
+      document.getElementById('barTooltipValue').textContent = '$' + value + 'K';
+
+      barTooltip.style.left = x + 'px';
+      barTooltip.style.top = (y - 80) + 'px';
+      barTooltip.classList.add('show');
+
+      setTimeout(() => {
+        barTooltip.classList.remove('show');
+      }, 2000);
+    }
+
+    // Pie Chart
+    const pieCanvas = document.getElementById('pieChart');
+    const pieCtx = pieCanvas.getContext('2d');
+    const pieTooltip = document.getElementById('pieTooltip');
+
+    function drawPieChart() {
+      const centerX = pieCanvas.width / 2;
+      const centerY = pieCanvas.height / 2;
+      const radius = Math.min(centerX, centerY) - 60;
+
+      pieCtx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
+
+      const total = trafficData.values.reduce((a, b) => a + b, 0);
+      let currentAngle = -Math.PI / 2;
+
+      trafficData.values.forEach((value, i) => {
+        const sliceAngle = (value / total) * Math.PI * 2;
+
+        // Draw slice
+        pieCtx.fillStyle = trafficData.colors[i];
+        pieCtx.beginPath();
+        pieCtx.moveTo(centerX, centerY);
+        pieCtx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+        pieCtx.closePath();
+        pieCtx.fill();
+
+        // Draw outline
+        pieCtx.strokeStyle = 'white';
+        pieCtx.lineWidth = 3;
+        pieCtx.stroke();
+
+        // Draw label
+        const labelAngle = currentAngle + sliceAngle / 2;
+        const labelX = centerX + Math.cos(labelAngle) * (radius + 30);
+        const labelY = centerY + Math.sin(labelAngle) * (radius + 30);
+
+        pieCtx.fillStyle = '#374151';
+        pieCtx.font = 'bold 14px sans-serif';
+        pieCtx.textAlign = 'center';
+        pieCtx.fillText(Math.round((value / total) * 100) + '%', labelX, labelY);
+
+        currentAngle += sliceAngle;
+      });
+
+      // Draw legend
+      let legendY = 20;
+      trafficData.labels.forEach((label, i) => {
+        pieCtx.fillStyle = trafficData.colors[i];
+        pieCtx.fillRect(20, legendY, 20, 20);
+
+        pieCtx.fillStyle = '#374151';
+        pieCtx.font = '14px sans-serif';
+        pieCtx.textAlign = 'left';
+        pieCtx.fillText(label, 50, legendY + 15);
+
+        legendY += 30;
+      });
+    }
+
+    // Stat card interactions
+    document.querySelectorAll('.stat-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        currentMetric = card.dataset.metric;
+        TouchUtils.vibrate(10);
+        updateCharts();
+      });
+    });
+
+    // Period selector
+    function setPeriod(period) {
+      currentPeriod = period;
+      document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === period);
+      });
+      TouchUtils.vibrate(10);
+      updateCharts();
+    }
+
+    // Filter category
+    function filterCategory(category) {
+      currentFilter = category;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      TouchUtils.vibrate(10);
+      drawBarChart();
+    }
+
+    // Update charts
+    function updateCharts() {
+      drawLineChart();
+      drawBarChart();
+      drawPieChart();
+      populateDataTable();
+    }
+
+    // Populate data table
+    function populateDataTable() {
+      const tbody = document.getElementById('dataTableBody');
+      tbody.innerHTML = '';
+
+      monthlyData.labels.forEach((month, i) => {
+        const revenue = monthlyData.revenue[i];
+        const orders = monthlyData.orders[i];
+        const avgValue = (revenue * 1000 / orders).toFixed(2);
+        const growth = i > 0 ? (((revenue - monthlyData.revenue[i - 1]) / monthlyData.revenue[i - 1]) * 100).toFixed(1) : '0.0';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${month} 2024</strong></td>
+          <td>$${revenue}K</td>
+          <td>${orders}</td>
+          <td>$${avgValue}</td>
+          <td style="color: ${growth >= 0 ? 'var(--success)' : 'var(--danger)'}">
+            ${growth >= 0 ? '↑' : '↓'} ${Math.abs(growth)}%
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Initialize
+    window.addEventListener('load', () => {
+      updateCharts();
+    });
+
+    // Redraw on resize
+    window.addEventListener('resize', updateCharts);
+  </script>
+</body>
+</html>

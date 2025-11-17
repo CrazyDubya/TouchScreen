@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Palm Rejection - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .palm-canvas-container {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      margin: var(--space-xl) 0;
+    }
+
+    #palmCanvas {
+      width: 100%;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-lg);
+      touch-action: none;
+      cursor: crosshair;
+      background: white;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-md);
+      margin: var(--space-xl) 0;
+    }
+
+    .stat-card {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-bottom: var(--space-xs);
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-family: 'Monaco', monospace;
+    }
+
+    .stat-value.accepted {
+      color: var(--success);
+    }
+
+    .stat-value.rejected {
+      color: var(--danger);
+    }
+
+    .stat-value.neutral {
+      color: var(--primary);
+    }
+
+    .settings-panel {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .setting-item {
+      margin-bottom: var(--space-lg);
+    }
+
+    .setting-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-sm);
+    }
+
+    .setting-label {
+      font-weight: 600;
+      color: var(--gray-900);
+    }
+
+    .setting-value {
+      font-family: 'Monaco', monospace;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .slider {
+      width: 100%;
+    }
+
+    .touch-visualization {
+      background: var(--gray-50);
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      min-height: 300px;
+      position: relative;
+      overflow: hidden;
+      margin: var(--space-xl) 0;
+    }
+
+    .touch-point {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: white;
+    }
+
+    .touch-point.accepted {
+      background: rgba(34, 197, 94, 0.5);
+      border: 3px solid var(--success);
+    }
+
+    .touch-point.rejected {
+      background: rgba(239, 68, 68, 0.3);
+      border: 3px dashed var(--danger);
+    }
+
+    .rejection-log {
+      background: var(--gray-900);
+      color: var(--gray-100);
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      font-family: 'Monaco', monospace;
+      font-size: 0.875rem;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: var(--space-lg);
+    }
+
+    .log-entry {
+      padding: var(--space-xs) 0;
+      border-bottom: 1px solid var(--gray-700);
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-accepted {
+      color: var(--success);
+    }
+
+    .log-rejected {
+      color: var(--danger);
+    }
+
+    .controls {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: var(--space-xs);
+    }
+
+    .indicator.accepted {
+      background: var(--success);
+    }
+
+    .indicator.rejected {
+      background: var(--danger);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Palm Rejection</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Intelligent touch filtering to distinguish between intentional touches and accidental palm contact.
+      </p>
+
+      <!-- Settings Panel -->
+      <div class="settings-panel">
+        <h3 style="margin-bottom: var(--space-lg);">Rejection Settings</h3>
+
+        <div class="setting-item">
+          <div class="setting-header">
+            <span class="setting-label">Size Threshold (radius)</span>
+            <span class="setting-value" id="sizeValue">25px</span>
+          </div>
+          <input type="range" class="slider" id="sizeSlider" min="10" max="50" value="25" step="1">
+          <p style="font-size: 0.75rem; color: var(--gray-600); margin-top: var(--space-xs);">
+            Touches larger than this are rejected as palm contact
+          </p>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-header">
+            <span class="setting-label">Pressure Threshold</span>
+            <span class="setting-value" id="pressureValue">0.3</span>
+          </div>
+          <input type="range" class="slider" id="pressureSlider" min="0.1" max="0.8" value="0.3" step="0.05">
+          <p style="font-size: 0.75rem; color: var(--gray-600); margin-top: var(--space-xs);">
+            Touches with pressure below this are rejected
+          </p>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-header">
+            <span class="setting-label">Rejection Mode</span>
+          </div>
+          <div style="display: flex; gap: var(--space-md); margin-top: var(--space-sm);">
+            <label style="display: flex; align-items: center; cursor: pointer;">
+              <input type="radio" name="mode" value="size" checked onchange="updateMode(this.value)">
+              <span style="margin-left: var(--space-xs);">Size-based</span>
+            </label>
+            <label style="display: flex; align-items: center; cursor: pointer;">
+              <input type="radio" name="mode" value="pressure" onchange="updateMode(this.value)">
+              <span style="margin-left: var(--space-xs);">Pressure-based</span>
+            </label>
+            <label style="display: flex; align-items: center; cursor: pointer;">
+              <input type="radio" name="mode" value="hybrid" onchange="updateMode(this.value)">
+              <span style="margin-left: var(--space-xs);">Hybrid</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Accepted Touches</div>
+          <div class="stat-value accepted" id="acceptedCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Rejected Touches</div>
+          <div class="stat-value rejected" id="rejectedCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Rejection Rate</div>
+          <div class="stat-value neutral" id="rejectionRate">0%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Current Touches</div>
+          <div class="stat-value neutral" id="currentTouches">0</div>
+        </div>
+      </div>
+
+      <!-- Touch Visualization -->
+      <div class="touch-visualization" id="touchViz">
+        <div style="text-align: center; color: var(--gray-500); padding: var(--space-xl);">
+          <div style="font-size: 3rem; margin-bottom: var(--space-md);">✋</div>
+          <p>Touch this area with fingers and palm to test rejection</p>
+          <p style="font-size: 0.875rem; margin-top: var(--space-sm);">
+            <span class="indicator accepted"></span> Accepted
+            <span class="indicator rejected" style="margin-left: var(--space-md);"></span> Rejected
+          </p>
+        </div>
+      </div>
+
+      <!-- Drawing Canvas -->
+      <div class="palm-canvas-container">
+        <h3>Palm Rejection Drawing Test</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Draw while resting your palm on the canvas - rejected touches won't draw
+        </p>
+        <canvas id="palmCanvas" width="800" height="500"></canvas>
+        <div class="controls">
+          <button class="btn btn-secondary" onclick="clearCanvas()">Clear Canvas</button>
+          <button class="btn btn-primary" onclick="resetStats()">Reset Stats</button>
+          <button class="btn btn-secondary" onclick="toggleLog()">
+            <span id="logToggleText">Show Log</span>
+          </button>
+        </div>
+        <div class="rejection-log" id="rejectionLog" style="display: none;">
+          <div style="margin-bottom: var(--space-sm); font-weight: 700;">Touch Event Log:</div>
+          <div id="logContent"></div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>How Palm Rejection Works</h3>
+        <p>
+          Palm rejection is essential for stylus and touch-based drawing applications.
+          This demo uses multiple techniques to filter out accidental palm contact:
+        </p>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li><strong>Touch radius detection:</strong> Large contact areas indicate palm (radiusX/Y)</li>
+          <li><strong>Pressure analysis:</strong> Palms typically have lower pressure than fingertips</li>
+          <li><strong>Touch type filtering:</strong> Prioritize stylus/pen input over touch</li>
+          <li><strong>Hybrid approach:</strong> Combine multiple signals for better accuracy</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Technical Implementation</h4>
+        <p style="margin-top: var(--space-md);">
+          Uses the Touch Events API properties:
+        </p>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li><code>touch.radiusX</code> / <code>touch.radiusY</code> - Contact area size</li>
+          <li><code>touch.force</code> - Pressure/force value (0.0 - 1.0)</li>
+          <li><code>pointerType</code> - Distinguishes pen/touch/mouse</li>
+          <li><code>touch.touchType</code> - Direct vs stylus</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Best Practices</h4>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li>Always prefer stylus input when available</li>
+          <li>Tune thresholds based on device and use case</li>
+          <li>Provide visual feedback for rejected touches</li>
+          <li>Test with actual palm-resting scenarios</li>
+          <li>Consider user preferences and settings</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.3 - Palm Rejection</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const canvas = document.getElementById('palmCanvas');
+    const ctx = canvas.getContext('2d');
+    const touchViz = document.getElementById('touchViz');
+    const logContent = document.getElementById('logContent');
+    const rejectionLog = document.getElementById('rejectionLog');
+
+    let settings = {
+      sizeThreshold: 25,
+      pressureThreshold: 0.3,
+      mode: 'size' // size, pressure, hybrid
+    };
+
+    let stats = {
+      accepted: 0,
+      rejected: 0,
+      current: 0
+    };
+
+    let isDrawing = false;
+    let lastPoint = null;
+    let activeTouches = new Map();
+    let logEntries = [];
+
+    // Initialize canvas
+    function initCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+    }
+
+    initCanvas();
+
+    // Settings handlers
+    document.getElementById('sizeSlider').addEventListener('input', (e) => {
+      settings.sizeThreshold = parseInt(e.target.value);
+      document.getElementById('sizeValue').textContent = settings.sizeThreshold + 'px';
+    });
+
+    document.getElementById('pressureSlider').addEventListener('input', (e) => {
+      settings.pressureThreshold = parseFloat(e.target.value);
+      document.getElementById('pressureValue').textContent = settings.pressureThreshold.toFixed(2);
+    });
+
+    function updateMode(mode) {
+      settings.mode = mode;
+      log(`Mode changed to: ${mode}`);
+    }
+
+    // Palm rejection logic
+    function shouldRejectTouch(touch, pointerType) {
+      // Always accept stylus/pen input
+      if (pointerType === 'pen') {
+        return false;
+      }
+
+      const radiusX = touch.radiusX || 0;
+      const radiusY = touch.radiusY || 0;
+      const avgRadius = (radiusX + radiusY) / 2;
+      const pressure = touch.force !== undefined ? touch.force : 0.5;
+
+      let rejected = false;
+
+      switch (settings.mode) {
+        case 'size':
+          rejected = avgRadius > settings.sizeThreshold;
+          break;
+        case 'pressure':
+          rejected = pressure < settings.pressureThreshold;
+          break;
+        case 'hybrid':
+          rejected = avgRadius > settings.sizeThreshold || pressure < settings.pressureThreshold;
+          break;
+      }
+
+      return rejected;
+    }
+
+    // Get touch information
+    function getTouchInfo(e) {
+      let clientX, clientY, pressure, radiusX, radiusY, pointerType = 'touch';
+
+      if (e.type.includes('pointer')) {
+        clientX = e.clientX;
+        clientY = e.clientY;
+        pressure = e.pressure || 0.5;
+        radiusX = e.width / 2 || 0;
+        radiusY = e.height / 2 || 0;
+        pointerType = e.pointerType;
+      } else if (e.type.includes('touch')) {
+        const touch = e.touches[0] || e.changedTouches[0];
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+        pressure = touch.force !== undefined ? touch.force : 0.5;
+        radiusX = touch.radiusX || 0;
+        radiusY = touch.radiusY || 0;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+        pressure = 0.5;
+        radiusX = 5;
+        radiusY = 5;
+        pointerType = 'mouse';
+      }
+
+      return { clientX, clientY, pressure, radiusX, radiusY, pointerType };
+    }
+
+    // Touch visualization
+    function visualizeTouches(e) {
+      // Clear old touch points
+      document.querySelectorAll('.touch-point').forEach(point => {
+        if (!activeTouches.has(point.dataset.id)) {
+          point.remove();
+        }
+      });
+
+      if (e.touches) {
+        stats.current = 0;
+
+        Array.from(e.touches).forEach((touch, index) => {
+          const radiusX = touch.radiusX || 10;
+          const radiusY = touch.radiusY || 10;
+          const avgRadius = (radiusX + radiusY) / 2;
+          const rejected = shouldRejectTouch(touch, 'touch');
+
+          if (!rejected) stats.current++;
+
+          const rect = touchViz.getBoundingClientRect();
+          const x = touch.clientX - rect.left;
+          const y = touch.clientY - rect.top;
+
+          let point = document.querySelector(`[data-id="${touch.identifier}"]`);
+          if (!point) {
+            point = document.createElement('div');
+            point.className = 'touch-point';
+            point.dataset.id = touch.identifier;
+            touchViz.appendChild(point);
+          }
+
+          const size = Math.max(avgRadius * 2, 40);
+          point.style.width = size + 'px';
+          point.style.height = size + 'px';
+          point.style.left = (x - size / 2) + 'px';
+          point.style.top = (y - size / 2) + 'px';
+          point.className = `touch-point ${rejected ? 'rejected' : 'accepted'}`;
+          point.textContent = rejected ? '✕' : '✓';
+
+          activeTouches.set(touch.identifier, { x, y, rejected });
+        });
+
+        document.getElementById('currentTouches').textContent = stats.current;
+      }
+    }
+
+    // Drawing functions
+    function startDrawing(e) {
+      const info = getTouchInfo(e);
+      const rejected = shouldRejectTouch(info, info.pointerType);
+
+      if (rejected) {
+        stats.rejected++;
+        log(`❌ Rejected: radius=${((info.radiusX + info.radiusY) / 2).toFixed(1)}px, pressure=${info.pressure.toFixed(2)}`, 'rejected');
+      } else {
+        e.preventDefault();
+        isDrawing = true;
+        stats.accepted++;
+
+        const rect = canvas.getBoundingClientRect();
+        lastPoint = {
+          x: info.clientX - rect.left,
+          y: info.clientY - rect.top,
+          pressure: info.pressure
+        };
+
+        log(`✅ Accepted: radius=${((info.radiusX + info.radiusY) / 2).toFixed(1)}px, pressure=${info.pressure.toFixed(2)}`, 'accepted');
+        TouchUtils.vibrate(5);
+      }
+
+      updateStats();
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+
+      const info = getTouchInfo(e);
+      const rejected = shouldRejectTouch(info, info.pointerType);
+
+      if (rejected) {
+        isDrawing = false;
+        lastPoint = null;
+        return;
+      }
+
+      e.preventDefault();
+
+      const rect = canvas.getBoundingClientRect();
+      const currentPoint = {
+        x: info.clientX - rect.left,
+        y: info.clientY - rect.top,
+        pressure: info.pressure
+      };
+
+      if (lastPoint) {
+        const width = 2 + (currentPoint.pressure * 8);
+
+        ctx.beginPath();
+        ctx.moveTo(lastPoint.x, lastPoint.y);
+        ctx.lineTo(currentPoint.x, currentPoint.y);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = width;
+        ctx.stroke();
+      }
+
+      lastPoint = currentPoint;
+    }
+
+    function stopDrawing(e) {
+      if (!isDrawing) return;
+      isDrawing = false;
+      lastPoint = null;
+    }
+
+    // Event listeners for canvas
+    canvas.addEventListener('pointerdown', startDrawing);
+    canvas.addEventListener('pointermove', draw);
+    canvas.addEventListener('pointerup', stopDrawing);
+    canvas.addEventListener('pointerleave', stopDrawing);
+
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+
+    // Event listeners for visualization
+    touchViz.addEventListener('touchstart', visualizeTouches);
+    touchViz.addEventListener('touchmove', visualizeTouches);
+    touchViz.addEventListener('touchend', (e) => {
+      visualizeTouches(e);
+      setTimeout(() => {
+        Array.from(e.changedTouches).forEach(touch => {
+          const point = document.querySelector(`[data-id="${touch.identifier}"]`);
+          if (point) point.remove();
+          activeTouches.delete(touch.identifier);
+        });
+      }, 200);
+    });
+
+    // Statistics
+    function updateStats() {
+      document.getElementById('acceptedCount').textContent = stats.accepted;
+      document.getElementById('rejectedCount').textContent = stats.rejected;
+
+      const total = stats.accepted + stats.rejected;
+      const rate = total > 0 ? ((stats.rejected / total) * 100).toFixed(1) : 0;
+      document.getElementById('rejectionRate').textContent = rate + '%';
+    }
+
+    function resetStats() {
+      stats.accepted = 0;
+      stats.rejected = 0;
+      stats.current = 0;
+      logEntries = [];
+      updateStats();
+      logContent.innerHTML = '';
+      TouchUtils.vibrate(20);
+    }
+
+    // Logging
+    function log(message, type = 'neutral') {
+      const timestamp = new Date().toLocaleTimeString();
+      const entry = `[${timestamp}] ${message}`;
+
+      logEntries.unshift(entry);
+      if (logEntries.length > 50) logEntries.pop();
+
+      const div = document.createElement('div');
+      div.className = `log-entry log-${type}`;
+      div.textContent = entry;
+
+      logContent.insertBefore(div, logContent.firstChild);
+
+      // Keep only last 50 entries in DOM
+      while (logContent.children.length > 50) {
+        logContent.removeChild(logContent.lastChild);
+      }
+    }
+
+    function toggleLog() {
+      const isVisible = rejectionLog.style.display !== 'none';
+      rejectionLog.style.display = isVisible ? 'none' : 'block';
+      document.getElementById('logToggleText').textContent = isVisible ? 'Show Log' : 'Hide Log';
+    }
+
+    // Utility functions
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      TouchUtils.vibrate(20);
+    }
+  </script>
+</body>
+</html>

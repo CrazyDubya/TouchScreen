@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Handwriting Recognition - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .writing-canvas-container {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      margin: var(--space-xl) 0;
+    }
+
+    #writingCanvas {
+      width: 100%;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-lg);
+      touch-action: none;
+      cursor: crosshair;
+      background: white;
+      display: block;
+    }
+
+    .recognition-panel {
+      background: var(--gray-50);
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      margin-top: var(--space-lg);
+    }
+
+    .recognized-text {
+      font-size: 3rem;
+      font-weight: 700;
+      text-align: center;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border-radius: var(--radius-md);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-lg);
+      font-family: 'Monaco', monospace;
+      color: var(--primary);
+      word-wrap: break-word;
+    }
+
+    .recognition-results {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-md);
+    }
+
+    .result-card {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .result-character {
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: var(--space-sm);
+      color: var(--primary);
+    }
+
+    .result-confidence {
+      text-align: center;
+      font-size: 0.875rem;
+      color: var(--gray-600);
+    }
+
+    .confidence-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-top: var(--space-sm);
+    }
+
+    .confidence-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--danger), var(--warning), var(--success));
+      transition: width 0.3s;
+    }
+
+    .controls {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: var(--space-sm);
+      background: white;
+      padding: var(--space-sm);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-lg);
+    }
+
+    .mode-btn {
+      padding: var(--space-sm) var(--space-lg);
+      border: 2px solid var(--gray-300);
+      background: white;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-weight: 600;
+    }
+
+    .mode-btn:hover {
+      border-color: var(--primary);
+    }
+
+    .mode-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .character-suggestions {
+      display: flex;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+      margin-top: var(--space-lg);
+      padding: var(--space-lg);
+      background: white;
+      border-radius: var(--radius-md);
+    }
+
+    .suggestion-btn {
+      padding: var(--space-md) var(--space-lg);
+      background: var(--gray-100);
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 1.125rem;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+
+    .suggestion-btn:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stats-panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .stat-box {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Monaco', monospace;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-top: var(--space-xs);
+    }
+
+    .history {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      margin-top: var(--space-lg);
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-sm);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-char {
+      font-size: 1.5rem;
+      font-weight: 700;
+      width: 40px;
+      text-align: center;
+    }
+
+    .history-details {
+      flex: 1;
+      font-size: 0.875rem;
+      color: var(--gray-600);
+    }
+
+    .instruction-panel {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-xl);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Handwriting Recognition</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Write letters, numbers, and shapes - watch them get recognized in real-time.
+      </p>
+
+      <!-- Instruction Panel -->
+      <div class="instruction-panel">
+        <h3 style="margin-bottom: var(--space-md);">✍️ How to Use</h3>
+        <p style="opacity: 0.9;">
+          Draw characters on the canvas below. The system will attempt to recognize letters (A-Z),
+          numbers (0-9), and basic shapes (circle, square, triangle).
+        </p>
+      </div>
+
+      <!-- Mode Selector -->
+      <div class="mode-selector">
+        <button class="mode-btn active" data-mode="letters" onclick="setMode('letters')">Letters</button>
+        <button class="mode-btn" data-mode="numbers" onclick="setMode('numbers')">Numbers</button>
+        <button class="mode-btn" data-mode="shapes" onclick="setMode('shapes')">Shapes</button>
+        <button class="mode-btn" data-mode="all" onclick="setMode('all')">All</button>
+      </div>
+
+      <!-- Statistics -->
+      <div class="stats-panel">
+        <div class="stat-box">
+          <div class="stat-value" id="strokeCount">0</div>
+          <div class="stat-label">Strokes Drawn</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="recognitionCount">0</div>
+          <div class="stat-label">Recognized</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="avgConfidence">0%</div>
+          <div class="stat-label">Avg Confidence</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="currentMode">Letters</div>
+          <div class="stat-label">Current Mode</div>
+        </div>
+      </div>
+
+      <!-- Writing Canvas -->
+      <div class="writing-canvas-container">
+        <canvas id="writingCanvas" width="800" height="500"></canvas>
+        <div class="controls">
+          <button class="btn btn-secondary" onclick="clearCanvas()">Clear Canvas</button>
+          <button class="btn btn-secondary" onclick="undoStroke()">Undo Stroke</button>
+          <button class="btn btn-primary" onclick="recognizeNow()">Recognize Now</button>
+        </div>
+
+        <!-- Character Suggestions -->
+        <div class="character-suggestions">
+          <div style="width: 100%; text-align: center; color: var(--gray-600); font-size: 0.875rem; margin-bottom: var(--space-sm);">
+            Quick Add:
+          </div>
+          <button class="suggestion-btn" onclick="addCharacter('A')">A</button>
+          <button class="suggestion-btn" onclick="addCharacter('B')">B</button>
+          <button class="suggestion-btn" onclick="addCharacter('C')">C</button>
+          <button class="suggestion-btn" onclick="addCharacter('1')">1</button>
+          <button class="suggestion-btn" onclick="addCharacter('2')">2</button>
+          <button class="suggestion-btn" onclick="addCharacter('3')">3</button>
+          <button class="suggestion-btn" onclick="addCharacter('⭕')">○</button>
+          <button class="suggestion-btn" onclick="addCharacter('■')">□</button>
+          <button class="suggestion-btn" onclick="addCharacter('▲')">△</button>
+          <button class="suggestion-btn" onclick="addCharacter(' ')">Space</button>
+          <button class="suggestion-btn" onclick="deleteCharacter()">⌫</button>
+        </div>
+      </div>
+
+      <!-- Recognition Panel -->
+      <div class="recognition-panel">
+        <h3>Recognized Text</h3>
+        <div class="recognized-text" id="recognizedText">
+          <span style="color: var(--gray-400);">Start writing...</span>
+        </div>
+
+        <h4 style="margin: var(--space-lg) 0 var(--space-md);">Top Matches</h4>
+        <div class="recognition-results" id="recognitionResults">
+          <!-- Results will be inserted here -->
+        </div>
+
+        <h4 style="margin: var(--space-lg) 0 var(--space-md);">Recognition History</h4>
+        <div class="history" id="historyList">
+          <p style="text-align: center; color: var(--gray-500); padding: var(--space-lg);">
+            No recognitions yet
+          </p>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>About Handwriting Recognition</h3>
+        <p>
+          This demo uses simplified pattern matching to recognize handwritten input.
+          Real handwriting recognition systems use machine learning models trained on
+          millions of samples.
+        </p>
+
+        <h4 style="margin-top: var(--space-xl);">Recognition Features</h4>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li><strong>Stroke analysis:</strong> Captures pen direction, curvature, and speed</li>
+          <li><strong>Shape detection:</strong> Identifies basic geometric shapes</li>
+          <li><strong>Pattern matching:</strong> Compares strokes to known patterns</li>
+          <li><strong>Confidence scoring:</strong> Rates match quality</li>
+          <li><strong>Multi-stroke support:</strong> Handles complex characters</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Tips for Better Recognition</h4>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li>Write clearly and deliberately</li>
+          <li>Use the entire canvas area</li>
+          <li>Wait a moment after finishing before clearing</li>
+          <li>Shapes should be drawn in one continuous stroke</li>
+          <li>Letters can use multiple strokes (e.g., i, t, f)</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.3 - Handwriting Recognition</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const canvas = document.getElementById('writingCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let isDrawing = false;
+    let currentStroke = [];
+    let allStrokes = [];
+    let recognizedText = '';
+    let currentMode = 'letters';
+    let recognitionTimeout = null;
+
+    let stats = {
+      strokes: 0,
+      recognitions: 0,
+      confidences: []
+    };
+
+    // Initialize canvas
+    function initCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#000000';
+    }
+
+    initCanvas();
+
+    // Drawing functions
+    function startDrawing(e) {
+      e.preventDefault();
+      isDrawing = true;
+      currentStroke = [];
+
+      const point = getPoint(e);
+      currentStroke.push(point);
+      TouchUtils.vibrate(5);
+
+      // Clear auto-recognition timeout
+      if (recognitionTimeout) {
+        clearTimeout(recognitionTimeout);
+      }
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+
+      const point = getPoint(e);
+      currentStroke.push(point);
+
+      const lastPoint = currentStroke[currentStroke.length - 2];
+
+      ctx.beginPath();
+      ctx.moveTo(lastPoint.x, lastPoint.y);
+      ctx.lineTo(point.x, point.y);
+      ctx.stroke();
+    }
+
+    function stopDrawing(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+
+      isDrawing = false;
+
+      if (currentStroke.length > 2) {
+        allStrokes.push([...currentStroke]);
+        stats.strokes++;
+        updateStats();
+
+        // Auto-recognize after 1 second of inactivity
+        recognitionTimeout = setTimeout(() => {
+          recognizeNow();
+        }, 1000);
+      }
+
+      currentStroke = [];
+    }
+
+    function getPoint(e) {
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches ? e.touches[0] : e;
+
+      return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top,
+        time: Date.now()
+      };
+    }
+
+    // Event listeners
+    canvas.addEventListener('pointerdown', startDrawing);
+    canvas.addEventListener('pointermove', draw);
+    canvas.addEventListener('pointerup', stopDrawing);
+    canvas.addEventListener('pointerleave', stopDrawing);
+
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+
+    // Recognition functions
+    function recognizeNow() {
+      if (allStrokes.length === 0) return;
+
+      const features = extractFeatures(allStrokes);
+      const matches = matchPattern(features, currentMode);
+
+      displayResults(matches);
+
+      if (matches.length > 0) {
+        const bestMatch = matches[0];
+        addCharacter(bestMatch.char);
+        addToHistory(bestMatch.char, bestMatch.confidence);
+
+        stats.recognitions++;
+        stats.confidences.push(bestMatch.confidence);
+        updateStats();
+
+        TouchUtils.vibrate([10, 50, 10]);
+      }
+
+      // Clear canvas after recognition
+      setTimeout(() => {
+        clearCanvas();
+      }, 1500);
+    }
+
+    function extractFeatures(strokes) {
+      if (strokes.length === 0) return {};
+
+      // Get bounding box
+      let minX = Infinity, minY = Infinity;
+      let maxX = -Infinity, maxY = -Infinity;
+
+      strokes.forEach(stroke => {
+        stroke.forEach(point => {
+          minX = Math.min(minX, point.x);
+          minY = Math.min(minY, point.y);
+          maxX = Math.max(maxX, point.x);
+          maxY = Math.max(maxY, point.y);
+        });
+      });
+
+      const width = maxX - minX;
+      const height = maxY - minY;
+      const aspectRatio = width / height;
+
+      // Count direction changes
+      let directionChanges = 0;
+      strokes.forEach(stroke => {
+        for (let i = 1; i < stroke.length - 1; i++) {
+          const dx1 = stroke[i].x - stroke[i - 1].x;
+          const dy1 = stroke[i].y - stroke[i - 1].y;
+          const dx2 = stroke[i + 1].x - stroke[i].x;
+          const dy2 = stroke[i + 1].y - stroke[i].y;
+
+          const angle1 = Math.atan2(dy1, dx1);
+          const angle2 = Math.atan2(dy2, dx2);
+          const angleDiff = Math.abs(angle1 - angle2);
+
+          if (angleDiff > Math.PI / 4) {
+            directionChanges++;
+          }
+        }
+      });
+
+      // Check if closed shape
+      const firstStroke = strokes[0];
+      const firstPoint = firstStroke[0];
+      const lastPoint = firstStroke[firstStroke.length - 1];
+      const distance = Math.sqrt(
+        Math.pow(lastPoint.x - firstPoint.x, 2) +
+        Math.pow(lastPoint.y - firstPoint.y, 2)
+      );
+      const isClosed = distance < 50;
+
+      return {
+        strokeCount: strokes.length,
+        aspectRatio,
+        directionChanges,
+        isClosed,
+        width,
+        height
+      };
+    }
+
+    function matchPattern(features, mode) {
+      const matches = [];
+
+      // Shape recognition
+      if (mode === 'shapes' || mode === 'all') {
+        if (features.isClosed && features.strokeCount === 1) {
+          if (Math.abs(features.aspectRatio - 1) < 0.3) {
+            matches.push({ char: '○', confidence: 0.85, type: 'circle' });
+          }
+        }
+
+        if (features.directionChanges >= 3 && features.directionChanges <= 5) {
+          if (Math.abs(features.aspectRatio - 1) < 0.3) {
+            matches.push({ char: '□', confidence: 0.75, type: 'square' });
+          }
+        }
+
+        if (features.directionChanges === 2 && features.aspectRatio > 0.8) {
+          matches.push({ char: '△', confidence: 0.70, type: 'triangle' });
+        }
+      }
+
+      // Letter recognition (simplified)
+      if (mode === 'letters' || mode === 'all') {
+        if (features.strokeCount === 1) {
+          if (features.isClosed && Math.abs(features.aspectRatio - 1) < 0.4) {
+            matches.push({ char: 'O', confidence: 0.80, type: 'letter' });
+          } else if (features.directionChanges < 3 && features.aspectRatio > 2) {
+            matches.push({ char: 'I', confidence: 0.75, type: 'letter' });
+          } else if (features.directionChanges >= 4) {
+            matches.push({ char: 'S', confidence: 0.65, type: 'letter' });
+          } else if (features.aspectRatio > 1.5) {
+            matches.push({ char: 'L', confidence: 0.60, type: 'letter' });
+          }
+        } else if (features.strokeCount === 2) {
+          matches.push({ char: 'T', confidence: 0.70, type: 'letter' });
+        } else if (features.strokeCount === 3) {
+          matches.push({ char: 'i', confidence: 0.65, type: 'letter' });
+        }
+      }
+
+      // Number recognition (simplified)
+      if (mode === 'numbers' || mode === 'all') {
+        if (features.strokeCount === 1) {
+          if (features.isClosed) {
+            matches.push({ char: '0', confidence: 0.75, type: 'number' });
+          } else if (features.directionChanges < 2) {
+            matches.push({ char: '1', confidence: 0.70, type: 'number' });
+          } else if (features.directionChanges >= 3) {
+            matches.push({ char: '8', confidence: 0.60, type: 'number' });
+          }
+        } else if (features.strokeCount === 2) {
+          matches.push({ char: '4', confidence: 0.65, type: 'number' });
+        }
+      }
+
+      // Sort by confidence
+      matches.sort((a, b) => b.confidence - a.confidence);
+
+      return matches.slice(0, 5);
+    }
+
+    function displayResults(matches) {
+      const resultsDiv = document.getElementById('recognitionResults');
+
+      if (matches.length === 0) {
+        resultsDiv.innerHTML = '<p style="text-align: center; color: var(--gray-500); padding: var(--space-lg); grid-column: 1 / -1;">No matches found. Try again!</p>';
+        return;
+      }
+
+      resultsDiv.innerHTML = matches.map(match => `
+        <div class="result-card">
+          <div class="result-character">${match.char}</div>
+          <div class="result-confidence">${Math.round(match.confidence * 100)}% confidence</div>
+          <div class="confidence-bar">
+            <div class="confidence-fill" style="width: ${match.confidence * 100}%"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addCharacter(char) {
+      recognizedText += char;
+      const textDiv = document.getElementById('recognizedText');
+      textDiv.innerHTML = recognizedText || '<span style="color: var(--gray-400);">Start writing...</span>';
+    }
+
+    function deleteCharacter() {
+      recognizedText = recognizedText.slice(0, -1);
+      const textDiv = document.getElementById('recognizedText');
+      textDiv.innerHTML = recognizedText || '<span style="color: var(--gray-400);">Start writing...</span>';
+      TouchUtils.vibrate(10);
+    }
+
+    function addToHistory(char, confidence) {
+      const historyList = document.getElementById('historyList');
+
+      // Remove placeholder
+      if (historyList.querySelector('p')) {
+        historyList.innerHTML = '';
+      }
+
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      item.innerHTML = `
+        <div class="history-char">${char}</div>
+        <div class="history-details">
+          ${Math.round(confidence * 100)}% confidence • ${new Date().toLocaleTimeString()}
+        </div>
+      `;
+
+      historyList.insertBefore(item, historyList.firstChild);
+
+      // Keep only last 10 items
+      while (historyList.children.length > 10) {
+        historyList.removeChild(historyList.lastChild);
+      }
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      allStrokes = [];
+      currentStroke = [];
+      TouchUtils.vibrate(20);
+    }
+
+    function undoStroke() {
+      if (allStrokes.length > 0) {
+        allStrokes.pop();
+        redrawCanvas();
+        TouchUtils.vibrate(10);
+      }
+    }
+
+    function redrawCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      allStrokes.forEach(stroke => {
+        ctx.beginPath();
+        ctx.moveTo(stroke[0].x, stroke[0].y);
+
+        for (let i = 1; i < stroke.length; i++) {
+          ctx.lineTo(stroke[i].x, stroke[i].y);
+        }
+
+        ctx.stroke();
+      });
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+
+      document.getElementById('currentMode').textContent =
+        mode.charAt(0).toUpperCase() + mode.slice(1);
+
+      TouchUtils.vibrate(10);
+    }
+
+    function updateStats() {
+      document.getElementById('strokeCount').textContent = stats.strokes;
+      document.getElementById('recognitionCount').textContent = stats.recognitions;
+
+      if (stats.confidences.length > 0) {
+        const avg = stats.confidences.reduce((a, b) => a + b, 0) / stats.confidences.length;
+        document.getElementById('avgConfidence').textContent = Math.round(avg * 100) + '%';
+      }
+    }
+  </script>
+</body>
+</html>

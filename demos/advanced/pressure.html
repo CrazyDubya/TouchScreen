@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Pressure Sensitivity - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .pressure-canvas-container {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      margin: var(--space-xl) 0;
+    }
+
+    #pressureCanvas {
+      width: 100%;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-lg);
+      touch-action: none;
+      cursor: crosshair;
+      background: white;
+    }
+
+    .pressure-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-md);
+      margin: var(--space-xl) 0;
+    }
+
+    .info-card {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .info-label {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-bottom: var(--space-xs);
+    }
+
+    .info-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Monaco', monospace;
+    }
+
+    .pressure-meter {
+      width: 100%;
+      height: 40px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-top: var(--space-md);
+      position: relative;
+    }
+
+    .pressure-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success), var(--warning), var(--danger));
+      width: 0%;
+      transition: width 0.1s;
+    }
+
+    .pressure-scale {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 var(--space-md);
+      color: white;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      font-size: 0.875rem;
+    }
+
+    .device-support {
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      margin: var(--space-xl) 0;
+    }
+
+    .device-support.supported {
+      background: var(--success);
+      background-opacity: 0.1;
+      border: 2px solid var(--success);
+      color: var(--success);
+    }
+
+    .device-support.unsupported {
+      background: var(--warning);
+      background-opacity: 0.1;
+      border: 2px solid var(--warning);
+      color: #8b6914;
+    }
+
+    .tilt-indicator {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto;
+      position: relative;
+      background: var(--gray-100);
+      border-radius: 50%;
+      box-shadow: var(--shadow-lg) inset;
+    }
+
+    .tilt-dot {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: var(--primary);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: var(--shadow-md);
+      transition: all 0.1s;
+    }
+
+    .controls {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Pressure Sensitivity</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Advanced touch detection with pressure, force, and tilt sensing for stylus input.
+      </p>
+
+      <!-- Device Support -->
+      <div class="device-support" id="deviceSupport">
+        <h3 style="margin-bottom: var(--space-sm);">
+          <span id="supportIcon">⚠️</span> Device Support
+        </h3>
+        <p id="supportMessage">Checking device capabilities...</p>
+      </div>
+
+      <!-- Pressure Info -->
+      <div class="pressure-info">
+        <div class="info-card">
+          <div class="info-label">Current Pressure</div>
+          <div class="info-value" id="currentPressure">0.00</div>
+          <div class="pressure-meter">
+            <div class="pressure-fill" id="pressureFill"></div>
+            <div class="pressure-scale" id="pressureScale">0%</div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-label">Maximum Detected</div>
+          <div class="info-value" id="maxPressure">0.00</div>
+          <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: var(--space-xs);">
+            Press harder to increase
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-label">Touch Type</div>
+          <div class="info-value" style="font-size: 1.125rem;" id="touchType">None</div>
+          <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: var(--space-xs);">
+            Finger, Stylus, or Pen
+          </div>
+        </div>
+      </div>
+
+      <!-- Drawing Canvas -->
+      <div class="pressure-canvas-container">
+        <h3>Pressure-Sensitive Drawing</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Draw with varying pressure - line width responds to how hard you press
+        </p>
+        <canvas id="pressureCanvas" width="800" height="500"></canvas>
+        <div class="controls">
+          <button class="btn btn-secondary" onclick="clearCanvas()">Clear Canvas</button>
+          <button class="btn btn-primary" onclick="saveCanvas()">Save Drawing</button>
+        </div>
+      </div>
+
+      <!-- Stylus Tilt -->
+      <div class="info-card" style="text-align: center;">
+        <h3>Stylus Tilt Detection</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Tilt your stylus to see the angle visualization (if supported)
+        </p>
+        <div class="tilt-indicator">
+          <div class="tilt-dot" id="tiltDot"></div>
+        </div>
+        <div style="margin-top: var(--space-lg); display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+          <div>
+            <div class="info-label">Tilt X</div>
+            <div class="info-value" style="font-size: 1.125rem;" id="tiltX">0°</div>
+          </div>
+          <div>
+            <div class="info-label">Tilt Y</div>
+            <div class="info-value" style="font-size: 1.125rem;" id="tiltY">0°</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>What is Pressure Sensitivity?</h3>
+        <p>
+          Pressure sensitivity allows devices to detect how hard you're pressing on the screen.
+          This is particularly useful for:
+        </p>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li><strong>Digital art:</strong> Variable brush width and opacity like real brushes</li>
+          <li><strong>Handwriting:</strong> Natural-looking written text with varying thickness</li>
+          <li><strong>3D Touch:</strong> Context-sensitive actions based on press force</li>
+          <li><strong>Gaming:</strong> Analog control using pressure</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Browser Support</h4>
+        <p>
+          Pressure sensitivity is supported on:
+        </p>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li>iPad Pro with Apple Pencil</li>
+          <li>Surface devices with Surface Pen</li>
+          <li>Wacom tablets and displays</li>
+          <li>Some Android devices with active stylus</li>
+          <li>Devices with 3D Touch (legacy iPhones)</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Technical Details</h4>
+        <p style="margin-top: var(--space-md);">
+          The <code>force</code> property on touch events provides a value between 0.0 and 1.0,
+          where 0 represents no pressure and 1.0 represents maximum pressure.
+          The <code>tiltX</code> and <code>tiltY</code> properties (for stylus) provide the angle
+          of the stylus relative to the screen surface.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.3 - Pressure Sensitivity</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const canvas = document.getElementById('pressureCanvas');
+    const ctx = canvas.getContext('2d');
+    const tiltDot = document.getElementById('tiltDot');
+
+    let isDrawing = false;
+    let lastPoint = null;
+    let maxPressureDetected = 0;
+    let supportsForce = false;
+    let supportsTilt = false;
+
+    // Initialize canvas
+    function initCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+    }
+
+    initCanvas();
+
+    // Check device support
+    function checkSupport() {
+      const support = document.getElementById('deviceSupport');
+      const icon = document.getElementById('supportIcon');
+      const message = document.getElementById('supportMessage');
+
+      // Test if force is available
+      canvas.addEventListener('touchstart', function testForce(e) {
+        if (e.touches[0].force !== undefined && e.touches[0].force > 0) {
+          supportsForce = true;
+          support.classList.add('supported');
+          support.classList.remove('unsupported');
+          icon.textContent = '✅';
+          message.textContent = 'Great! Your device supports pressure sensitivity.';
+        } else {
+          support.classList.add('unsupported');
+          support.classList.remove('supported');
+          icon.textContent = '⚠️';
+          message.textContent = 'Your device doesn\'t support pressure sensitivity. Line width will be constant.';
+        }
+        canvas.removeEventListener('touchstart', testForce);
+      }, { once: true });
+
+      // Fallback if no touch detected
+      setTimeout(() => {
+        if (!support.classList.contains('supported') && !support.classList.contains('unsupported')) {
+          support.classList.add('unsupported');
+          icon.textContent = '⚠️';
+          message.textContent = 'Use a device with stylus support (iPad Pro, Surface, Wacom) for best results.';
+        }
+      }, 2000);
+    }
+
+    checkSupport();
+
+    // Get touch/pointer information
+    function getInputInfo(e) {
+      let clientX, clientY, pressure, tiltX = 0, tiltY = 0, pointerType = 'touch';
+
+      if (e.type.includes('pointer')) {
+        clientX = e.clientX;
+        clientY = e.clientY;
+        pressure = e.pressure || 0.5;
+        tiltX = e.tiltX || 0;
+        tiltY = e.tiltY || 0;
+        pointerType = e.pointerType;
+        supportsTilt = tiltX !== 0 || tiltY !== 0;
+      } else if (e.type.includes('touch')) {
+        const touch = e.touches[0] || e.changedTouches[0];
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+        pressure = touch.force !== undefined ? touch.force : 0.5;
+        pointerType = 'finger';
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+        pressure = 0.5;
+        pointerType = 'mouse';
+      }
+
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+        pressure: Math.max(0.1, Math.min(1, pressure)),
+        tiltX,
+        tiltY,
+        type: pointerType
+      };
+    }
+
+    // Update UI
+    function updateUI(info) {
+      // Pressure
+      document.getElementById('currentPressure').textContent = info.pressure.toFixed(2);
+      document.getElementById('pressureFill').style.width = (info.pressure * 100) + '%';
+      document.getElementById('pressureScale').textContent = Math.round(info.pressure * 100) + '%';
+
+      // Max pressure
+      if (info.pressure > maxPressureDetected) {
+        maxPressureDetected = info.pressure;
+        document.getElementById('maxPressure').textContent = maxPressureDetected.toFixed(2);
+      }
+
+      // Touch type
+      const typeMap = {
+        'pen': '🖊️ Stylus',
+        'touch': '👆 Finger',
+        'mouse': '🖱️ Mouse',
+        'finger': '👆 Finger'
+      };
+      document.getElementById('touchType').textContent = typeMap[info.type] || info.type;
+
+      // Tilt
+      if (supportsTilt || info.tiltX !== 0 || info.tiltY !== 0) {
+        document.getElementById('tiltX').textContent = info.tiltX + '°';
+        document.getElementById('tiltY').textContent = info.tiltY + '°';
+
+        // Update tilt visualization
+        const maxTilt = 90;
+        const x = (info.tiltX / maxTilt) * 80; // 80px max offset
+        const y = (info.tiltY / maxTilt) * 80;
+        tiltDot.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+      }
+    }
+
+    // Drawing functions
+    function startDrawing(e) {
+      e.preventDefault();
+      isDrawing = true;
+      const info = getInputInfo(e);
+      lastPoint = info;
+      updateUI(info);
+      TouchUtils.vibrate(5);
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+
+      const info = getInputInfo(e);
+      updateUI(info);
+
+      if (lastPoint) {
+        // Draw line with pressure-based width
+        const baseWidth = 3;
+        const maxWidth = 20;
+        const width = baseWidth + (info.pressure * maxWidth);
+
+        ctx.beginPath();
+        ctx.moveTo(lastPoint.x, lastPoint.y);
+        ctx.lineTo(info.x, info.y);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = width;
+        ctx.stroke();
+      }
+
+      lastPoint = info;
+    }
+
+    function stopDrawing(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+      isDrawing = false;
+      lastPoint = null;
+
+      // Reset UI after a moment
+      setTimeout(() => {
+        document.getElementById('currentPressure').textContent = '0.00';
+        document.getElementById('pressureFill').style.width = '0%';
+        document.getElementById('pressureScale').textContent = '0%';
+      }, 500);
+    }
+
+    // Event listeners (pointer events for better stylus support)
+    canvas.addEventListener('pointerdown', startDrawing);
+    canvas.addEventListener('pointermove', draw);
+    canvas.addEventListener('pointerup', stopDrawing);
+    canvas.addEventListener('pointerleave', stopDrawing);
+
+    // Touch events as fallback
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+
+    // Mouse events for testing
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+
+    // Utility functions
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      maxPressureDetected = 0;
+      document.getElementById('maxPressure').textContent = '0.00';
+      TouchUtils.vibrate(20);
+    }
+
+    function saveCanvas() {
+      const link = document.createElement('a');
+      link.download = `pressure-drawing-${Date.now()}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+      TouchUtils.vibrate(20);
+    }
+  </script>
+</body>
+</html>

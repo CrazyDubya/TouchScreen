@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Svelte Touch Components - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <script defer src="https://unpkg.com/svelte@3/compiler.js"></script>
+  <style>
+    .svelte-app {
+      min-height: 400px;
+    }
+
+    .component-section {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .gesture-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: var(--space-2xl);
+      border-radius: var(--radius-xl);
+      text-align: center;
+      user-select: none;
+      touch-action: none;
+      cursor: pointer;
+      box-shadow: var(--shadow-xl);
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .gesture-icon {
+      font-size: 4rem;
+    }
+
+    .gesture-label {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .gesture-hint {
+      font-size: 0.875rem;
+      opacity: 0.8;
+    }
+
+    .slider-container {
+      padding: var(--space-xl);
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-md);
+    }
+
+    .slider-track {
+      width: 100%;
+      height: 60px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      position: relative;
+      touch-action: pan-y;
+      cursor: pointer;
+    }
+
+    .slider-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: var(--radius-full);
+      transition: width 0.1s;
+      position: relative;
+    }
+
+    .slider-thumb {
+      position: absolute;
+      right: -25px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 50px;
+      height: 50px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .toggle-list {
+      display: grid;
+      gap: var(--space-md);
+    }
+
+    .toggle-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-lg);
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-fast);
+    }
+
+    .toggle-item:active {
+      transform: scale(0.98);
+    }
+
+    .toggle-switch {
+      width: 60px;
+      height: 32px;
+      background: var(--gray-300);
+      border-radius: var(--radius-full);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s;
+      touch-action: manipulation;
+    }
+
+    .toggle-switch.active {
+      background: var(--success);
+    }
+
+    .toggle-knob {
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .toggle-switch.active .toggle-knob {
+      transform: translateX(28px);
+    }
+
+    .paint-canvas {
+      width: 100%;
+      height: 400px;
+      background: white;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-lg);
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .color-palette {
+      display: flex;
+      gap: var(--space-sm);
+      margin-top: var(--space-md);
+      flex-wrap: wrap;
+    }
+
+    .color-swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      border: 3px solid transparent;
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.1);
+    }
+
+    .color-swatch.active {
+      border-color: var(--gray-900);
+      transform: scale(1.2);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+
+    .stat-card {
+      background: var(--gray-50);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Monaco', monospace;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-top: var(--space-xs);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Svelte Touch Components</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Reactive touch interactions with Svelte - simple, fast, and elegant.
+      </p>
+
+      <div id="app" class="svelte-app"></div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Svelte Integration</h3>
+        <p>
+          This demo shows touch-enabled components built with Svelte:
+        </p>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li><strong>Reactive declarations:</strong> $: syntax for derived state</li>
+          <li><strong>Event handlers:</strong> on:touchstart, on:touchmove bindings</li>
+          <li><strong>Two-way binding:</strong> bind: directive for touch state</li>
+          <li><strong>Transitions:</strong> Built-in animations for touch feedback</li>
+          <li><strong>Stores:</strong> Shared touch state across components</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Component Features</h4>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li>Multi-gesture detection (tap, swipe, long-press)</li>
+          <li>Touch-optimized sliders and toggles</li>
+          <li>Finger painting with color selection</li>
+          <li>Real-time statistics</li>
+          <li>Smooth animations and transitions</li>
+          <li>Minimal boilerplate code</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.3 - Svelte Touch Components</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script type="module">
+    // Svelte component source
+    const componentSource = `
+      <script>
+        let gestureType = 'Waiting...';
+        let gestureIcon = '👆';
+        let touchCount = 0;
+        let swipeCount = 0;
+        let longPressCount = 0;
+
+        let sliderValue = 50;
+        let isDraggingSlider = false;
+
+        let settings = [
+          { id: 1, label: 'Notifications', enabled: true },
+          { id: 2, label: 'Dark Mode', enabled: false },
+          { id: 3, label: 'Auto-save', enabled: true },
+          { id: 4, label: 'Sound Effects', enabled: false }
+        ];
+
+        let paintColor = '#6366f1';
+        let isDrawing = false;
+        let canvas;
+        let ctx;
+        let strokes = 0;
+
+        const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#000000', '#ffffff'];
+
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartTime = 0;
+        let longPressTimer;
+
+        function handleGestureStart(e) {
+          const touch = e.touches[0];
+          touchStartX = touch.clientX;
+          touchStartY = touch.clientY;
+          touchStartTime = Date.now();
+
+          longPressTimer = setTimeout(() => {
+            gestureType = 'Long Press';
+            gestureIcon = '⏱️';
+            longPressCount++;
+            if (window.TouchUtils) window.TouchUtils.vibrate([20, 50, 20]);
+          }, 800);
+        }
+
+        function handleGestureMove(e) {
+          if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+        }
+
+        function handleGestureEnd(e) {
+          if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+
+          const touch = e.changedTouches[0];
+          const deltaX = touch.clientX - touchStartX;
+          const deltaY = touch.clientY - touchStartY;
+          const deltaTime = Date.now() - touchStartTime;
+
+          if (Math.abs(deltaX) > 50 || Math.abs(deltaY) > 50) {
+            let direction = '';
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              direction = deltaX > 0 ? 'Right' : 'Left';
+            } else {
+              direction = deltaY > 0 ? 'Down' : 'Up';
+            }
+            gestureType = \`Swipe \${direction}\`;
+            gestureIcon = direction === 'Left' ? '👈' : direction === 'Right' ? '👉' : direction === 'Up' ? '👆' : '👇';
+            swipeCount++;
+            if (window.TouchUtils) window.TouchUtils.vibrate(20);
+          } else if (deltaTime < 300) {
+            gestureType = 'Tap';
+            gestureIcon = '👆';
+            touchCount++;
+            if (window.TouchUtils) window.TouchUtils.vibrate(10);
+          }
+
+          setTimeout(() => {
+            gestureType = 'Waiting...';
+            gestureIcon = '👆';
+          }, 2000);
+        }
+
+        function handleSliderTouch(e) {
+          isDraggingSlider = true;
+          updateSliderValue(e);
+        }
+
+        function handleSliderMove(e) {
+          if (isDraggingSlider) {
+            e.preventDefault();
+            updateSliderValue(e);
+          }
+        }
+
+        function handleSliderEnd() {
+          isDraggingSlider = false;
+        }
+
+        function updateSliderValue(e) {
+          const touch = e.touches ? e.touches[0] : e;
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = touch.clientX - rect.left;
+          const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+          sliderValue = Math.round(percentage);
+        }
+
+        function toggleSetting(setting) {
+          setting.enabled = !setting.enabled;
+          settings = settings;
+          if (window.TouchUtils) window.TouchUtils.vibrate(10);
+        }
+
+        function initCanvas(node) {
+          canvas = node;
+          ctx = canvas.getContext('2d');
+          canvas.width = canvas.offsetWidth;
+          canvas.height = canvas.offsetHeight;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.lineWidth = 5;
+        }
+
+        function startDrawing(e) {
+          isDrawing = true;
+          const touch = e.touches[0];
+          const rect = canvas.getBoundingClientRect();
+          ctx.beginPath();
+          ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+        }
+
+        function draw(e) {
+          if (!isDrawing) return;
+          e.preventDefault();
+
+          const touch = e.touches[0];
+          const rect = canvas.getBoundingClientRect();
+          ctx.strokeStyle = paintColor;
+          ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+          ctx.stroke();
+        }
+
+        function stopDrawing() {
+          if (isDrawing) {
+            isDrawing = false;
+            strokes++;
+          }
+        }
+
+        function clearCanvas() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          strokes = 0;
+          if (window.TouchUtils) window.TouchUtils.vibrate(20);
+        }
+
+        function selectColor(color) {
+          paintColor = color;
+          if (window.TouchUtils) window.TouchUtils.vibrate(5);
+        }
+      <\/script>
+
+      <!-- Gesture Detection -->
+      <div class="component-section">
+        <h3>Gesture Detection</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Try different gestures: tap, swipe, or long-press
+        </p>
+
+        <div
+          class="gesture-card"
+          on:touchstart={handleGestureStart}
+          on:touchmove={handleGestureMove}
+          on:touchend={handleGestureEnd}
+        >
+          <div class="gesture-icon">{gestureIcon}</div>
+          <div class="gesture-label">{gestureType}</div>
+          <div class="gesture-hint">Touch here to detect gestures</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">{touchCount}</div>
+            <div class="stat-label">Taps</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">{swipeCount}</div>
+            <div class="stat-label">Swipes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">{longPressCount}</div>
+            <div class="stat-label">Long Presses</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Touch Slider -->
+      <div class="component-section">
+        <h3>Touch Slider</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Drag the slider to adjust the value
+        </p>
+
+        <div class="slider-container">
+          <div
+            class="slider-track"
+            on:touchstart={handleSliderTouch}
+            on:touchmove={handleSliderMove}
+            on:touchend={handleSliderEnd}
+            on:mousedown={handleSliderTouch}
+            on:mousemove={handleSliderMove}
+            on:mouseup={handleSliderEnd}
+          >
+            <div class="slider-fill" style="width: {sliderValue}%">
+              <div class="slider-thumb">{sliderValue}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card" style="margin-top: var(--space-lg);">
+          <div class="stat-value">{sliderValue}%</div>
+          <div class="stat-label">Current Value</div>
+        </div>
+      </div>
+
+      <!-- Toggle Switches -->
+      <div class="component-section">
+        <h3>Touch Toggles</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Tap to toggle settings on and off
+        </p>
+
+        <div class="toggle-list">
+          {#each settings as setting}
+            <div class="toggle-item" on:click={() => toggleSetting(setting)}>
+              <div>
+                <strong>{setting.label}</strong>
+                <div style="font-size: 0.75rem; color: var(--gray-600); margin-top: var(--space-xs);">
+                  {setting.enabled ? 'Enabled' : 'Disabled'}
+                </div>
+              </div>
+              <div class="toggle-switch" class:active={setting.enabled}>
+                <div class="toggle-knob"></div>
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+
+      <!-- Finger Paint -->
+      <div class="component-section">
+        <h3>Finger Paint</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Draw with your finger or stylus
+        </p>
+
+        <canvas
+          class="paint-canvas"
+          use:initCanvas
+          on:touchstart={startDrawing}
+          on:touchmove={draw}
+          on:touchend={stopDrawing}
+        ></canvas>
+
+        <div class="color-palette">
+          {#each colors as color}
+            <div
+              class="color-swatch"
+              class:active={paintColor === color}
+              style="background: {color}; {color === '#ffffff' ? 'border: 2px solid #e5e7eb;' : ''}"
+              on:click={() => selectColor(color)}
+            ></div>
+          {/each}
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" on:click={clearCanvas}>Clear Canvas</button>
+          <div class="stat-card" style="flex: 1; text-align: center;">
+            <div class="stat-value">{strokes}</div>
+            <div class="stat-label">Strokes</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Compile and mount Svelte component
+    const { js } = svelte.compile(componentSource, {
+      format: 'iife',
+      name: 'App',
+      css: false
+    });
+
+    const AppConstructor = eval(js.code + '; App;');
+
+    new AppConstructor({
+      target: document.getElementById('app')
+    });
+  </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-# TouchScreen Demo Showcase v0.2
+# TouchScreen Demo Showcase v0.3
 
 A comprehensive collection of touchscreen interface demos exploring various frameworks, gestures, and UI patterns.
 
@@ -27,6 +27,10 @@ TouchScreen/
 │   │   └── index.html        # React touch components
 │   ├── hammer/               # Hammer.js gesture library
 │   │   └── index.html        # Advanced gestures
+│   ├── vue/                  # Vue.js demos
+│   │   └── index.html        # Vue touch components
+│   ├── svelte/               # Svelte demos
+│   │   └── index.html        # Svelte touch components
 │   ├── components/           # UI component demos
 │   │   ├── menus.html        # Navigation patterns
 │   │   ├── toggles.html      # Switches and toggles
@@ -43,9 +47,19 @@ TouchScreen/
 │   │   └── color-picker.html # Touch color picker
 │   ├── interactive/          # Interactive experiences
 │   │   ├── game.html         # Touch-based game
-│   │   └── keyboard.html     # Virtual keyboard
-│   └── advanced/             # Advanced demos
-│       └── gestures.html     # Complex gestures
+│   │   ├── keyboard.html     # Virtual keyboard
+│   │   ├── photo-editor.html # Touch photo editor
+│   │   └── drawing-vector.html # Vector drawing tool
+│   ├── advanced/             # Advanced & edge cases
+│   │   ├── pressure.html     # Force/pressure sensitivity
+│   │   ├── multi-finger.html # 3+ finger gestures
+│   │   ├── palm-rejection.html # Palm rejection
+│   │   ├── context-menu.html # Touch context menus
+│   │   ├── handwriting.html  # Handwriting recognition
+│   │   └── data-viz.html     # Touch data visualization
+│   └── frameworks/           # Additional frameworks
+│       ├── vue-demo.html     # Vue.js implementation
+│       └── svelte-demo.html  # Svelte implementation
 ├── js/
 │   ├── touch-utils.js        # Touch helper utilities
 │   └── components.js         # Reusable components
@@ -108,6 +122,27 @@ Simply open `index.html` in a modern web browser. For best experience:
 - Clean, modern interface
 
 ## 📝 Version History
+
+### v0.3 (Advanced & Edge Cases)
+- **Additional Frameworks:**
+  - Vue.js touch components
+  - Svelte touch demos
+  - Framework comparison
+- **Advanced Use Cases:**
+  - Touch-based photo editor (crop, rotate, filters)
+  - Vector drawing tool
+  - Interactive data visualization
+- **Edge Cases & Rare Scenarios:**
+  - Pressure/force sensitivity detection
+  - Multi-finger gestures (3+ fingers)
+  - Palm rejection techniques
+  - Touch context menus
+  - Handwriting recognition
+  - Accessibility features
+- **Professional Tools:**
+  - Advanced gesture combinations
+  - Production-ready patterns
+  - Performance optimizations
 
 ### v0.2 (Enhanced Release)
 - **New Interactive Demos:**

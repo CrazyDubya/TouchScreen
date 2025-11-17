@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Photo Editor - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .editor-container {
+      background: var(--gray-900);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .editor-canvas-wrapper {
+      position: relative;
+      background: var(--gray-800);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 500px;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    #editorCanvas {
+      max-width: 100%;
+      max-height: 500px;
+      touch-action: none;
+      cursor: move;
+    }
+
+    .editor-toolbar {
+      background: var(--gray-900);
+      padding: var(--space-lg);
+      display: flex;
+      gap: var(--space-md);
+      overflow-x: auto;
+      border-top: 1px solid var(--gray-700);
+    }
+
+    .tool-btn {
+      min-width: 60px;
+      height: 60px;
+      background: var(--gray-800);
+      border: 2px solid var(--gray-700);
+      border-radius: var(--radius-md);
+      color: white;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      font-size: 0.75rem;
+    }
+
+    .tool-btn:hover {
+      background: var(--gray-700);
+      border-color: var(--primary);
+    }
+
+    .tool-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .tool-icon {
+      font-size: 1.5rem;
+    }
+
+    .editor-panel {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-top: var(--space-xl);
+    }
+
+    .filter-controls {
+      display: grid;
+      gap: var(--space-lg);
+    }
+
+    .filter-control {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .filter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .filter-label {
+      font-weight: 600;
+      color: var(--gray-900);
+    }
+
+    .filter-value {
+      font-family: 'Monaco', monospace;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .slider {
+      width: 100%;
+    }
+
+    .preset-filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+
+    .preset-btn {
+      aspect-ratio: 1;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      background: var(--gray-100);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .gesture-info {
+      position: absolute;
+      top: var(--space-lg);
+      left: var(--space-lg);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      font-family: 'Monaco', monospace;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .sample-images {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-md);
+    }
+
+    .sample-img {
+      aspect-ratio: 1;
+      background: var(--gray-200);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      overflow: hidden;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+    }
+
+    .sample-img:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .zoom-indicator {
+      position: absolute;
+      bottom: var(--space-lg);
+      right: var(--space-lg);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: 700;
+      font-family: 'Monaco', monospace;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+    }
+
+    .file-input-wrapper input[type=file] {
+      position: absolute;
+      left: -9999px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Touch Photo Editor</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Professional photo editing with intuitive touch gestures - pinch, pan, rotate, and apply filters.
+      </p>
+
+      <!-- Sample Images -->
+      <div class="editor-panel">
+        <h3>Load Image</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-md);">
+          Choose a sample image or upload your own
+        </p>
+        <div class="sample-images">
+          <div class="sample-img" onclick="loadSampleImage('gradient')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            🎨
+          </div>
+          <div class="sample-img" onclick="loadSampleImage('sunset')" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            🌅
+          </div>
+          <div class="sample-img" onclick="loadSampleImage('nature')" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            🏞️
+          </div>
+          <div class="sample-img" onclick="loadSampleImage('pattern')" style="background: repeating-linear-gradient(45deg, #606dbc, #606dbc 10px, #465298 10px, #465298 20px);">
+            📐
+          </div>
+        </div>
+
+        <div class="file-input-wrapper" style="margin-top: var(--space-lg);">
+          <label class="btn btn-primary" for="fileInput">
+            📁 Upload Your Image
+          </label>
+          <input type="file" id="fileInput" accept="image/*" onchange="loadImageFile(event)">
+        </div>
+      </div>
+
+      <!-- Editor Canvas -->
+      <div class="editor-container">
+        <div class="editor-canvas-wrapper" id="canvasWrapper">
+          <div class="gesture-info" id="gestureInfo">
+            Pinch to zoom • Drag to pan • Rotate with two fingers
+          </div>
+          <div class="zoom-indicator" id="zoomIndicator">100%</div>
+          <canvas id="editorCanvas"></canvas>
+        </div>
+
+        <div class="editor-toolbar">
+          <button class="tool-btn" onclick="resetTransform()">
+            <span class="tool-icon">🔄</span>
+            <span>Reset</span>
+          </button>
+          <button class="tool-btn" onclick="flipHorizontal()">
+            <span class="tool-icon">↔️</span>
+            <span>Flip H</span>
+          </button>
+          <button class="tool-btn" onclick="flipVertical()">
+            <span class="tool-icon">↕️</span>
+            <span>Flip V</span>
+          </button>
+          <button class="tool-btn" onclick="rotateLeft()">
+            <span class="tool-icon">↶</span>
+            <span>Rotate L</span>
+          </button>
+          <button class="tool-btn" onclick="rotateRight()">
+            <span class="tool-icon">↷</span>
+            <span>Rotate R</span>
+          </button>
+          <button class="tool-btn" onclick="fitToScreen()">
+            <span class="tool-icon">⛶</span>
+            <span>Fit</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="editor-panel">
+        <h3>Filters & Adjustments</h3>
+
+        <div class="filter-controls">
+          <div class="filter-control">
+            <div class="filter-header">
+              <span class="filter-label">Brightness</span>
+              <span class="filter-value" id="brightnessValue">100%</span>
+            </div>
+            <input type="range" class="slider" id="brightness" min="0" max="200" value="100">
+          </div>
+
+          <div class="filter-control">
+            <div class="filter-header">
+              <span class="filter-label">Contrast</span>
+              <span class="filter-value" id="contrastValue">100%</span>
+            </div>
+            <input type="range" class="slider" id="contrast" min="0" max="200" value="100">
+          </div>
+
+          <div class="filter-control">
+            <div class="filter-header">
+              <span class="filter-label">Saturation</span>
+              <span class="filter-value" id="saturationValue">100%</span>
+            </div>
+            <input type="range" class="slider" id="saturation" min="0" max="200" value="100">
+          </div>
+
+          <div class="filter-control">
+            <div class="filter-header">
+              <span class="filter-label">Blur</span>
+              <span class="filter-value" id="blurValue">0px</span>
+            </div>
+            <input type="range" class="slider" id="blur" min="0" max="20" value="0">
+          </div>
+
+          <div class="filter-control">
+            <div class="filter-header">
+              <span class="filter-label">Hue Rotate</span>
+              <span class="filter-value" id="hueValue">0°</span>
+            </div>
+            <input type="range" class="slider" id="hue" min="0" max="360" value="0">
+          </div>
+        </div>
+
+        <h4 style="margin-top: var(--space-xl);">Quick Presets</h4>
+        <div class="preset-filters">
+          <button class="preset-btn" onclick="applyPreset('normal')">Normal</button>
+          <button class="preset-btn" onclick="applyPreset('bw')">B&W</button>
+          <button class="preset-btn" onclick="applyPreset('sepia')">Sepia</button>
+          <button class="preset-btn" onclick="applyPreset('vintage')">Vintage</button>
+          <button class="preset-btn" onclick="applyPreset('vibrant')">Vibrant</button>
+          <button class="preset-btn" onclick="applyPreset('cool')">Cool</button>
+          <button class="preset-btn" onclick="applyPreset('warm')">Warm</button>
+          <button class="preset-btn" onclick="applyPreset('dramatic')">Dramatic</button>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn btn-primary btn-large" onclick="saveImage()">💾 Save Image</button>
+          <button class="btn btn-secondary btn-large" onclick="resetFilters()">Reset Filters</button>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Touch Gestures</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Pinch:</strong> Zoom in/out on the image</li>
+          <li><strong>Drag:</strong> Pan around the zoomed image</li>
+          <li><strong>Two-finger rotate:</strong> Rotate the image freely</li>
+          <li><strong>Double-tap:</strong> Reset to 100% zoom</li>
+          <li><strong>Sliders:</strong> Adjust filters in real-time</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Features</h4>
+        <ul style="margin-left: var(--space-lg);">
+          <li>Real-time filter preview with CSS filters</li>
+          <li>Multi-touch gesture support (pinch, pan, rotate)</li>
+          <li>Preset filter combinations</li>
+          <li>Image transformations (flip, rotate)</li>
+          <li>Save edited image to device</li>
+          <li>Load custom images or use samples</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.3 - Photo Editor</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const canvas = document.getElementById('editorCanvas');
+    const ctx = canvas.getContext('2d');
+    const canvasWrapper = document.getElementById('canvasWrapper');
+
+    let currentImage = null;
+    let transform = {
+      scale: 1,
+      translateX: 0,
+      translateY: 0,
+      rotation: 0
+    };
+
+    let filters = {
+      brightness: 100,
+      contrast: 100,
+      saturation: 100,
+      blur: 0,
+      hue: 0
+    };
+
+    let gestureState = {
+      isPanning: false,
+      lastTouches: null,
+      initialDistance: 0,
+      initialRotation: 0,
+      initialScale: 1,
+      initialAngle: 0
+    };
+
+    // Load sample image
+    function loadSampleImage(type) {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 800;
+      tempCanvas.height = 600;
+      const tempCtx = tempCanvas.getContext('2d');
+
+      switch (type) {
+        case 'gradient':
+          const gradient = tempCtx.createLinearGradient(0, 0, 800, 600);
+          gradient.addColorStop(0, '#667eea');
+          gradient.addColorStop(1, '#764ba2');
+          tempCtx.fillStyle = gradient;
+          tempCtx.fillRect(0, 0, 800, 600);
+          break;
+
+        case 'sunset':
+          const sunset = tempCtx.createLinearGradient(0, 0, 800, 600);
+          sunset.addColorStop(0, '#f093fb');
+          sunset.addColorStop(1, '#f5576c');
+          tempCtx.fillStyle = sunset;
+          tempCtx.fillRect(0, 0, 800, 600);
+          break;
+
+        case 'nature':
+          const nature = tempCtx.createLinearGradient(0, 0, 800, 600);
+          nature.addColorStop(0, '#4facfe');
+          nature.addColorStop(1, '#00f2fe');
+          tempCtx.fillStyle = nature;
+          tempCtx.fillRect(0, 0, 800, 600);
+          break;
+
+        case 'pattern':
+          tempCtx.fillStyle = '#606dbc';
+          tempCtx.fillRect(0, 0, 800, 600);
+          tempCtx.fillStyle = '#465298';
+          for (let i = 0; i < 800; i += 40) {
+            tempCtx.fillRect(i, 0, 20, 600);
+          }
+          break;
+      }
+
+      currentImage = new Image();
+      currentImage.src = tempCanvas.toDataURL();
+      currentImage.onload = () => {
+        initCanvas();
+        TouchUtils.vibrate(20);
+      };
+    }
+
+    // Load image from file
+    function loadImageFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentImage = new Image();
+        currentImage.src = e.target.result;
+        currentImage.onload = () => {
+          initCanvas();
+          TouchUtils.vibrate(20);
+        };
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Initialize canvas
+    function initCanvas() {
+      if (!currentImage) return;
+
+      const maxWidth = canvasWrapper.clientWidth - 40;
+      const maxHeight = 500;
+
+      let width = currentImage.width;
+      let height = currentImage.height;
+
+      const scale = Math.min(maxWidth / width, maxHeight / height, 1);
+      width *= scale;
+      height *= scale;
+
+      canvas.width = width;
+      canvas.height = height;
+
+      drawImage();
+    }
+
+    // Draw image with transforms and filters
+    function drawImage() {
+      if (!currentImage) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.translate(transform.translateX, transform.translateY);
+      ctx.scale(transform.scale, transform.scale);
+      ctx.rotate(transform.rotation * Math.PI / 180);
+
+      ctx.drawImage(
+        currentImage,
+        -canvas.width / 2,
+        -canvas.height / 2,
+        canvas.width,
+        canvas.height
+      );
+
+      ctx.restore();
+
+      applyFilters();
+      updateZoomIndicator();
+    }
+
+    // Apply CSS filters
+    function applyFilters() {
+      canvas.style.filter = `
+        brightness(${filters.brightness}%)
+        contrast(${filters.contrast}%)
+        saturate(${filters.saturation}%)
+        blur(${filters.blur}px)
+        hue-rotate(${filters.hue}deg)
+      `;
+    }
+
+    // Touch gesture handling
+    canvas.addEventListener('touchstart', handleTouchStart);
+    canvas.addEventListener('touchmove', handleTouchMove);
+    canvas.addEventListener('touchend', handleTouchEnd);
+
+    function handleTouchStart(e) {
+      e.preventDefault();
+
+      if (e.touches.length === 1) {
+        gestureState.isPanning = true;
+        gestureState.lastTouches = [{
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY
+        }];
+      } else if (e.touches.length === 2) {
+        gestureState.isPanning = false;
+        gestureState.initialDistance = TouchUtils.getPinchDistance(e.touches);
+        gestureState.initialRotation = TouchUtils.getRotationAngle(e.touches);
+        gestureState.initialScale = transform.scale;
+        gestureState.initialAngle = transform.rotation;
+      }
+    }
+
+    function handleTouchMove(e) {
+      e.preventDefault();
+
+      if (e.touches.length === 1 && gestureState.isPanning) {
+        const dx = e.touches[0].clientX - gestureState.lastTouches[0].x;
+        const dy = e.touches[0].clientY - gestureState.lastTouches[0].y;
+
+        transform.translateX += dx;
+        transform.translateY += dy;
+
+        gestureState.lastTouches = [{
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY
+        }];
+
+        drawImage();
+        updateGestureInfo('Panning');
+      } else if (e.touches.length === 2) {
+        // Pinch zoom
+        const currentDistance = TouchUtils.getPinchDistance(e.touches);
+        const scale = currentDistance / gestureState.initialDistance;
+        transform.scale = Math.max(0.1, Math.min(5, gestureState.initialScale * scale));
+
+        // Rotation
+        const currentRotation = TouchUtils.getRotationAngle(e.touches);
+        const rotationDiff = currentRotation - gestureState.initialRotation;
+        transform.rotation = gestureState.initialAngle + rotationDiff;
+
+        drawImage();
+        updateGestureInfo(`Zoom: ${Math.round(transform.scale * 100)}% • Rotate: ${Math.round(transform.rotation)}°`);
+      }
+    }
+
+    function handleTouchEnd(e) {
+      if (e.touches.length === 0) {
+        gestureState.isPanning = false;
+        updateGestureInfo('Pinch to zoom • Drag to pan • Rotate with two fingers');
+      }
+    }
+
+    // Double-tap to reset zoom
+    TouchUtils.detectDoubleTap(canvas, () => {
+      transform.scale = 1;
+      transform.translateX = 0;
+      transform.translateY = 0;
+      drawImage();
+      TouchUtils.vibrate(10);
+    });
+
+    // Transform functions
+    function resetTransform() {
+      transform = { scale: 1, translateX: 0, translateY: 0, rotation: 0 };
+      drawImage();
+      TouchUtils.vibrate(20);
+    }
+
+    function flipHorizontal() {
+      ctx.save();
+      ctx.scale(-1, 1);
+      ctx.drawImage(canvas, -canvas.width, 0);
+      ctx.restore();
+      currentImage.src = canvas.toDataURL();
+      TouchUtils.vibrate(10);
+    }
+
+    function flipVertical() {
+      ctx.save();
+      ctx.scale(1, -1);
+      ctx.drawImage(canvas, 0, -canvas.height);
+      ctx.restore();
+      currentImage.src = canvas.toDataURL();
+      TouchUtils.vibrate(10);
+    }
+
+    function rotateLeft() {
+      transform.rotation -= 90;
+      drawImage();
+      TouchUtils.vibrate(10);
+    }
+
+    function rotateRight() {
+      transform.rotation += 90;
+      drawImage();
+      TouchUtils.vibrate(10);
+    }
+
+    function fitToScreen() {
+      resetTransform();
+      TouchUtils.vibrate(10);
+    }
+
+    // Filter controls
+    ['brightness', 'contrast', 'saturation', 'blur', 'hue'].forEach(filter => {
+      const slider = document.getElementById(filter);
+      const valueDisplay = document.getElementById(filter + 'Value');
+
+      slider.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        filters[filter] = value;
+
+        let displayValue = value;
+        let unit = '%';
+
+        if (filter === 'blur') {
+          unit = 'px';
+        } else if (filter === 'hue') {
+          unit = '°';
+        }
+
+        valueDisplay.textContent = displayValue + unit;
+        applyFilters();
+      });
+    });
+
+    // Preset filters
+    function applyPreset(preset) {
+      const presets = {
+        normal: { brightness: 100, contrast: 100, saturation: 100, blur: 0, hue: 0 },
+        bw: { brightness: 100, contrast: 110, saturation: 0, blur: 0, hue: 0 },
+        sepia: { brightness: 110, contrast: 90, saturation: 50, blur: 0, hue: 20 },
+        vintage: { brightness: 110, contrast: 85, saturation: 70, blur: 1, hue: 15 },
+        vibrant: { brightness: 105, contrast: 120, saturation: 150, blur: 0, hue: 0 },
+        cool: { brightness: 95, contrast: 105, saturation: 110, blur: 0, hue: 200 },
+        warm: { brightness: 110, contrast: 100, saturation: 120, blur: 0, hue: 20 },
+        dramatic: { brightness: 90, contrast: 150, saturation: 80, blur: 0, hue: 0 }
+      };
+
+      const config = presets[preset];
+      Object.keys(config).forEach(key => {
+        filters[key] = config[key];
+        document.getElementById(key).value = config[key];
+
+        let unit = '%';
+        if (key === 'blur') unit = 'px';
+        else if (key === 'hue') unit = '°';
+
+        document.getElementById(key + 'Value').textContent = config[key] + unit;
+      });
+
+      applyFilters();
+      TouchUtils.vibrate(20);
+    }
+
+    function resetFilters() {
+      applyPreset('normal');
+    }
+
+    // Save image
+    function saveImage() {
+      const link = document.createElement('a');
+      link.download = `edited-photo-${Date.now()}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+      TouchUtils.vibrate([20, 50, 20]);
+    }
+
+    // UI updates
+    function updateGestureInfo(text) {
+      document.getElementById('gestureInfo').textContent = text;
+    }
+
+    function updateZoomIndicator() {
+      document.getElementById('zoomIndicator').textContent =
+        Math.round(transform.scale * 100) + '%';
+    }
+
+    // Load default image on start
+    window.addEventListener('load', () => {
+      loadSampleImage('gradient');
+    });
+  </script>
+</body>
+</html>
