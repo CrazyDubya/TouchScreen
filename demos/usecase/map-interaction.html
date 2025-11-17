@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Map Interactions - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .map-container {
+      width: 100%;
+      height: 600px;
+      background: #e5e3df;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      position: relative;
+      touch-action: none;
+      cursor: grab;
+      box-shadow: var(--shadow-xl);
+      margin-bottom: var(--space-xl);
+    }
+
+    .map-container:active {
+      cursor: grabbing;
+    }
+
+    #mapCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .map-controls {
+      position: absolute;
+      top: var(--space-lg);
+      right: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      z-index: 10;
+    }
+
+    .map-btn {
+      width: 44px;
+      height: 44px;
+      background: white;
+      border: none;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      transition: all var(--transition-fast);
+      touch-action: manipulation;
+    }
+
+    .map-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .map-btn:active {
+      transform: scale(0.9);
+    }
+
+    .zoom-level {
+      position: absolute;
+      bottom: var(--space-lg);
+      left: var(--space-lg);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-full);
+      font-weight: 700;
+      font-family: 'Monaco', monospace;
+      z-index: 10;
+    }
+
+    .coordinates {
+      position: absolute;
+      bottom: var(--space-lg);
+      right: var(--space-lg);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      font-family: 'Monaco', monospace;
+      z-index: 10;
+    }
+
+    .marker {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      font-size: 2rem;
+      pointer-events: none;
+      transform: translate(-50%, -100%);
+      transition: all 0.3s;
+      z-index: 5;
+    }
+
+    .marker-popup {
+      position: absolute;
+      background: white;
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-xl);
+      min-width: 200px;
+      transform: translateX(-50%);
+      margin-top: -10px;
+      z-index: 15;
+      pointer-events: all;
+    }
+
+    .popup-title {
+      font-weight: 700;
+      margin-bottom: var(--space-xs);
+    }
+
+    .popup-close {
+      position: absolute;
+      top: var(--space-xs);
+      right: var(--space-xs);
+      width: 24px;
+      height: 24px;
+      background: var(--gray-200);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .legend-panel {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .legend-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-lg);
+      margin-top: var(--space-md);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-size: 0.875rem;
+    }
+
+    .legend-icon {
+      font-size: 1.5rem;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-md);
+    }
+
+    .stat-box {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Monaco', monospace;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-top: var(--space-xs);
+    }
+
+    .gesture-info {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-lg);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Interactive Map</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Explore a touch-enabled map with pan, pinch-zoom, and location markers.
+      </p>
+
+      <!-- Gesture Info -->
+      <div class="gesture-info">
+        👆 Drag to pan • 🤏 Pinch to zoom • 📍 Tap markers for info
+      </div>
+
+      <!-- Map Container -->
+      <div class="map-container" id="mapContainer">
+        <canvas id="mapCanvas"></canvas>
+
+        <!-- Map Controls -->
+        <div class="map-controls">
+          <button class="map-btn" onclick="zoomIn()" title="Zoom In">+</button>
+          <button class="map-btn" onclick="zoomOut()" title="Zoom Out">−</button>
+          <button class="map-btn" onclick="resetView()" title="Reset View">⌂</button>
+          <button class="map-btn" onclick="toggleSatellite()" title="Toggle View">🛰️</button>
+        </div>
+
+        <!-- Zoom Level Indicator -->
+        <div class="zoom-level" id="zoomLevel">Zoom: 1.0x</div>
+
+        <!-- Coordinates -->
+        <div class="coordinates" id="coordinates">
+          Lat: 0.0000, Lng: 0.0000
+        </div>
+
+        <!-- Markers -->
+        <div id="markers"></div>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend-panel">
+        <h3>Map Legend</h3>
+        <div class="legend-items">
+          <div class="legend-item">
+            <span class="legend-icon">🏛️</span>
+            <span>Museum</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-icon">🏨</span>
+            <span>Hotel</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-icon">🍽️</span>
+            <span>Restaurant</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-icon">🏞️</span>
+            <span>Park</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-icon">🏪</span>
+            <span>Shop</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-icon">☕</span>
+            <span>Café</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-value" id="panCount">0</div>
+          <div class="stat-label">Pan Gestures</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="zoomCount">0</div>
+          <div class="stat-label">Zoom Gestures</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="markersVisible">6</div>
+          <div class="stat-label">Markers Visible</div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Map Interaction Features</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Pan:</strong> Drag with one finger to move around the map</li>
+          <li><strong>Pinch zoom:</strong> Use two fingers to zoom in and out</li>
+          <li><strong>Momentum:</strong> Flick to continue panning with momentum</li>
+          <li><strong>Markers:</strong> Tap location markers to see details</li>
+          <li><strong>Constraints:</strong> Map bounds and zoom limits</li>
+          <li><strong>Smooth animations:</strong> Eased transitions for better UX</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Real-World Applications</h4>
+        <p style="margin-top: var(--space-md);">
+          This demo simulates common map interactions found in:
+        </p>
+        <ul style="margin-left: var(--space-lg);">
+          <li>Google Maps and Apple Maps</li>
+          <li>OpenStreetMap implementations</li>
+          <li>Location-based services</li>
+          <li>Real estate and travel apps</li>
+          <li>Delivery and navigation apps</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.4 - Interactive Map</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('mapContainer');
+
+    let mapState = {
+      x: 0,
+      y: 0,
+      scale: 1,
+      minScale: 0.5,
+      maxScale: 3
+    };
+
+    let gestureState = {
+      isPanning: false,
+      lastX: 0,
+      lastY: 0,
+      velocity: { x: 0, y: 0 },
+      initialPinchDistance: 0,
+      initialScale: 1
+    };
+
+    let stats = {
+      panCount: 0,
+      zoomCount: 0
+    };
+
+    let satelliteMode = false;
+
+    // Locations
+    const locations = [
+      { x: 200, y: 150, icon: '🏛️', name: 'Art Museum', desc: 'Contemporary art collection' },
+      { x: 450, y: 200, icon: '🏨', name: 'Grand Hotel', desc: '5-star luxury accommodation' },
+      { x: 600, y: 100, icon: '🍽️', name: 'Fine Dining', desc: 'Michelin-starred restaurant' },
+      { x: 300, y: 350, icon: '🏞️', name: 'Central Park', desc: 'Beautiful green space' },
+      { x: 500, y: 400, icon: '🏪', name: 'Shopping Mall', desc: 'Premium retail center' },
+      { x: 150, y: 450, icon: '☕', name: 'Artisan Café', desc: 'Specialty coffee roasters' }
+    ];
+
+    // Initialize
+    function initCanvas() {
+      const rect = container.getBoundingClientRect();
+      canvas.width = 800;
+      canvas.height = 600;
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+
+      renderMap();
+      renderMarkers();
+    }
+
+    // Render map
+    function renderMap() {
+      ctx.save();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Apply transformations
+      ctx.translate(mapState.x, mapState.y);
+      ctx.scale(mapState.scale, mapState.scale);
+
+      if (satelliteMode) {
+        // Satellite view
+        ctx.fillStyle = '#2d5016';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Add some terrain details
+        for (let i = 0; i < 50; i++) {
+          ctx.fillStyle = `rgba(45, 80, 22, ${Math.random() * 0.3})`;
+          ctx.fillRect(
+            Math.random() * canvas.width,
+            Math.random() * canvas.height,
+            Math.random() * 100,
+            Math.random() * 100
+          );
+        }
+      } else {
+        // Street view
+        ctx.fillStyle = '#f5f3f0';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw grid (streets)
+        ctx.strokeStyle = '#d4d2cf';
+        ctx.lineWidth = 1;
+
+        for (let i = 0; i < canvas.width; i += 100) {
+          ctx.beginPath();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i, canvas.height);
+          ctx.stroke();
+        }
+
+        for (let i = 0; i < canvas.height; i += 100) {
+          ctx.beginPath();
+          ctx.moveTo(0, i);
+          ctx.lineTo(canvas.width, i);
+          ctx.stroke();
+        }
+
+        // Draw some buildings
+        ctx.fillStyle = '#e0ddd9';
+        locations.forEach(loc => {
+          const size = 40 + Math.random() * 60;
+          ctx.fillRect(loc.x - size/2, loc.y - size/2, size, size);
+
+          ctx.strokeStyle = '#c4c1bd';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(loc.x - size/2, loc.y - size/2, size, size);
+        });
+
+        // Draw parks
+        ctx.fillStyle = '#b8d4a8';
+        ctx.fillRect(250, 300, 150, 150);
+        ctx.fillRect(50, 50, 100, 80);
+      }
+
+      ctx.restore();
+
+      updateZoomDisplay();
+    }
+
+    // Render markers
+    function renderMarkers() {
+      const markersDiv = document.getElementById('markers');
+      markersDiv.innerHTML = '';
+
+      locations.forEach((loc, i) => {
+        const marker = document.createElement('div');
+        marker.className = 'marker';
+        marker.innerHTML = loc.icon;
+        marker.style.left = (loc.x * mapState.scale + mapState.x) + 'px';
+        marker.style.top = (loc.y * mapState.scale + mapState.y) + 'px';
+        marker.style.transform = `translate(-50%, -100%) scale(${1 / mapState.scale})`;
+
+        marker.onclick = () => showPopup(loc, marker);
+
+        markersDiv.appendChild(marker);
+      });
+    }
+
+    // Show popup
+    function showPopup(location, marker) {
+      // Remove existing popups
+      document.querySelectorAll('.marker-popup').forEach(p => p.remove());
+
+      const popup = document.createElement('div');
+      popup.className = 'marker-popup';
+      popup.innerHTML = `
+        <button class="popup-close" onclick="this.parentElement.remove()">×</button>
+        <div class="popup-title">${location.icon} ${location.name}</div>
+        <div style="font-size: 0.875rem; color: var(--gray-600);">${location.desc}</div>
+      `;
+      popup.style.left = marker.style.left;
+      popup.style.top = (parseInt(marker.style.top) - 80) + 'px';
+
+      document.getElementById('markers').appendChild(popup);
+      TouchUtils.vibrate(10);
+    }
+
+    // Touch handlers
+    container.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        gestureState.isPanning = true;
+        gestureState.lastX = e.touches[0].clientX;
+        gestureState.lastY = e.touches[0].clientY;
+        gestureState.velocity = { x: 0, y: 0 };
+      } else if (e.touches.length === 2) {
+        gestureState.isPanning = false;
+        gestureState.initialPinchDistance = TouchUtils.getPinchDistance(e.touches);
+        gestureState.initialScale = mapState.scale;
+      }
+    });
+
+    container.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+
+      if (e.touches.length === 1 && gestureState.isPanning) {
+        const deltaX = e.touches[0].clientX - gestureState.lastX;
+        const deltaY = e.touches[0].clientY - gestureState.lastY;
+
+        mapState.x += deltaX;
+        mapState.y += deltaY;
+
+        gestureState.velocity.x = deltaX;
+        gestureState.velocity.y = deltaY;
+
+        gestureState.lastX = e.touches[0].clientX;
+        gestureState.lastY = e.touches[0].clientY;
+
+        renderMap();
+        renderMarkers();
+        updateCoordinates();
+      } else if (e.touches.length === 2) {
+        const currentDistance = TouchUtils.getPinchDistance(e.touches);
+        const scaleChange = currentDistance / gestureState.initialPinchDistance;
+        mapState.scale = Math.max(mapState.minScale, Math.min(mapState.maxScale,
+          gestureState.initialScale * scaleChange));
+
+        renderMap();
+        renderMarkers();
+      }
+    });
+
+    container.addEventListener('touchend', (e) => {
+      if (gestureState.isPanning && e.touches.length === 0) {
+        gestureState.isPanning = false;
+        stats.panCount++;
+        document.getElementById('panCount').textContent = stats.panCount;
+
+        // Apply momentum
+        applyMomentum();
+      }
+
+      if (e.touches.length < 2 && gestureState.initialPinchDistance > 0) {
+        stats.zoomCount++;
+        document.getElementById('zoomCount').textContent = stats.zoomCount;
+        gestureState.initialPinchDistance = 0;
+      }
+    });
+
+    // Mouse support
+    container.addEventListener('mousedown', (e) => {
+      gestureState.isPanning = true;
+      gestureState.lastX = e.clientX;
+      gestureState.lastY = e.clientY;
+    });
+
+    container.addEventListener('mousemove', (e) => {
+      if (!gestureState.isPanning) return;
+
+      const deltaX = e.clientX - gestureState.lastX;
+      const deltaY = e.clientY - gestureState.lastY;
+
+      mapState.x += deltaX;
+      mapState.y += deltaY;
+
+      gestureState.lastX = e.clientX;
+      gestureState.lastY = e.clientY;
+
+      renderMap();
+      renderMarkers();
+      updateCoordinates();
+    });
+
+    container.addEventListener('mouseup', () => {
+      gestureState.isPanning = false;
+    });
+
+    // Momentum
+    function applyMomentum() {
+      if (Math.abs(gestureState.velocity.x) < 0.5 && Math.abs(gestureState.velocity.y) < 0.5) {
+        return;
+      }
+
+      mapState.x += gestureState.velocity.x;
+      mapState.y += gestureState.velocity.y;
+
+      gestureState.velocity.x *= 0.9;
+      gestureState.velocity.y *= 0.9;
+
+      renderMap();
+      renderMarkers();
+
+      requestAnimationFrame(applyMomentum);
+    }
+
+    // Controls
+    function zoomIn() {
+      mapState.scale = Math.min(mapState.maxScale, mapState.scale + 0.2);
+      renderMap();
+      renderMarkers();
+      TouchUtils.vibrate(10);
+    }
+
+    function zoomOut() {
+      mapState.scale = Math.max(mapState.minScale, mapState.scale - 0.2);
+      renderMap();
+      renderMarkers();
+      TouchUtils.vibrate(10);
+    }
+
+    function resetView() {
+      mapState.x = 0;
+      mapState.y = 0;
+      mapState.scale = 1;
+      renderMap();
+      renderMarkers();
+      TouchUtils.vibrate(20);
+    }
+
+    function toggleSatellite() {
+      satelliteMode = !satelliteMode;
+      renderMap();
+      TouchUtils.vibrate(10);
+    }
+
+    // Updates
+    function updateZoomDisplay() {
+      document.getElementById('zoomLevel').textContent = `Zoom: ${mapState.scale.toFixed(1)}x`;
+    }
+
+    function updateCoordinates() {
+      const lat = (mapState.y / 10).toFixed(4);
+      const lng = (mapState.x / 10).toFixed(4);
+      document.getElementById('coordinates').textContent = `Lat: ${lat}, Lng: ${lng}`;
+    }
+
+    // Initialize
+    initCanvas();
+
+    // Resize handler
+    window.addEventListener('resize', () => {
+      initCanvas();
+    });
+  </script>
+</body>
+</html>
