@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Sortable List - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .sortable-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .sortable-list {
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: var(--space-lg);
+      min-height: 400px;
+    }
+
+    .sortable-item {
+      background: var(--gray-50);
+      border: 2px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-md);
+      cursor: move;
+      touch-action: none;
+      user-select: none;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .sortable-item:hover {
+      background: var(--gray-100);
+      box-shadow: var(--shadow-md);
+    }
+
+    .sortable-item.dragging {
+      opacity: 0.5;
+      transform: scale(1.05);
+      box-shadow: var(--shadow-xl);
+      z-index: 1000;
+      border-color: var(--primary);
+      background: white;
+    }
+
+    .sortable-item.drag-over {
+      border-color: var(--primary);
+      border-style: dashed;
+      background: var(--primary-light);
+      background-opacity: 0.1;
+    }
+
+    .drag-handle {
+      font-size: 1.5rem;
+      color: var(--gray-400);
+      cursor: grab;
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .item-number {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.875rem;
+    }
+
+    .item-content {
+      flex: 1;
+    }
+
+    .item-title {
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: var(--space-xs);
+    }
+
+    .item-description {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+    }
+
+    .item-actions {
+      display: flex;
+      gap: var(--space-sm);
+    }
+
+    .item-action {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 50%;
+      background: var(--gray-200);
+      color: var(--gray-700);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .item-action:hover {
+      background: var(--danger);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .controls {
+      display: flex;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: var(--space-2xl);
+      color: var(--gray-500);
+    }
+
+    .placeholder {
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-md);
+      background: var(--gray-50);
+      opacity: 0.5;
+      min-height: 80px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container sortable-container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Sortable List</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Drag and drop to reorder items. Touch and hold the handle to move items around.
+      </p>
+
+      <div class="controls">
+        <button class="btn btn-primary" onclick="addItem()">➕ Add Item</button>
+        <button class="btn btn-secondary" onclick="sortAlphabetically()">🔤 Sort A-Z</button>
+        <button class="btn btn-secondary" onclick="shuffleList()">🔀 Shuffle</button>
+        <button class="btn btn-secondary" onclick="clearList()">🗑️ Clear All</button>
+      </div>
+
+      <div class="sortable-list" id="sortableList">
+        <!-- Items will be inserted here -->
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Features</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Drag handle:</strong> Touch and drag the ⋮⋮ icon to reorder</li>
+          <li><strong>Visual feedback:</strong> Items highlight when dragging over them</li>
+          <li><strong>Touch optimized:</strong> Large touch targets for easy manipulation</li>
+          <li><strong>Smooth animations:</strong> Transitions between positions</li>
+          <li><strong>Add/Remove:</strong> Dynamically manage list items</li>
+          <li><strong>Haptic feedback:</strong> Vibration on drag start/end</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.2 - Sortable List</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const listContainer = document.getElementById('sortableList');
+
+    let items = [
+      { id: 1, title: 'Wake up early', description: 'Start the day at 6 AM' },
+      { id: 2, title: 'Morning exercise', description: '30 minutes of cardio' },
+      { id: 3, title: 'Healthy breakfast', description: 'Oatmeal and fruits' },
+      { id: 4, title: 'Work session', description: 'Focus time: 9 AM - 12 PM' },
+      { id: 5, title: 'Lunch break', description: 'Take a proper break' },
+      { id: 6, title: 'Afternoon tasks', description: 'Complete pending items' },
+      { id: 7, title: 'Evening walk', description: 'Get some fresh air' },
+      { id: 8, title: 'Dinner time', description: 'Cook a nutritious meal' }
+    ];
+
+    let draggedElement = null;
+    let draggedIndex = null;
+
+    function renderList() {
+      if (items.length === 0) {
+        listContainer.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size: 3rem; margin-bottom: var(--space-md);">📝</div>
+            <p>No items in the list</p>
+            <p style="font-size: 0.875rem; margin-top: var(--space-sm);">Click "Add Item" to get started</p>
+          </div>
+        `;
+        return;
+      }
+
+      listContainer.innerHTML = items.map((item, index) => `
+        <div class="sortable-item" data-index="${index}" draggable="true">
+          <div class="drag-handle">⋮⋮</div>
+          <div class="item-number">${index + 1}</div>
+          <div class="item-content">
+            <div class="item-title">${item.title}</div>
+            <div class="item-description">${item.description}</div>
+          </div>
+          <div class="item-actions">
+            <button class="item-action" onclick="removeItem(${index})" title="Remove">×</button>
+          </div>
+        </div>
+      `).join('');
+
+      initializeDragHandlers();
+    }
+
+    function initializeDragHandlers() {
+      const itemElements = listContainer.querySelectorAll('.sortable-item');
+
+      itemElements.forEach((item, index) => {
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+        let placeholder = null;
+
+        const handle = item.querySelector('.drag-handle');
+
+        // Touch events
+        handle.addEventListener('touchstart', (e) => {
+          startDrag(e, item, index);
+        });
+
+        handle.addEventListener('touchmove', (e) => {
+          if (!isDragging) return;
+          e.preventDefault();
+          drag(e, item);
+        });
+
+        handle.addEventListener('touchend', (e) => {
+          if (!isDragging) return;
+          endDrag(item);
+        });
+
+        // Mouse events
+        handle.addEventListener('mousedown', (e) => {
+          startDrag(e, item, index);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+          if (!isDragging || draggedElement !== item) return;
+          e.preventDefault();
+          drag(e, item);
+        });
+
+        document.addEventListener('mouseup', (e) => {
+          if (!isDragging || draggedElement !== item) return;
+          endDrag(item);
+        });
+
+        function startDrag(e, element, idx) {
+          isDragging = true;
+          draggedElement = element;
+          draggedIndex = idx;
+
+          const touch = e.type.includes('touch') ? e.touches[0] : e;
+          startY = touch.clientY;
+
+          element.classList.add('dragging');
+          TouchUtils.vibrate(20);
+        }
+
+        function drag(e, element) {
+          const touch = e.type.includes('touch') ? e.touches[0] : e;
+          currentY = touch.clientY;
+
+          // Find element at current position
+          const afterElement = getDragAfterElement(listContainer, currentY);
+
+          if (afterElement == null) {
+            listContainer.appendChild(element);
+          } else {
+            listContainer.insertBefore(element, afterElement);
+          }
+        }
+
+        function endDrag(element) {
+          isDragging = false;
+          element.classList.remove('dragging');
+
+          // Update items array based on new DOM order
+          const newOrder = [];
+          const elements = listContainer.querySelectorAll('.sortable-item');
+
+          elements.forEach((el, idx) => {
+            const oldIndex = parseInt(el.dataset.index);
+            newOrder.push(items[oldIndex]);
+          });
+
+          items = newOrder;
+          renderList();
+
+          draggedElement = null;
+          draggedIndex = null;
+
+          TouchUtils.vibrate(10);
+        }
+      });
+    }
+
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.sortable-item:not(.dragging)')];
+
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function addItem() {
+      const titles = [
+        'New Task',
+        'Important Meeting',
+        'Code Review',
+        'Grocery Shopping',
+        'Call Mom',
+        'Read a Book',
+        'Practice Guitar',
+        'Meditation',
+        'Write Blog Post',
+        'Learn Something New'
+      ];
+
+      const descriptions = [
+        'Don\'t forget this!',
+        'High priority item',
+        'Scheduled for today',
+        'Weekly routine',
+        'Quick task',
+        'Important reminder',
+        'Personal goal',
+        'Health & wellness',
+        'Creative work',
+        'Self improvement'
+      ];
+
+      const newItem = {
+        id: Date.now(),
+        title: titles[Math.floor(Math.random() * titles.length)],
+        description: descriptions[Math.floor(Math.random() * descriptions.length)]
+      };
+
+      items.push(newItem);
+      renderList();
+      TouchUtils.vibrate(20);
+    }
+
+    function removeItem(index) {
+      if (confirm('Remove this item?')) {
+        items.splice(index, 1);
+        renderList();
+        TouchUtils.vibrate(20);
+      }
+    }
+
+    function sortAlphabetically() {
+      items.sort((a, b) => a.title.localeCompare(b.title));
+      renderList();
+      TouchUtils.vibrate(20);
+    }
+
+    function shuffleList() {
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [items[i], items[j]] = [items[j], items[i]];
+      }
+      renderList();
+      TouchUtils.vibrate(20);
+    }
+
+    function clearList() {
+      if (confirm('Clear all items?')) {
+        items = [];
+        renderList();
+        TouchUtils.vibrate(20);
+      }
+    }
+
+    // Initialize
+    renderList();
+  </script>
+</body>
+</html>
