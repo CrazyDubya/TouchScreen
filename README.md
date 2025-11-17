@@ -1,4 +1,4 @@
-# TouchScreen Demo Showcase v0.4
+# TouchScreen Demo Showcase v0.5
 
 A comprehensive collection of touchscreen interface demos exploring various frameworks, gestures, and UI patterns.
 
@@ -64,7 +64,13 @@ TouchScreen/
 │   │   ├── 3d-object.html    # 3D object manipulation
 │   │   ├── whiteboard.html   # Collaborative whiteboard
 │   │   ├── music-synth.html  # Touch music synthesizer
-│   │   └── map-interaction.html # Interactive map
+│   │   ├── map-interaction.html # Interactive map
+│   │   ├── particle-physics.html # Particle physics sandbox
+│   │   ├── fluid-simulation.html # Realistic fluid dynamics
+│   │   ├── generative-art.html # Algorithmic art generator
+│   │   ├── rhythm-game.html  # Touch timing rhythm game
+│   │   ├── animation-timeline.html # Keyframe animation tool
+│   │   └── gesture-presentation.html # Swipe presentation
 │   └── frameworks/           # Additional frameworks
 │       ├── vue-touch.html    # Vue.js implementation
 │       ├── svelte-touch.html # Svelte implementation
@@ -131,6 +137,48 @@ Simply open `index.html` in a modern web browser. For best experience:
 - Clean, modern interface
 
 ## 📝 Version History
+
+### v0.5 (Creative & Immersive Edition)
+- **Particle Physics Sandbox:**
+  - Interactive particle system with realistic physics
+  - Gravity, collisions, and touch forces
+  - Multiple particle types (normal, charged, bouncy, heavy)
+  - Active forces (gravity, wind, magnetism, chaos)
+  - Real-time FPS and particle count metrics
+- **Fluid Simulation:**
+  - Real-time Navier-Stokes fluid dynamics
+  - Touch to create and manipulate liquid
+  - Multiple visualization modes (dye, velocity, pressure, vorticity)
+  - Adjustable viscosity, diffusion, and color intensity
+  - Beautiful color mixing and flow patterns
+- **Generative Art Studio:**
+  - 6 algorithmic pattern generators
+  - Spirograph, fractal trees, Perlin noise
+  - Mandalas, L-systems, particle effects
+  - Real-time parameter control (complexity, scale, speed)
+  - Color shifting and animation
+  - Export artwork as PNG
+- **Rhythm Game:**
+  - Touch timing precision game
+  - Multiple difficulty levels (Easy, Medium, Hard)
+  - Combo system with multipliers
+  - Accuracy tracking (Perfect/Great/Good/Miss)
+  - 60-second gameplay sessions
+  - Detailed scoring and statistics
+- **Animation Timeline:**
+  - Touch-based keyframe animation editor
+  - Drag playhead and keyframes on timeline
+  - Multiple easing functions (linear, ease in/out, bounce)
+  - Real-time preview of animations
+  - Transform controls (position, rotation, scale)
+  - Adjustable duration and playback
+- **Gesture Presentation:**
+  - Swipe-driven slide navigation
+  - Multiple transition effects (slide, fade, flip, zoom)
+  - Touch-optimized controls
+  - Fullscreen support
+  - Keyboard navigation
+  - 8 slides showcasing v0.5 features
 
 ### v0.4 (Professional Tools & Accessibility)
 - **New Framework Integration:**
