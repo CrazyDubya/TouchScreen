@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Drawing Canvas - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .drawing-container {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-lg);
+      margin: var(--space-lg) 0;
+    }
+
+    #drawingCanvas {
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      cursor: crosshair;
+      touch-action: none;
+      display: block;
+      max-width: 100%;
+      background: white;
+    }
+
+    .tools-panel {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+      padding: var(--space-lg);
+      background: var(--gray-100);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-lg);
+      align-items: center;
+    }
+
+    .tool-group {
+      display: flex;
+      gap: var(--space-sm);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .tool-label {
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-right: var(--space-sm);
+    }
+
+    .color-swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      border: 3px solid var(--gray-300);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .color-swatch:hover, .color-swatch.active {
+      transform: scale(1.1);
+      border-color: var(--gray-900);
+      box-shadow: var(--shadow-md);
+    }
+
+    .brush-size {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--gray-300);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-weight: 700;
+      color: var(--gray-700);
+    }
+
+    .brush-size:hover, .brush-size.active {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .tool-btn {
+      padding: var(--space-sm) var(--space-md);
+      background: white;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+
+    .tool-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .tool-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .pressure-indicator {
+      width: 100px;
+      height: 20px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .pressure-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success), var(--warning), var(--danger));
+      width: 0%;
+      transition: width 0.1s;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Touch Drawing Canvas</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Draw with your finger or stylus. Supports multi-touch, pressure sensitivity, and various tools.
+      </p>
+
+      <!-- Tools Panel -->
+      <div class="tools-panel">
+        <div class="tool-group">
+          <span class="tool-label">Color:</span>
+          <div class="color-swatch active" data-color="#000000" style="background: #000000;"></div>
+          <div class="color-swatch" data-color="#ef4444" style="background: #ef4444;"></div>
+          <div class="color-swatch" data-color="#3b82f6" style="background: #3b82f6;"></div>
+          <div class="color-swatch" data-color="#10b981" style="background: #10b981;"></div>
+          <div class="color-swatch" data-color="#f59e0b" style="background: #f59e0b;"></div>
+          <div class="color-swatch" data-color="#8b5cf6" style="background: #8b5cf6;"></div>
+          <div class="color-swatch" data-color="#ec4899" style="background: #ec4899;"></div>
+          <div class="color-swatch" data-color="#ffffff" style="background: #ffffff;"></div>
+        </div>
+
+        <div class="tool-group">
+          <span class="tool-label">Brush:</span>
+          <div class="brush-size active" data-size="2">S</div>
+          <div class="brush-size" data-size="5">M</div>
+          <div class="brush-size" data-size="10">L</div>
+          <div class="brush-size" data-size="20">XL</div>
+        </div>
+
+        <div class="tool-group">
+          <span class="tool-label">Tool:</span>
+          <button class="tool-btn active" data-tool="brush">🖌️ Brush</button>
+          <button class="tool-btn" data-tool="eraser">🧹 Eraser</button>
+        </div>
+
+        <div class="tool-group" style="margin-left: auto;">
+          <button class="btn btn-secondary" onclick="clearCanvas()">Clear Canvas</button>
+          <button class="btn btn-primary" onclick="saveDrawing()">Save Image</button>
+        </div>
+      </div>
+
+      <!-- Drawing Info -->
+      <div class="demo-controls" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <span style="font-weight: 600;">Current Tool:</span>
+          <span id="currentTool">Brush</span> |
+          <span style="font-weight: 600;">Size:</span>
+          <span id="currentSize">2px</span>
+        </div>
+        <div class="tool-group">
+          <span class="tool-label">Pressure:</span>
+          <div class="pressure-indicator">
+            <div class="pressure-bar" id="pressureBar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="drawing-container">
+        <canvas id="drawingCanvas" width="800" height="600"></canvas>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info">
+        <h3>Features</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Multi-touch:</strong> Draw with multiple fingers simultaneously</li>
+          <li><strong>Pressure sensitivity:</strong> Simulated based on touch force (if supported)</li>
+          <li><strong>Smooth lines:</strong> Uses quadratic curves for natural strokes</li>
+          <li><strong>Tools:</strong> Brush and eraser with multiple sizes</li>
+          <li><strong>Color palette:</strong> 8 preset colors plus custom</li>
+          <li><strong>Export:</strong> Save your drawing as PNG image</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.1 - Drawing Canvas</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const canvas = document.getElementById('drawingCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // State
+    let isDrawing = false;
+    let currentColor = '#000000';
+    let currentSize = 2;
+    let currentTool = 'brush';
+    let lastPoints = new Map(); // Track last point for each touch
+
+    // Initialize canvas
+    function initCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    initCanvas();
+
+    // Color Selection
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+        swatch.classList.add('active');
+        currentColor = swatch.dataset.color;
+      });
+    });
+
+    // Brush Size Selection
+    document.querySelectorAll('.brush-size').forEach(size => {
+      size.addEventListener('click', () => {
+        document.querySelectorAll('.brush-size').forEach(s => s.classList.remove('active'));
+        size.classList.add('active');
+        currentSize = parseInt(size.dataset.size);
+        document.getElementById('currentSize').textContent = currentSize + 'px';
+      });
+    });
+
+    // Tool Selection
+    document.querySelectorAll('.tool-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTool = btn.dataset.tool;
+        document.getElementById('currentTool').textContent =
+          currentTool.charAt(0).toUpperCase() + currentTool.slice(1);
+      });
+    });
+
+    // Drawing Functions
+    function getCanvasPoint(e, touchId = 0) {
+      const rect = canvas.getBoundingClientRect();
+      let clientX, clientY, pressure = 0.5;
+
+      if (e.type.includes('touch')) {
+        const touch = Array.from(e.touches).find(t => t.identifier === touchId) ||
+                     Array.from(e.changedTouches).find(t => t.identifier === touchId);
+        if (!touch) return null;
+
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+        pressure = touch.force || 0.5;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+        pressure = e.pressure || 0.5;
+      }
+
+      // Update pressure indicator
+      document.getElementById('pressureBar').style.width = (pressure * 100) + '%';
+
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+        pressure: Math.max(0.1, pressure)
+      };
+    }
+
+    function drawLine(from, to, touchId) {
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+
+      // Use quadratic curve for smooth lines
+      const midX = (from.x + to.x) / 2;
+      const midY = (from.y + to.y) / 2;
+      ctx.quadraticCurveTo(from.x, from.y, midX, midY);
+
+      // Adjust line width based on pressure
+      const lineWidth = currentSize * to.pressure;
+      ctx.lineWidth = lineWidth;
+
+      if (currentTool === 'brush') {
+        ctx.strokeStyle = currentColor;
+        ctx.globalCompositeOperation = 'source-over';
+      } else {
+        ctx.strokeStyle = 'white';
+        ctx.globalCompositeOperation = 'destination-out';
+      }
+
+      ctx.stroke();
+    }
+
+    function startDrawing(e) {
+      e.preventDefault();
+      isDrawing = true;
+
+      if (e.type.includes('touch')) {
+        Array.from(e.touches).forEach(touch => {
+          const point = getCanvasPoint(e, touch.identifier);
+          if (point) {
+            lastPoints.set(touch.identifier, point);
+          }
+        });
+      } else {
+        const point = getCanvasPoint(e);
+        if (point) {
+          lastPoints.set('mouse', point);
+        }
+      }
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+
+      if (e.type.includes('touch')) {
+        Array.from(e.touches).forEach(touch => {
+          const point = getCanvasPoint(e, touch.identifier);
+          const lastPoint = lastPoints.get(touch.identifier);
+
+          if (point && lastPoint) {
+            drawLine(lastPoint, point, touch.identifier);
+            lastPoints.set(touch.identifier, point);
+          } else if (point) {
+            lastPoints.set(touch.identifier, point);
+          }
+        });
+      } else {
+        const point = getCanvasPoint(e);
+        const lastPoint = lastPoints.get('mouse');
+
+        if (point && lastPoint) {
+          drawLine(lastPoint, point, 'mouse');
+          lastPoints.set('mouse', point);
+        } else if (point) {
+          lastPoints.set('mouse', point);
+        }
+      }
+    }
+
+    function stopDrawing(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+
+      if (e.type.includes('touch')) {
+        Array.from(e.changedTouches).forEach(touch => {
+          lastPoints.delete(touch.identifier);
+        });
+
+        if (e.touches.length === 0) {
+          isDrawing = false;
+        }
+      } else {
+        isDrawing = false;
+        lastPoints.delete('mouse');
+      }
+    }
+
+    // Event Listeners
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+    canvas.addEventListener('touchcancel', stopDrawing);
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+
+    // Utility Functions
+    function clearCanvas() {
+      if (confirm('Are you sure you want to clear the canvas?')) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    function saveDrawing() {
+      try {
+        const link = document.createElement('a');
+        link.download = `drawing-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (error) {
+        alert('Error saving image. Please try again.');
+        console.error(error);
+      }
+    }
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      // Save current drawing
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      // Resize canvas
+      initCanvas();
+
+      // Restore drawing
+      ctx.putImageData(imageData, 0, 0);
+    });
+  </script>
+</body>
+</html>

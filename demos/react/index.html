@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>React Touch Components - TouchScreen</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>React Touch Components</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Building touch-enabled components with React hooks and state management
+      </p>
+
+      <div class="demo-info" style="background: linear-gradient(135deg, #61dafb, #282c34); color: white; border-left: none;">
+        <h2 style="color: white;">⚛️ React + Touch Events</h2>
+        <p style="opacity: 0.9;">
+          React provides a powerful synthetic event system that normalizes touch events across browsers,
+          making it easy to build interactive touch interfaces with component-based architecture.
+        </p>
+      </div>
+
+      <section class="mt-2xl">
+        <h2>Touch Event Handlers in React</h2>
+        <div class="card" style="background: var(--gray-900); color: white;">
+          <h3 style="color: white;">Basic Touch Component</h3>
+          <pre style="background: var(--gray-800); padding: var(--space-lg); border-radius: var(--radius-sm); overflow-x: auto; font-size: 0.875rem;"><code>import React, { useState } from 'react';
+
+function TouchableButton() {
+  const [touching, setTouching] = useState(false);
+
+  const handleTouchStart = (e) => {
+    setTouching(true);
+    console.log('Touch started', e.touches);
+  };
+
+  const handleTouchMove = (e) => {
+    console.log('Touch moving', e.touches);
+  };
+
+  const handleTouchEnd = (e) => {
+    setTouching(false);
+    console.log('Touch ended');
+  };
+
+  return (
+    &lt;button
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className={touching ? 'active' : ''}
+    &gt;
+      Touch Me!
+    &lt;/button&gt;
+  );
+}</code></pre>
+        </div>
+      </section>
+
+      <section class="mt-2xl">
+        <h2>Custom React Hooks for Gestures</h2>
+        <div class="card-grid">
+          <div class="card">
+            <h3 class="card-title">useSwipe Hook</h3>
+            <p class="card-description">Detect swipe gestures with custom logic</p>
+            <pre style="background: var(--gray-100); padding: var(--space-md); border-radius: var(--radius-sm); overflow-x: auto; font-size: 0.75rem; margin-top: var(--space-md);"><code>const swipe = useSwipe({
+  onSwipeLeft: () => next(),
+  onSwipeRight: () => prev()
+});</code></pre>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">useLongPress Hook</h3>
+            <p class="card-description">Handle long press interactions</p>
+            <pre style="background: var(--gray-100); padding: var(--space-md); border-radius: var(--radius-sm); overflow-x: auto; font-size: 0.75rem; margin-top: var(--space-md);"><code>const longPress = useLongPress({
+  onLongPress: () => showMenu(),
+  delay: 500
+});</code></pre>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">useDraggable Hook</h3>
+            <p class="card-description">Make elements draggable</p>
+            <pre style="background: var(--gray-100); padding: var(--space-md); border-radius: var(--radius-sm); overflow-x: auto; font-size: 0.75rem; margin-top: var(--space-md);"><code>const { pos, bind } = useDraggable({
+  bounds: true
+});</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-2xl">
+        <h2>useSwipe Hook Implementation</h2>
+        <div class="card" style="background: var(--gray-900); color: white;">
+          <pre style="background: var(--gray-800); padding: var(--space-lg); border-radius: var(--radius-sm); overflow-x: auto; font-size: 0.875rem;"><code>import { useRef } from 'react';
+
+function useSwipe(callbacks = {}) {
+  const touchStart = useRef({ x: 0, y: 0, time: 0 });
+
+  const handleTouchStart = (e) => {
+    const touch = e.touches[0];
+    touchStart.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now()
+    };
+  };
+
+  const handleTouchEnd = (e) => {
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStart.current.x;
+    const deltaY = touch.clientY - touchStart.current.y;
+    const deltaTime = Date.now() - touchStart.current.time;
+
+    if (deltaTime > 500) return; // Too slow
+
+    const threshold = 50;
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (Math.abs(deltaX) > threshold) {
+        if (deltaX > 0 && callbacks.onSwipeRight) {
+          callbacks.onSwipeRight(e);
+        } else if (deltaX < 0 && callbacks.onSwipeLeft) {
+          callbacks.onSwipeLeft(e);
+        }
+      }
+    } else {
+      if (Math.abs(deltaY) > threshold) {
+        if (deltaY > 0 && callbacks.onSwipeDown) {
+          callbacks.onSwipeDown(e);
+        } else if (deltaY < 0 && callbacks.onSwipeUp) {
+          callbacks.onSwipeUp(e);
+        }
+      }
+    }
+  };
+
+  return {
+    onTouchStart: handleTouchStart,
+    onTouchEnd: handleTouchEnd
+  };
+}</code></pre>
+        </div>
+      </section>
+
+      <section class="mt-2xl">
+        <h2>React Libraries for Touch/Gestures</h2>
+        <div class="card-grid">
+          <div class="card">
+            <h3 class="card-title">react-use-gesture</h3>
+            <p class="card-description">
+              Comprehensive gesture library for React with drag, pinch, scroll, and more. Works great with react-spring for animations.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Gestures</span>
+              <span class="tag">Animations</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">react-swipeable</h3>
+            <p class="card-description">
+              Lightweight React hook for detecting swipe gestures. Simple API, no dependencies, touch and mouse support.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Swipe</span>
+              <span class="tag">Lightweight</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">react-dnd</h3>
+            <p class="card-description">
+              Drag and drop library for React with touch support. Perfect for building sortable lists and kanban boards.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Drag & Drop</span>
+              <span class="tag">Complex</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">framer-motion</h3>
+            <p class="card-description">
+              Production-ready animation library with built-in gesture support including drag, pan, hover, and tap.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Animation</span>
+              <span class="tag">Gestures</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-2xl">
+        <h2>Example: Swipeable Image Gallery</h2>
+        <div class="card" style="background: var(--gray-900); color: white;">
+          <pre style="background: var(--gray-800); padding: var(--space-lg); border-radius: var(--radius-sm); overflow-x: auto; font-size: 0.875rem;"><code>import React, { useState } from 'react';
+import { useSwipeable } from 'react-swipeable';
+
+function ImageGallery({ images }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handlers = useSwipeable({
+    onSwipedLeft: () => setCurrentIndex((i) =>
+      Math.min(i + 1, images.length - 1)
+    ),
+    onSwipedRight: () => setCurrentIndex((i) =>
+      Math.max(i - 1, 0)
+    ),
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true
+  });
+
+  return (
+    &lt;div {...handlers} className="gallery"&gt;
+      &lt;img src={images[currentIndex]} alt="Gallery" /&gt;
+      &lt;div className="indicators"&gt;
+        {images.map((_, i) => (
+          &lt;span
+            key={i}
+            className={i === currentIndex ? 'active' : ''}
+          /&gt;
+        ))}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+        </div>
+      </section>
+
+      <section class="mt-2xl">
+        <h2>Best Practices</h2>
+        <div class="card-grid">
+          <div class="card">
+            <h3 class="card-title">🎯 Use Synthetic Events</h3>
+            <p>React's synthetic events normalize touch behavior across browsers automatically.</p>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">🔄 State Management</h3>
+            <p>Use useState or useReducer to manage touch interaction state within components.</p>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">♻️ Clean Up</h3>
+            <p>Always clean up event listeners in useEffect cleanup functions to prevent memory leaks.</p>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">📱 Mobile First</h3>
+            <p>Test on real devices, not just simulators. Touch behavior can vary significantly.</p>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">⚡ Performance</h3>
+            <p>Use useCallback and useMemo to optimize gesture handlers and prevent unnecessary re-renders.</p>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">♿ Accessibility</h3>
+            <p>Ensure touch interactions have keyboard alternatives for accessibility compliance.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-2xl">
+        <div class="card" style="background: linear-gradient(135deg, #61dafb, #282c34); color: white; text-align: center;">
+          <h2 style="color: white;">Learn More</h2>
+          <p style="opacity: 0.9; margin-bottom: var(--space-xl);">
+            Explore React documentation and touch-enabled component libraries
+          </p>
+          <div style="display: flex; gap: var(--space-md); justify-content: center; flex-wrap: wrap;">
+            <a href="https://react.dev/learn/responding-to-events" target="_blank" class="btn btn-large" style="background: white; color: #61dafb;">
+              React Events Docs
+            </a>
+            <a href="https://use-gesture.netlify.app/" target="_blank" class="btn btn-large" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white;">
+              use-gesture Library
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <div class="demo-info mt-2xl">
+        <h3>💡 Implementation Note</h3>
+        <p>
+          This page provides an overview of React touch patterns. To build a full React touch application:
+        </p>
+        <ol style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li>Set up a React project with Create React App or Vite</li>
+          <li>Install gesture libraries like react-use-gesture or react-swipeable</li>
+          <li>Create custom hooks for reusable gesture logic</li>
+          <li>Combine with animation libraries like framer-motion for smooth interactions</li>
+          <li>Test thoroughly on various devices and screen sizes</li>
+        </ol>
+        <p style="margin-top: var(--space-md);">
+          The patterns shown in the vanilla JavaScript demos can all be implemented as React components and hooks!
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.1 - React Touch Components</p>
+    </div>
+  </footer>
+</body>
+</html>

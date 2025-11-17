@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Media Player - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .player-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--gray-900);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .album-art {
+      width: 100%;
+      aspect-ratio: 1;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8rem;
+      position: relative;
+      overflow: hidden;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .album-art-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 100%);
+    }
+
+    .track-info {
+      padding: var(--space-xl);
+      color: white;
+      position: relative;
+    }
+
+    .track-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: var(--space-xs);
+    }
+
+    .track-artist {
+      font-size: 1.125rem;
+      color: var(--gray-400);
+    }
+
+    .progress-section {
+      padding: 0 var(--space-xl) var(--space-lg);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--gray-700);
+      border-radius: var(--radius-full);
+      position: relative;
+      cursor: pointer;
+      touch-action: none;
+      margin-bottom: var(--space-md);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: var(--radius-full);
+      width: 30%;
+      transition: width 0.1s;
+      position: relative;
+    }
+
+    .progress-handle {
+      position: absolute;
+      right: -8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: var(--shadow-md);
+      transition: transform 0.1s;
+    }
+
+    .progress-handle:active {
+      transform: translateY(-50%) scale(1.3);
+    }
+
+    .time-labels {
+      display: flex;
+      justify-content: space-between;
+      color: var(--gray-400);
+      font-size: 0.875rem;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-lg);
+      padding: var(--space-2xl);
+    }
+
+    .control-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.05);
+    }
+
+    .control-btn:active {
+      transform: scale(0.95);
+    }
+
+    .control-btn.play-pause {
+      width: 80px;
+      height: 80px;
+      background: var(--primary);
+      font-size: 2rem;
+    }
+
+    .control-btn.play-pause:hover {
+      background: var(--primary-dark);
+    }
+
+    .volume-section {
+      padding: 0 var(--space-xl) var(--space-xl);
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .volume-icon {
+      color: white;
+      font-size: 1.25rem;
+      min-width: 30px;
+      text-align: center;
+    }
+
+    .volume-slider {
+      flex: 1;
+    }
+
+    .volume-slider input[type="range"] {
+      background: var(--gray-700);
+    }
+
+    .playlist {
+      background: var(--gray-800);
+      padding: var(--space-lg);
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .playlist-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      color: white;
+    }
+
+    .playlist-item:hover {
+      background: var(--gray-700);
+    }
+
+    .playlist-item.active {
+      background: var(--primary);
+    }
+
+    .playlist-item.active:hover {
+      background: var(--primary-dark);
+    }
+
+    .playlist-number {
+      width: 30px;
+      text-align: center;
+      color: var(--gray-400);
+      font-weight: 700;
+    }
+
+    .playlist-item.active .playlist-number {
+      color: white;
+    }
+
+    .playlist-info {
+      flex: 1;
+    }
+
+    .playlist-title {
+      font-weight: 600;
+    }
+
+    .playlist-artist {
+      font-size: 0.875rem;
+      color: var(--gray-400);
+    }
+
+    .playlist-duration {
+      color: var(--gray-400);
+      font-size: 0.875rem;
+    }
+
+    .gesture-indicator {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 3rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .gesture-indicator.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Media Player</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Touch-controlled music player with gesture support.
+      </p>
+
+      <div class="player-container">
+        <!-- Album Art -->
+        <div class="album-art" id="albumArt">
+          <span id="albumIcon">🎵</span>
+          <div class="album-art-overlay"></div>
+          <div class="gesture-indicator" id="gestureIndicator"></div>
+        </div>
+
+        <!-- Track Info -->
+        <div class="track-info">
+          <div class="track-title" id="trackTitle">Sunset Dreams</div>
+          <div class="track-artist" id="trackArtist">Electronic Waves</div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-section">
+          <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill">
+              <div class="progress-handle"></div>
+            </div>
+          </div>
+          <div class="time-labels">
+            <span id="currentTime">1:23</span>
+            <span id="totalTime">4:32</span>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+          <button class="control-btn" onclick="previousTrack()">⏮️</button>
+          <button class="control-btn" onclick="rewind()">⏪</button>
+          <button class="control-btn play-pause" id="playPauseBtn" onclick="togglePlay()">▶️</button>
+          <button class="control-btn" onclick="forward()">⏩</button>
+          <button class="control-btn" onclick="nextTrack()">⏭️</button>
+        </div>
+
+        <!-- Volume -->
+        <div class="volume-section">
+          <div class="volume-icon" id="volumeIcon">🔊</div>
+          <div class="volume-slider">
+            <input type="range" id="volumeSlider" min="0" max="100" value="70">
+          </div>
+        </div>
+
+        <!-- Playlist -->
+        <div class="playlist">
+          <div class="playlist-item active" onclick="selectTrack(0)">
+            <div class="playlist-number">1</div>
+            <div class="playlist-info">
+              <div class="playlist-title">Sunset Dreams</div>
+              <div class="playlist-artist">Electronic Waves</div>
+            </div>
+            <div class="playlist-duration">4:32</div>
+          </div>
+
+          <div class="playlist-item" onclick="selectTrack(1)">
+            <div class="playlist-number">2</div>
+            <div class="playlist-info">
+              <div class="playlist-title">Midnight City</div>
+              <div class="playlist-artist">Neon Lights</div>
+            </div>
+            <div class="playlist-duration">3:45</div>
+          </div>
+
+          <div class="playlist-item" onclick="selectTrack(2)">
+            <div class="playlist-number">3</div>
+            <div class="playlist-info">
+              <div class="playlist-title">Ocean Breeze</div>
+              <div class="playlist-artist">Chill Vibes</div>
+            </div>
+            <div class="playlist-duration">5:12</div>
+          </div>
+
+          <div class="playlist-item" onclick="selectTrack(3)">
+            <div class="playlist-number">4</div>
+            <div class="playlist-info">
+              <div class="playlist-title">Starlight</div>
+              <div class="playlist-artist">Cosmic Sound</div>
+            </div>
+            <div class="playlist-duration">4:08</div>
+          </div>
+
+          <div class="playlist-item" onclick="selectTrack(4)">
+            <div class="playlist-number">5</div>
+            <div class="playlist-info">
+              <div class="playlist-title">Digital Rain</div>
+              <div class="playlist-artist">Synth Masters</div>
+            </div>
+            <div class="playlist-duration">3:56</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Touch Gestures</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Tap Play/Pause:</strong> Toggle playback</li>
+          <li><strong>Swipe left on album:</strong> Next track</li>
+          <li><strong>Swipe right on album:</strong> Previous track</li>
+          <li><strong>Swipe up on album:</strong> Increase volume</li>
+          <li><strong>Swipe down on album:</strong> Decrease volume</li>
+          <li><strong>Tap playlist item:</strong> Select track</li>
+          <li><strong>Drag progress bar:</strong> Seek position</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.1 - Media Player</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const tracks = [
+      { title: 'Sunset Dreams', artist: 'Electronic Waves', duration: 272, icon: '🎵' },
+      { title: 'Midnight City', artist: 'Neon Lights', duration: 225, icon: '🌃' },
+      { title: 'Ocean Breeze', artist: 'Chill Vibes', duration: 312, icon: '🌊' },
+      { title: 'Starlight', artist: 'Cosmic Sound', duration: 248, icon: '⭐' },
+      { title: 'Digital Rain', artist: 'Synth Masters', duration: 236, icon: '💧' }
+    ];
+
+    let currentTrack = 0;
+    let isPlaying = false;
+    let currentProgress = 83; // seconds
+    let volume = 70;
+
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const albumArt = document.getElementById('albumArt');
+    const albumIcon = document.getElementById('albumIcon');
+    const gestureIndicator = document.getElementById('gestureIndicator');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    const currentTimeEl = document.getElementById('currentTime');
+    const totalTimeEl = document.getElementById('totalTime');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeIcon = document.getElementById('volumeIcon');
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateUI() {
+      const track = tracks[currentTrack];
+      document.getElementById('trackTitle').textContent = track.title;
+      document.getElementById('trackArtist').textContent = track.artist;
+      albumIcon.textContent = track.icon;
+      totalTimeEl.textContent = formatTime(track.duration);
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const track = tracks[currentTrack];
+      const percent = (currentProgress / track.duration) * 100;
+      progressFill.style.width = `${percent}%`;
+      currentTimeEl.textContent = formatTime(currentProgress);
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      playPauseBtn.textContent = isPlaying ? '⏸️' : '▶️';
+      TouchUtils.vibrate(10);
+
+      if (isPlaying) {
+        startPlayback();
+      } else {
+        stopPlayback();
+      }
+    }
+
+    let playbackInterval;
+
+    function startPlayback() {
+      playbackInterval = setInterval(() => {
+        currentProgress++;
+        if (currentProgress >= tracks[currentTrack].duration) {
+          nextTrack();
+        }
+        updateProgress();
+      }, 1000);
+    }
+
+    function stopPlayback() {
+      clearInterval(playbackInterval);
+    }
+
+    function nextTrack() {
+      currentTrack = (currentTrack + 1) % tracks.length;
+      currentProgress = 0;
+      selectTrack(currentTrack);
+      TouchUtils.vibrate(20);
+    }
+
+    function previousTrack() {
+      currentTrack = (currentTrack - 1 + tracks.length) % tracks.length;
+      currentProgress = 0;
+      selectTrack(currentTrack);
+      TouchUtils.vibrate(20);
+    }
+
+    function forward() {
+      currentProgress = Math.min(currentProgress + 10, tracks[currentTrack].duration);
+      updateProgress();
+      showGesture('⏩ +10s');
+      TouchUtils.vibrate(10);
+    }
+
+    function rewind() {
+      currentProgress = Math.max(currentProgress - 10, 0);
+      updateProgress();
+      showGesture('⏪ -10s');
+      TouchUtils.vibrate(10);
+    }
+
+    function selectTrack(index) {
+      currentTrack = index;
+      currentProgress = 0;
+
+      // Update active playlist item
+      document.querySelectorAll('.playlist-item').forEach((item, i) => {
+        item.classList.toggle('active', i === index);
+      });
+
+      updateUI();
+      TouchUtils.vibrate(10);
+    }
+
+    function showGesture(icon) {
+      gestureIndicator.textContent = icon;
+      gestureIndicator.classList.add('show');
+      setTimeout(() => {
+        gestureIndicator.classList.remove('show');
+      }, 500);
+    }
+
+    // Album art gestures
+    TouchUtils.initSwipe(albumArt, {
+      onSwipeLeft: () => {
+        nextTrack();
+        showGesture('⏭️');
+      },
+      onSwipeRight: () => {
+        previousTrack();
+        showGesture('⏮️');
+      },
+      onSwipeUp: () => {
+        volume = Math.min(100, volume + 10);
+        volumeSlider.value = volume;
+        updateVolumeIcon();
+        showGesture('🔊 ' + volume + '%');
+        TouchUtils.vibrate(10);
+      },
+      onSwipeDown: () => {
+        volume = Math.max(0, volume - 10);
+        volumeSlider.value = volume;
+        updateVolumeIcon();
+        showGesture('🔉 ' + volume + '%');
+        TouchUtils.vibrate(10);
+      }
+    });
+
+    // Progress bar interaction
+    let isDraggingProgress = false;
+
+    progressBar.addEventListener('touchstart', (e) => {
+      isDraggingProgress = true;
+      updateProgressFromTouch(e);
+    });
+
+    progressBar.addEventListener('touchmove', (e) => {
+      if (isDraggingProgress) {
+        e.preventDefault();
+        updateProgressFromTouch(e);
+      }
+    });
+
+    progressBar.addEventListener('touchend', () => {
+      isDraggingProgress = false;
+    });
+
+    progressBar.addEventListener('mousedown', (e) => {
+      isDraggingProgress = true;
+      updateProgressFromMouse(e);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDraggingProgress) {
+        updateProgressFromMouse(e);
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDraggingProgress = false;
+    });
+
+    function updateProgressFromTouch(e) {
+      const touch = e.touches[0];
+      const rect = progressBar.getBoundingClientRect();
+      const percent = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+      currentProgress = Math.floor(percent * tracks[currentTrack].duration);
+      updateProgress();
+      TouchUtils.vibrate(5);
+    }
+
+    function updateProgressFromMouse(e) {
+      const rect = progressBar.getBoundingClientRect();
+      const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      currentProgress = Math.floor(percent * tracks[currentTrack].duration);
+      updateProgress();
+    }
+
+    // Volume slider
+    volumeSlider.addEventListener('input', (e) => {
+      volume = parseInt(e.target.value);
+      updateVolumeIcon();
+      TouchUtils.vibrate(5);
+    });
+
+    function updateVolumeIcon() {
+      if (volume === 0) volumeIcon.textContent = '🔇';
+      else if (volume < 33) volumeIcon.textContent = '🔈';
+      else if (volume < 66) volumeIcon.textContent = '🔉';
+      else volumeIcon.textContent = '🔊';
+    }
+
+    // Initialize
+    updateUI();
+    updateVolumeIcon();
+  </script>
+</body>
+</html>

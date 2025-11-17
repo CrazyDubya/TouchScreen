@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Gesture Detection - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .gesture-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-lg);
+      margin: var(--space-2xl) 0;
+    }
+
+    .gesture-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-md);
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+      user-select: none;
+      transition: all var(--transition-base);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gesture-card.detected {
+      transform: scale(1.05);
+      box-shadow: var(--shadow-xl);
+      border: 3px solid var(--success);
+    }
+
+    .gesture-icon {
+      font-size: 3rem;
+      margin-bottom: var(--space-md);
+    }
+
+    .gesture-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: var(--space-sm);
+      color: var(--gray-900);
+    }
+
+    .gesture-status {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      text-align: center;
+      min-height: 40px;
+    }
+
+    .gesture-status.active {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .swipe-arrows {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-sm);
+      margin-top: var(--space-md);
+      width: 120px;
+    }
+
+    .arrow {
+      width: 30px;
+      height: 30px;
+      background: var(--gray-200);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      transition: all var(--transition-fast);
+    }
+
+    .arrow.active {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.2);
+    }
+
+    .pinch-demo {
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: var(--radius-md);
+      transition: transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+    }
+
+    .rotate-demo {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, var(--accent), var(--warning));
+      border-radius: var(--radius-md);
+      transition: transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+    }
+
+    .tap-target {
+      width: 100px;
+      height: 100px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      transition: all var(--transition-fast);
+      cursor: pointer;
+    }
+
+    .tap-target:active {
+      transform: scale(0.9);
+    }
+
+    .long-press-bar {
+      width: 200px;
+      height: 8px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      margin-top: var(--space-md);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .long-press-progress {
+      height: 100%;
+      background: var(--success);
+      border-radius: var(--radius-full);
+      width: 0%;
+      transition: width 0.05s linear;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Gesture Detection</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Detect and respond to common touch gestures: swipe, pinch, rotate, tap, and long-press.
+      </p>
+
+      <div class="gesture-grid">
+        <!-- Swipe Detection -->
+        <div class="gesture-card" id="swipeCard">
+          <div class="gesture-icon">👆</div>
+          <div class="gesture-name">Swipe</div>
+          <div class="gesture-status" id="swipeStatus">Swipe in any direction</div>
+          <div class="swipe-arrows">
+            <div></div>
+            <div class="arrow" id="arrowUp">↑</div>
+            <div></div>
+            <div class="arrow" id="arrowLeft">←</div>
+            <div></div>
+            <div class="arrow" id="arrowRight">→</div>
+            <div></div>
+            <div class="arrow" id="arrowDown">↓</div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Double Tap -->
+        <div class="gesture-card" id="doubleTapCard">
+          <div class="gesture-icon">✌️</div>
+          <div class="gesture-name">Double Tap</div>
+          <div class="gesture-status" id="doubleTapStatus">Tap twice quickly</div>
+          <div class="tap-target" id="doubleTapTarget">
+            TAP ME!
+          </div>
+        </div>
+
+        <!-- Long Press -->
+        <div class="gesture-card" id="longPressCard">
+          <div class="gesture-icon">⏱️</div>
+          <div class="gesture-name">Long Press</div>
+          <div class="gesture-status" id="longPressStatus">Press and hold</div>
+          <div class="tap-target" id="longPressTarget" style="background: var(--secondary);">
+            HOLD ME
+          </div>
+          <div class="long-press-bar">
+            <div class="long-press-progress" id="longPressProgress"></div>
+          </div>
+        </div>
+
+        <!-- Pinch Zoom -->
+        <div class="gesture-card" id="pinchCard">
+          <div class="gesture-icon">🤏</div>
+          <div class="gesture-name">Pinch Zoom</div>
+          <div class="gesture-status" id="pinchStatus">Use two fingers to zoom</div>
+          <div class="pinch-demo" id="pinchDemo">
+            <span id="pinchScale">100%</span>
+          </div>
+        </div>
+
+        <!-- Rotation -->
+        <div class="gesture-card" id="rotateCard">
+          <div class="gesture-icon">🔄</div>
+          <div class="gesture-name">Rotate</div>
+          <div class="gesture-status" id="rotateStatus">Use two fingers to rotate</div>
+          <div class="rotate-demo" id="rotateDemo">
+            <span id="rotateAngle">0°</span>
+          </div>
+        </div>
+
+        <!-- Drag -->
+        <div class="gesture-card" id="dragCard">
+          <div class="gesture-icon">✋</div>
+          <div class="gesture-name">Drag</div>
+          <div class="gesture-status" id="dragStatus">Drag the box around</div>
+          <div class="tap-target draggable" id="dragTarget" style="background: var(--warning); cursor: move;">
+            DRAG ME
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info">
+        <h3>Gesture Recognition</h3>
+        <p>
+          This demo uses the TouchUtils library to detect various gestures. Each card demonstrates a different gesture type:
+        </p>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li><strong>Swipe:</strong> Quick directional movement</li>
+          <li><strong>Double Tap:</strong> Two taps within 300ms</li>
+          <li><strong>Long Press:</strong> Touch held for 500ms+</li>
+          <li><strong>Pinch:</strong> Two-finger zoom gesture</li>
+          <li><strong>Rotate:</strong> Two-finger rotation</li>
+          <li><strong>Drag:</strong> Move elements with touch/mouse</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.1 - Gesture Detection</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    // Swipe Detection
+    const swipeCard = document.getElementById('swipeCard');
+    const swipeStatus = document.getElementById('swipeStatus');
+    const arrows = {
+      up: document.getElementById('arrowUp'),
+      down: document.getElementById('arrowDown'),
+      left: document.getElementById('arrowLeft'),
+      right: document.getElementById('arrowRight')
+    };
+
+    TouchUtils.initSwipe(swipeCard, {
+      onSwipeLeft: () => handleSwipe('left', '←'),
+      onSwipeRight: () => handleSwipe('right', '→'),
+      onSwipeUp: () => handleSwipe('up', '↑'),
+      onSwipeDown: () => handleSwipe('down', '↓')
+    });
+
+    function handleSwipe(direction, arrow) {
+      swipeStatus.textContent = `Swiped ${direction.toUpperCase()} ${arrow}`;
+      swipeStatus.classList.add('active');
+      swipeCard.classList.add('detected');
+
+      // Highlight arrow
+      Object.values(arrows).forEach(a => a.classList.remove('active'));
+      arrows[direction].classList.add('active');
+      TouchUtils.vibrate(20);
+
+      setTimeout(() => {
+        swipeStatus.classList.remove('active');
+        swipeCard.classList.remove('detected');
+        swipeStatus.textContent = 'Swipe in any direction';
+      }, 1500);
+    }
+
+    // Double Tap Detection
+    const doubleTapCard = document.getElementById('doubleTapCard');
+    const doubleTapTarget = document.getElementById('doubleTapTarget');
+    const doubleTapStatus = document.getElementById('doubleTapStatus');
+
+    TouchUtils.detectDoubleTap(doubleTapTarget, (e) => {
+      doubleTapStatus.textContent = 'Double Tap Detected! ✓';
+      doubleTapStatus.classList.add('active');
+      doubleTapCard.classList.add('detected');
+      doubleTapTarget.style.background = var(--success);
+      TouchUtils.vibrate([20, 50, 20]);
+
+      setTimeout(() => {
+        doubleTapStatus.classList.remove('active');
+        doubleTapCard.classList.remove('detected');
+        doubleTapStatus.textContent = 'Tap twice quickly';
+        doubleTapTarget.style.background = '';
+      }, 1500);
+    });
+
+    // Long Press Detection
+    const longPressCard = document.getElementById('longPressCard');
+    const longPressTarget = document.getElementById('longPressTarget');
+    const longPressStatus = document.getElementById('longPressStatus');
+    const longPressProgress = document.getElementById('longPressProgress');
+
+    let longPressTimer;
+    let longPressStartTime;
+
+    longPressTarget.addEventListener('touchstart', startLongPress);
+    longPressTarget.addEventListener('mousedown', startLongPress);
+    longPressTarget.addEventListener('touchend', cancelLongPress);
+    longPressTarget.addEventListener('mouseup', cancelLongPress);
+    longPressTarget.addEventListener('touchmove', cancelLongPress);
+
+    function startLongPress(e) {
+      longPressStartTime = Date.now();
+      longPressProgress.style.width = '0%';
+
+      const interval = setInterval(() => {
+        const elapsed = Date.now() - longPressStartTime;
+        const progress = Math.min((elapsed / 500) * 100, 100);
+        longPressProgress.style.width = `${progress}%`;
+      }, 50);
+
+      longPressTimer = setTimeout(() => {
+        clearInterval(interval);
+        longPressStatus.textContent = 'Long Press Detected! ✓';
+        longPressStatus.classList.add('active');
+        longPressCard.classList.add('detected');
+        longPressProgress.style.width = '100%';
+        TouchUtils.vibrate(50);
+
+        setTimeout(() => {
+          longPressStatus.classList.remove('active');
+          longPressCard.classList.remove('detected');
+          longPressStatus.textContent = 'Press and hold';
+          longPressProgress.style.width = '0%';
+        }, 1500);
+      }, 500);
+
+      longPressTimer._interval = interval;
+    }
+
+    function cancelLongPress() {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        if (longPressTimer._interval) {
+          clearInterval(longPressTimer._interval);
+        }
+        longPressProgress.style.width = '0%';
+      }
+    }
+
+    // Pinch Zoom
+    const pinchCard = document.getElementById('pinchCard');
+    const pinchDemo = document.getElementById('pinchDemo');
+    const pinchScale = document.getElementById('pinchScale');
+    const pinchStatus = document.getElementById('pinchStatus');
+
+    let initialDistance = 0;
+    let currentScale = 1;
+
+    pinchCard.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        initialDistance = TouchUtils.getPinchDistance(e.touches);
+        pinchStatus.textContent = 'Pinching...';
+        pinchCard.classList.add('detected');
+      }
+    });
+
+    pinchCard.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const currentDistance = TouchUtils.getPinchDistance(e.touches);
+        const scale = currentDistance / initialDistance;
+        currentScale = Math.max(0.5, Math.min(2, scale));
+
+        pinchDemo.style.transform = `scale(${currentScale})`;
+        pinchScale.textContent = `${Math.round(currentScale * 100)}%`;
+      }
+    });
+
+    pinchCard.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) {
+        pinchStatus.textContent = 'Use two fingers to zoom';
+        pinchCard.classList.remove('detected');
+        initialDistance = 0;
+      }
+    });
+
+    // Rotation
+    const rotateCard = document.getElementById('rotateCard');
+    const rotateDemo = document.getElementById('rotateDemo');
+    const rotateAngle = document.getElementById('rotateAngle');
+    const rotateStatus = document.getElementById('rotateStatus');
+
+    let initialAngle = 0;
+    let currentRotation = 0;
+
+    rotateCard.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        initialAngle = TouchUtils.getRotationAngle(e.touches);
+        rotateStatus.textContent = 'Rotating...';
+        rotateCard.classList.add('detected');
+      }
+    });
+
+    rotateCard.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const angle = TouchUtils.getRotationAngle(e.touches);
+        currentRotation = angle - initialAngle;
+
+        rotateDemo.style.transform = `rotate(${currentRotation}deg)`;
+        rotateAngle.textContent = `${Math.round(currentRotation)}°`;
+      }
+    });
+
+    rotateCard.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) {
+        rotateStatus.textContent = 'Use two fingers to rotate';
+        rotateCard.classList.remove('detected');
+      }
+    });
+
+    // Drag
+    const dragTarget = document.getElementById('dragTarget');
+    const dragStatus = document.getElementById('dragStatus');
+    const dragCard = document.getElementById('dragCard');
+
+    TouchUtils.makeDraggable(dragTarget, {
+      onDragStart: () => {
+        dragStatus.textContent = 'Dragging...';
+        dragStatus.classList.add('active');
+        dragCard.classList.add('detected');
+        TouchUtils.vibrate(10);
+      },
+      onDrag: (e, pos) => {
+        dragStatus.textContent = `Position: (${Math.round(pos.x)}, ${Math.round(pos.y)})`;
+      },
+      onDragEnd: () => {
+        setTimeout(() => {
+          dragStatus.textContent = 'Drag the box around';
+          dragStatus.classList.remove('active');
+          dragCard.classList.remove('detected');
+        }, 500);
+      },
+      constrainToParent: true
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Sliders & Controls - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .slider-section {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin: var(--space-xl) 0;
+    }
+
+    .slider-item {
+      margin: var(--space-2xl) 0;
+      padding: var(--space-lg);
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-md);
+    }
+
+    .slider-label {
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .slider-value-display {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      min-width: 80px;
+      text-align: right;
+    }
+
+    .volume-icon {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: var(--space-md);
+    }
+
+    .brightness-demo {
+      width: 100%;
+      height: 150px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 2rem;
+      font-weight: 700;
+      transition: opacity 0.1s;
+      margin-top: var(--space-md);
+    }
+
+    .temperature-display {
+      width: 100%;
+      height: 100px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      font-weight: 700;
+      color: white;
+      margin-top: var(--space-md);
+      transition: background 0.3s;
+    }
+
+    .zoom-demo {
+      margin-top: var(--space-md);
+      text-align: center;
+      font-size: 1rem;
+      transition: all 0.1s;
+      padding: var(--space-lg);
+      background: var(--gray-100);
+      border-radius: var(--radius-md);
+    }
+
+    .progress-demo {
+      margin-top: var(--space-md);
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 30px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: var(--radius-full);
+      width: 50%;
+      transition: width 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: var(--space-sm);
+      color: white;
+      font-weight: 700;
+      font-size: 0.875rem;
+    }
+
+    .vertical-slider-container {
+      display: flex;
+      gap: var(--space-2xl);
+      justify-content: center;
+      margin-top: var(--space-xl);
+    }
+
+    .vertical-slider-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    input[type="range"].vertical {
+      -webkit-appearance: slider-vertical;
+      appearance: slider-vertical;
+      writing-mode: bt-lr;
+      height: 200px;
+      width: 8px;
+    }
+
+    .eq-bar {
+      width: 50px;
+      background: var(--gray-200);
+      border-radius: var(--radius-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .eq-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, var(--danger), var(--warning), var(--success));
+      transition: height 0.1s;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Sliders & Controls</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Touch-optimized range sliders for volume, brightness, progress, and more.
+      </p>
+
+      <!-- Volume Slider -->
+      <section class="slider-section">
+        <h2>Volume Control</h2>
+        <div class="slider-item">
+          <div class="volume-icon" id="volumeIcon">🔊</div>
+          <div class="slider-header">
+            <span class="slider-label">Volume</span>
+            <span class="slider-value-display"><span id="volumeValue">50</span>%</span>
+          </div>
+          <div class="range-slider">
+            <input type="range" id="volumeSlider" min="0" max="100" value="50">
+          </div>
+        </div>
+      </section>
+
+      <!-- Brightness Slider -->
+      <section class="slider-section">
+        <h2>Brightness Control</h2>
+        <div class="slider-item">
+          <div class="slider-header">
+            <span class="slider-label">Screen Brightness</span>
+            <span class="slider-value-display"><span id="brightnessValue">75</span>%</span>
+          </div>
+          <div class="range-slider">
+            <input type="range" id="brightnessSlider" min="0" max="100" value="75">
+          </div>
+          <div class="brightness-demo" id="brightnessDemo">☀️</div>
+        </div>
+      </section>
+
+      <!-- Temperature Slider -->
+      <section class="slider-section">
+        <h2>Temperature Control</h2>
+        <div class="slider-item">
+          <div class="slider-header">
+            <span class="slider-label">Thermostat</span>
+            <span class="slider-value-display"><span id="tempValue">20</span>°C</span>
+          </div>
+          <div class="range-slider">
+            <input type="range" id="tempSlider" min="16" max="30" value="20" step="0.5">
+          </div>
+          <div class="temperature-display" id="tempDisplay">20°C</div>
+        </div>
+      </section>
+
+      <!-- Zoom Slider -->
+      <section class="slider-section">
+        <h2>Zoom Control</h2>
+        <div class="slider-item">
+          <div class="slider-header">
+            <span class="slider-label">Zoom Level</span>
+            <span class="slider-value-display"><span id="zoomValue">100</span>%</span>
+          </div>
+          <div class="range-slider">
+            <input type="range" id="zoomSlider" min="50" max="200" value="100" step="10">
+          </div>
+          <div class="zoom-demo" id="zoomDemo">
+            <p>This text scales with the zoom level!</p>
+            <p style="margin-top: var(--space-md); font-size: 0.875rem; color: var(--gray-600);">
+              Adjust the slider above to see the effect
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Progress/Seek Bar -->
+      <section class="slider-section">
+        <h2>Media Progress Bar</h2>
+        <div class="slider-item">
+          <div class="slider-header">
+            <span class="slider-label">Video Position</span>
+            <span class="slider-value-display">
+              <span id="progressTime">2:30</span> / 5:00
+            </span>
+          </div>
+          <div class="progress-demo">
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" id="progressFill">
+                <span id="progressPercent">50%</span>
+              </div>
+            </div>
+            <div class="range-slider">
+              <input type="range" id="progressSlider" min="0" max="300" value="150">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Vertical Sliders (Equalizer) -->
+      <section class="slider-section">
+        <h2>Equalizer (Vertical Sliders)</h2>
+        <div class="slider-item">
+          <p style="text-align: center; color: var(--gray-600); margin-bottom: var(--space-lg);">
+            Adjust each frequency band
+          </p>
+          <div class="vertical-slider-container">
+            <div class="vertical-slider-item">
+              <div class="eq-bar" style="height: 200px;">
+                <div class="eq-fill" id="eq1Fill" style="height: 50%;"></div>
+              </div>
+              <input type="range" class="vertical" id="eq1" min="0" max="100" value="50" orient="vertical">
+              <span>60Hz</span>
+            </div>
+            <div class="vertical-slider-item">
+              <div class="eq-bar" style="height: 200px;">
+                <div class="eq-fill" id="eq2Fill" style="height: 70%;"></div>
+              </div>
+              <input type="range" class="vertical" id="eq2" min="0" max="100" value="70" orient="vertical">
+              <span>250Hz</span>
+            </div>
+            <div class="vertical-slider-item">
+              <div class="eq-bar" style="height: 200px;">
+                <div class="eq-fill" id="eq3Fill" style="height: 60%;"></div>
+              </div>
+              <input type="range" class="vertical" id="eq3" min="0" max="100" value="60" orient="vertical">
+              <span>1kHz</span>
+            </div>
+            <div class="vertical-slider-item">
+              <div class="eq-bar" style="height: 200px;">
+                <div class="eq-fill" id="eq4Fill" style="height: 80%;"></div>
+              </div>
+              <input type="range" class="vertical" id="eq4" min="0" max="100" value="80" orient="vertical">
+              <span>4kHz</span>
+            </div>
+            <div class="vertical-slider-item">
+              <div class="eq-bar" style="height: 200px;">
+                <div class="eq-fill" id="eq5Fill" style="height: 55%;"></div>
+              </div>
+              <input type="range" class="vertical" id="eq5" min="0" max="100" value="55" orient="vertical">
+              <span>16kHz</span>
+            </div>
+          </div>
+          <div class="demo-controls mt-lg" style="text-align: center;">
+            <button class="btn btn-secondary" onclick="resetEqualizer()">Reset EQ</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Demo Info -->
+      <div class="demo-info">
+        <h3>Touch-Friendly Sliders</h3>
+        <p>
+          All sliders are optimized for touch interaction:
+        </p>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li><strong>Large thumb:</strong> 24px touch target for easy grabbing</li>
+          <li><strong>Visual feedback:</strong> Scales up when touched</li>
+          <li><strong>Smooth tracking:</strong> Responsive to touch movements</li>
+          <li><strong>Haptic feedback:</strong> Vibration on interaction (if supported)</li>
+          <li><strong>Vertical orientation:</strong> Support for both horizontal and vertical sliders</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.1 - Sliders & Controls</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    // Volume Slider
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeValue = document.getElementById('volumeValue');
+    const volumeIcon = document.getElementById('volumeIcon');
+
+    volumeSlider.addEventListener('input', (e) => {
+      const value = e.target.value;
+      volumeValue.textContent = value;
+
+      // Update icon based on volume
+      if (value == 0) volumeIcon.textContent = '🔇';
+      else if (value < 33) volumeIcon.textContent = '🔈';
+      else if (value < 66) volumeIcon.textContent = '🔉';
+      else volumeIcon.textContent = '🔊';
+
+      TouchUtils.vibrate(5);
+    });
+
+    // Brightness Slider
+    const brightnessSlider = document.getElementById('brightnessSlider');
+    const brightnessValue = document.getElementById('brightnessValue');
+    const brightnessDemo = document.getElementById('brightnessDemo');
+
+    brightnessSlider.addEventListener('input', (e) => {
+      const value = e.target.value;
+      brightnessValue.textContent = value;
+      brightnessDemo.style.opacity = value / 100;
+      TouchUtils.vibrate(5);
+    });
+
+    // Temperature Slider
+    const tempSlider = document.getElementById('tempSlider');
+    const tempValue = document.getElementById('tempValue');
+    const tempDisplay = document.getElementById('tempDisplay');
+
+    function getTempColor(temp) {
+      if (temp < 18) return '#3b82f6'; // Cold - Blue
+      if (temp < 22) return '#10b981'; // Comfortable - Green
+      if (temp < 26) return '#f59e0b'; // Warm - Orange
+      return '#ef4444'; // Hot - Red
+    }
+
+    tempSlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      tempValue.textContent = value;
+      tempDisplay.textContent = value + '°C';
+      tempDisplay.style.background = getTempColor(value);
+      TouchUtils.vibrate(5);
+    });
+
+    // Zoom Slider
+    const zoomSlider = document.getElementById('zoomSlider');
+    const zoomValue = document.getElementById('zoomValue');
+    const zoomDemo = document.getElementById('zoomDemo');
+
+    zoomSlider.addEventListener('input', (e) => {
+      const value = e.target.value;
+      zoomValue.textContent = value;
+      zoomDemo.style.transform = `scale(${value / 100})`;
+      TouchUtils.vibrate(5);
+    });
+
+    // Progress Slider
+    const progressSlider = document.getElementById('progressSlider');
+    const progressFill = document.getElementById('progressFill');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressTime = document.getElementById('progressTime');
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    progressSlider.addEventListener('input', (e) => {
+      const value = e.target.value;
+      const percent = (value / 300) * 100;
+
+      progressFill.style.width = percent + '%';
+      progressPercent.textContent = Math.round(percent) + '%';
+      progressTime.textContent = formatTime(value);
+      TouchUtils.vibrate(5);
+    });
+
+    // Equalizer (Vertical Sliders)
+    for (let i = 1; i <= 5; i++) {
+      const slider = document.getElementById(`eq${i}`);
+      const fill = document.getElementById(`eq${i}Fill`);
+
+      slider.addEventListener('input', (e) => {
+        const value = e.target.value;
+        fill.style.height = value + '%';
+        TouchUtils.vibrate(5);
+      });
+    }
+
+    function resetEqualizer() {
+      for (let i = 1; i <= 5; i++) {
+        const slider = document.getElementById(`eq${i}`);
+        const fill = document.getElementById(`eq${i}Fill`);
+        slider.value = 50;
+        fill.style.height = '50%';
+      }
+      TouchUtils.vibrate(20);
+    }
+
+    // Add touch feedback to all sliders
+    document.querySelectorAll('input[type="range"]').forEach(slider => {
+      slider.addEventListener('touchstart', () => {
+        TouchUtils.vibrate(10);
+      });
+
+      slider.addEventListener('touchend', () => {
+        TouchUtils.vibrate(10);
+      });
+    });
+  </script>
+</body>
+</html>

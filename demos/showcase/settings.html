@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Settings Panel - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .settings-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .settings-section {
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-lg);
+      overflow: hidden;
+    }
+
+    .settings-header {
+      padding: var(--space-lg);
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .settings-group {
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .settings-group:last-child {
+      border-bottom: none;
+    }
+
+    .settings-group-title {
+      padding: var(--space-md) var(--space-lg);
+      background: var(--gray-50);
+      font-weight: 700;
+      color: var(--gray-700);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .settings-item {
+      padding: var(--space-lg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--gray-100);
+      transition: background var(--transition-fast);
+    }
+
+    .settings-item:last-child {
+      border-bottom: none;
+    }
+
+    .settings-item:active {
+      background: var(--gray-50);
+    }
+
+    .settings-item-info {
+      flex: 1;
+      margin-right: var(--space-lg);
+    }
+
+    .settings-item-label {
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: var(--space-xs);
+    }
+
+    .settings-item-description {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+    }
+
+    .settings-item-control {
+      flex-shrink: 0;
+    }
+
+    .settings-badge {
+      background: var(--danger);
+      color: white;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .settings-value {
+      color: var(--gray-600);
+      font-weight: 600;
+    }
+
+    .settings-button {
+      color: var(--primary);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .profile-card {
+      display: flex;
+      align-items: center;
+      gap: var(--space-lg);
+      padding: var(--space-xl);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+
+    .profile-card:active {
+      background: var(--gray-50);
+    }
+
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: white;
+      font-weight: 700;
+    }
+
+    .profile-info {
+      flex: 1;
+    }
+
+    .profile-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: var(--space-xs);
+    }
+
+    .profile-email {
+      color: var(--gray-600);
+    }
+
+    .profile-chevron {
+      color: var(--gray-400);
+      font-size: 1.5rem;
+    }
+
+    .search-box {
+      padding: var(--space-lg);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: var(--space-md);
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      min-height: auto;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Settings Panel</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Complete settings interface with touch-optimized controls.
+      </p>
+
+      <div class="settings-container">
+        <!-- Profile Section -->
+        <div class="settings-section">
+          <div class="profile-card" onclick="editProfile()">
+            <div class="profile-avatar">JD</div>
+            <div class="profile-info">
+              <div class="profile-name">John Doe</div>
+              <div class="profile-email">john.doe@example.com</div>
+            </div>
+            <div class="profile-chevron">›</div>
+          </div>
+        </div>
+
+        <!-- Search -->
+        <div class="settings-section">
+          <div class="search-box">
+            <input type="text" class="search-input" placeholder="🔍 Search settings..." id="searchInput">
+          </div>
+        </div>
+
+        <!-- Connectivity -->
+        <div class="settings-section">
+          <div class="settings-header">Connectivity</div>
+
+          <div class="settings-group">
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Wi-Fi</div>
+                <div class="settings-item-description">Home Network</div>
+              </div>
+              <div class="settings-item-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="wifi" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Bluetooth</div>
+                <div class="settings-item-description">3 devices connected</div>
+              </div>
+              <div class="settings-item-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="bluetooth" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Airplane Mode</div>
+                <div class="settings-item-description">Disable all wireless</div>
+              </div>
+              <div class="settings-item-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="airplane">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Mobile Data</div>
+                <div class="settings-item-description">4G LTE</div>
+              </div>
+              <div class="settings-item-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="mobileData" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Display -->
+        <div class="settings-section">
+          <div class="settings-header">Display & Sound</div>
+
+          <div class="settings-group">
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Brightness</div>
+              </div>
+            </div>
+            <div style="padding: 0 var(--space-lg) var(--space-lg);">
+              <div class="range-slider">
+                <input type="range" id="brightness" min="0" max="100" value="75">
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.875rem; color: var(--gray-600); margin-top: var(--space-sm);">
+                <span>🌑</span>
+                <span id="brightnessValue">75%</span>
+                <span>☀️</span>
+              </div>
+            </div>
+
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Volume</div>
+              </div>
+            </div>
+            <div style="padding: 0 var(--space-lg) var(--space-lg);">
+              <div class="range-slider">
+                <input type="range" id="volume" min="0" max="100" value="50">
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.875rem; color: var(--gray-600); margin-top: var(--space-sm);">
+                <span>🔇</span>
+                <span id="volumeValue">50%</span>
+                <span>🔊</span>
+              </div>
+            </div>
+
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Dark Mode</div>
+                <div class="settings-item-description">Use dark color scheme</div>
+              </div>
+              <div class="settings-item-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="darkMode">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Auto-Rotate</div>
+                <div class="settings-item-description">Rotate screen automatically</div>
+              </div>
+              <div class="settings-item-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="autoRotate" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="settings-section">
+          <div class="settings-header">Notifications</div>
+
+          <div class="settings-group">
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Show Notifications</div>
+                <div class="settings-item-description">Allow app notifications</div>
+              </div>
+              <div class="settings-item-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="notifications" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Sound</div>
+                <div class="settings-item-description">Play sound for notifications</div>
+              </div>
+              <div class="settings-item-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="notificationSound" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Vibration</div>
+                <div class="settings-item-description">Vibrate on notifications</div>
+              </div>
+              <div class="settings-item-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="vibration" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Badge App Icon</div>
+                <div class="settings-item-description">
+                  <span class="settings-badge">3</span> Show notification count
+                </div>
+              </div>
+              <div class="settings-item-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="badge" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Privacy & Security -->
+        <div class="settings-section">
+          <div class="settings-header">Privacy & Security</div>
+
+          <div class="settings-group">
+            <div class="settings-item" onclick="alert('Opening location settings...')">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Location Services</div>
+                <div class="settings-item-description">While using the app</div>
+              </div>
+              <div class="settings-item-control">
+                <span class="profile-chevron">›</span>
+              </div>
+            </div>
+
+            <div class="settings-item" onclick="alert('Opening camera settings...')">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Camera</div>
+                <div class="settings-item-description">Allowed</div>
+              </div>
+              <div class="settings-item-control">
+                <span class="profile-chevron">›</span>
+              </div>
+            </div>
+
+            <div class="settings-item" onclick="alert('Opening microphone settings...')">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Microphone</div>
+                <div class="settings-item-description">Allowed</div>
+              </div>
+              <div class="settings-item-control">
+                <span class="profile-chevron">›</span>
+              </div>
+            </div>
+
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Face ID</div>
+                <div class="settings-item-description">Unlock with face recognition</div>
+              </div>
+              <div class="settings-item-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="faceId" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- App Settings -->
+        <div class="settings-section">
+          <div class="settings-header">App Settings</div>
+
+          <div class="settings-group">
+            <div class="settings-item" onclick="alert('Opening language settings...')">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Language</div>
+              </div>
+              <div class="settings-item-control">
+                <span class="settings-value">English ›</span>
+              </div>
+            </div>
+
+            <div class="settings-item" onclick="alert('Opening storage settings...')">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Storage</div>
+                <div class="settings-item-description">2.3 GB used</div>
+              </div>
+              <div class="settings-item-control">
+                <span class="profile-chevron">›</span>
+              </div>
+            </div>
+
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Auto-Update Apps</div>
+                <div class="settings-item-description">Update apps automatically</div>
+              </div>
+              <div class="settings-item-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="autoUpdate" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-item" onclick="clearCache()">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Clear Cache</div>
+                <div class="settings-item-description">Free up 127 MB</div>
+              </div>
+              <div class="settings-item-control">
+                <span class="settings-button">Clear</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- About -->
+        <div class="settings-section">
+          <div class="settings-header">About</div>
+
+          <div class="settings-group">
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Version</div>
+              </div>
+              <div class="settings-item-control">
+                <span class="settings-value">v0.1.0</span>
+              </div>
+            </div>
+
+            <div class="settings-item" onclick="alert('Opening help...')">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Help & Support</div>
+              </div>
+              <div class="settings-item-control">
+                <span class="profile-chevron">›</span>
+              </div>
+            </div>
+
+            <div class="settings-item" onclick="alert('Opening terms...')">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Terms & Conditions</div>
+              </div>
+              <div class="settings-item-control">
+                <span class="profile-chevron">›</span>
+              </div>
+            </div>
+
+            <div class="settings-item" onclick="alert('Opening privacy policy...')">
+              <div class="settings-item-info">
+                <div class="settings-item-label">Privacy Policy</div>
+              </div>
+              <div class="settings-item-control">
+                <span class="profile-chevron">›</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sign Out -->
+        <div class="settings-section">
+          <div class="settings-item" onclick="signOut()" style="justify-content: center;">
+            <span style="color: var(--danger); font-weight: 700;">Sign Out</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.1 - Settings Panel</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    // Brightness slider
+    const brightnessSlider = document.getElementById('brightness');
+    const brightnessValue = document.getElementById('brightnessValue');
+
+    brightnessSlider.addEventListener('input', (e) => {
+      brightnessValue.textContent = e.target.value + '%';
+      TouchUtils.vibrate(5);
+    });
+
+    // Volume slider
+    const volumeSlider = document.getElementById('volume');
+    const volumeValue = document.getElementById('volumeValue');
+
+    volumeSlider.addEventListener('input', (e) => {
+      volumeValue.textContent = e.target.value + '%';
+      TouchUtils.vibrate(5);
+    });
+
+    // Toggle switches vibration
+    document.querySelectorAll('input[type="checkbox"]').forEach(toggle => {
+      toggle.addEventListener('change', () => {
+        TouchUtils.vibrate(10);
+      });
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      document.querySelectorAll('.settings-item').forEach(item => {
+        const label = item.querySelector('.settings-item-label');
+        if (label) {
+          const text = label.textContent.toLowerCase();
+          const section = item.closest('.settings-section');
+          if (query === '' || text.includes(query)) {
+            item.style.display = 'flex';
+            if (section) section.style.display = 'block';
+          } else {
+            item.style.display = 'none';
+          }
+        }
+      });
+
+      // Hide empty sections
+      if (query !== '') {
+        document.querySelectorAll('.settings-section').forEach(section => {
+          const visibleItems = section.querySelectorAll('.settings-item[style*="display: flex"]');
+          if (visibleItems.length === 0) {
+            section.style.display = 'none';
+          }
+        });
+      }
+    });
+
+    // Functions
+    function editProfile() {
+      alert('Edit profile functionality (demo)');
+      TouchUtils.vibrate(10);
+    }
+
+    function clearCache() {
+      if (confirm('Clear app cache? This will free up 127 MB.')) {
+        alert('Cache cleared! (demo)');
+        TouchUtils.vibrate(20);
+      }
+    }
+
+    function signOut() {
+      if (confirm('Are you sure you want to sign out?')) {
+        alert('Signed out successfully! (demo)');
+        TouchUtils.vibrate(20);
+      }
+    }
+  </script>
+</body>
+</html>
