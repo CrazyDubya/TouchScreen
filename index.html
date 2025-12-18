@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="description" content="TouchScreen Demo Showcase - Explore touch interfaces across frameworks">
+  <title>TouchScreen Demo Showcase v0.5</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="/" class="logo">TouchScreen Demos</a>
+        <span class="tag">v0.5</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <!-- Hero Section -->
+      <section class="text-center mb-xl">
+        <h1>TouchScreen Demo Showcase</h1>
+        <p style="font-size: 1.25rem; color: var(--gray-600); max-width: 700px; margin: 0 auto;">
+          Explore modern touchscreen interfaces with interactive demos showcasing various frameworks, gestures, and UI patterns.
+        </p>
+      </section>
+
+      <!-- Quick Info -->
+      <div class="demo-info text-center" style="max-width: 800px; margin: 0 auto;">
+        <p><strong>Best experienced on:</strong> Touch-enabled devices (phones, tablets, touch laptops) or Chrome DevTools device emulation</p>
+      </div>
+
+      <!-- Framework Demos -->
+      <section class="mt-2xl">
+        <h2>Framework Demos</h2>
+        <div class="card-grid">
+          <a href="demos/vanilla/basic-touch.html" class="card touch-active">
+            <h3 class="card-title">Vanilla JavaScript</h3>
+            <p class="card-description">
+              Learn the fundamentals of touch events using pure JavaScript. Explore touchstart, touchmove, touchend, and multi-touch handling.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Touch Events</span>
+              <span class="tag">Multi-touch</span>
+              <span class="tag">No Dependencies</span>
+            </div>
+          </a>
+
+          <a href="demos/vanilla/gestures.html" class="card touch-active">
+            <h3 class="card-title">Gesture Detection</h3>
+            <p class="card-description">
+              Detect swipes, pinch-zoom, rotation, double-tap, and long-press gestures using custom JavaScript utilities.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Swipe</span>
+              <span class="tag">Pinch</span>
+              <span class="tag">Rotate</span>
+            </div>
+          </a>
+
+          <a href="demos/hammer/index.html" class="card touch-active">
+            <h3 class="card-title">Hammer.js Library</h3>
+            <p class="card-description">
+              Advanced gesture recognition using the popular Hammer.js library. Simplify complex touch interactions.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Hammer.js</span>
+              <span class="tag">Library</span>
+              <span class="tag">Advanced</span>
+            </div>
+          </a>
+
+          <a href="demos/react/index.html" class="card touch-active">
+            <h3 class="card-title">React Components</h3>
+            <p class="card-description">
+              Touch-enabled React components with hooks and state management for modern web applications.
+            </p>
+            <div class="card-tags">
+              <span class="tag">React</span>
+              <span class="tag">Components</span>
+              <span class="tag">Hooks</span>
+            </div>
+          </a>
+
+          <a href="demos/frameworks/vue-touch.html" class="card touch-active">
+            <h3 class="card-title">🆕 Vue.js Touch</h3>
+            <p class="card-description">
+              Reactive touch components with Vue.js 3 - swipe cards, drag & drop, pinch zoom, and more.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Vue.js</span>
+              <span class="tag">Reactive</span>
+              <span class="tag">v0.3</span>
+            </div>
+          </a>
+
+          <a href="demos/frameworks/svelte-touch.html" class="card touch-active">
+            <h3 class="card-title">🆕 Svelte Touch</h3>
+            <p class="card-description">
+              Elegant touch interactions with Svelte - minimal boilerplate, maximum reactivity.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Svelte</span>
+              <span class="tag">Elegant</span>
+              <span class="tag">v0.3</span>
+            </div>
+          </a>
+
+          <a href="demos/frameworks/web-components.html" class="card touch-active">
+            <h3 class="card-title">🆕 Web Components</h3>
+            <p class="card-description">
+              Reusable custom elements with built-in touch support. Framework-agnostic and future-proof.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Web Components</span>
+              <span class="tag">Custom Elements</span>
+              <span class="tag">v0.4</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- Interactive Components -->
+      <section class="mt-2xl">
+        <h2>Interactive Components</h2>
+        <div class="card-grid">
+          <a href="demos/components/menus.html" class="card touch-active">
+            <h3 class="card-title">Touch Menus</h3>
+            <p class="card-description">
+              Slide-out menus, hamburger navigation, bottom sheets, and swipeable navigation patterns.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Navigation</span>
+              <span class="tag">Menus</span>
+            </div>
+          </a>
+
+          <a href="demos/components/toggles.html" class="card touch-active">
+            <h3 class="card-title">Toggles & Switches</h3>
+            <p class="card-description">
+              Touch-optimized toggle switches, checkboxes, and radio buttons with smooth animations.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Toggles</span>
+              <span class="tag">Forms</span>
+            </div>
+          </a>
+
+          <a href="demos/components/sliders.html" class="card touch-active">
+            <h3 class="card-title">Sliders & Controls</h3>
+            <p class="card-description">
+              Range sliders, volume controls, and other touch-draggable input elements.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Sliders</span>
+              <span class="tag">Controls</span>
+            </div>
+          </a>
+
+          <a href="demos/components/carousel.html" class="card touch-active">
+            <h3 class="card-title">🆕 Momentum Carousel</h3>
+            <p class="card-description">
+              Physics-based carousel with momentum scrolling, velocity tracking, and smooth animations.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Carousel</span>
+              <span class="tag">Momentum</span>
+              <span class="tag">v0.2</span>
+            </div>
+          </a>
+
+          <a href="demos/components/pull-refresh.html" class="card touch-active">
+            <h3 class="card-title">🆕 Pull to Refresh</h3>
+            <p class="card-description">
+              Classic mobile pattern - pull down to refresh content with loading animations.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Pull</span>
+              <span class="tag">Refresh</span>
+              <span class="tag">v0.2</span>
+            </div>
+          </a>
+
+          <a href="demos/components/sortable.html" class="card touch-active">
+            <h3 class="card-title">🆕 Sortable List</h3>
+            <p class="card-description">
+              Drag and drop to reorder items with smooth animations and visual feedback.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Drag & Drop</span>
+              <span class="tag">Sortable</span>
+              <span class="tag">v0.2</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- Practical Use Cases -->
+      <section class="mt-2xl">
+        <h2>Practical Use Cases</h2>
+        <div class="card-grid">
+          <a href="demos/showcase/gallery.html" class="card touch-active">
+            <h3 class="card-title">Photo Gallery</h3>
+            <p class="card-description">
+              Swipeable image gallery with pinch-to-zoom, double-tap, and smooth transitions.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Gallery</span>
+              <span class="tag">Images</span>
+              <span class="tag">Zoom</span>
+            </div>
+          </a>
+
+          <a href="demos/vanilla/drawing.html" class="card touch-active">
+            <h3 class="card-title">Drawing Canvas</h3>
+            <p class="card-description">
+              Touch-based drawing application with pressure sensitivity, color picker, and brush controls.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Canvas</span>
+              <span class="tag">Drawing</span>
+              <span class="tag">Creative</span>
+            </div>
+          </a>
+
+          <a href="demos/showcase/settings.html" class="card touch-active">
+            <h3 class="card-title">Settings Panel</h3>
+            <p class="card-description">
+              Complete settings interface with toggles, sliders, accordions, and touch-friendly controls.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Settings</span>
+              <span class="tag">UI/UX</span>
+            </div>
+          </a>
+
+          <a href="demos/showcase/media-player.html" class="card touch-active">
+            <h3 class="card-title">Media Player</h3>
+            <p class="card-description">
+              Touch-controlled media player with scrubbing, volume control, and gesture-based playback.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Media</span>
+              <span class="tag">Player</span>
+              <span class="tag">Controls</span>
+            </div>
+          </a>
+
+          <a href="demos/showcase/swipe-cards.html" class="card touch-active">
+            <h3 class="card-title">🆕 Swipe Cards</h3>
+            <p class="card-description">
+              Tinder-style swipeable cards with like/pass actions and smooth animations.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Swipe</span>
+              <span class="tag">Cards</span>
+              <span class="tag">v0.2</span>
+            </div>
+          </a>
+
+          <a href="demos/showcase/signature.html" class="card touch-active">
+            <h3 class="card-title">🆕 Signature Pad</h3>
+            <p class="card-description">
+              Smooth pressure-sensitive signature capture with export to PNG.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Signature</span>
+              <span class="tag">Drawing</span>
+              <span class="tag">v0.2</span>
+            </div>
+          </a>
+
+          <a href="demos/showcase/color-picker.html" class="card touch-active">
+            <h3 class="card-title">🆕 Color Picker</h3>
+            <p class="card-description">
+              Interactive color wheel with HEX/RGB/HSL values and save favorites.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Color</span>
+              <span class="tag">Picker</span>
+              <span class="tag">v0.2</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- Interactive Experiences -->
+      <section class="mt-2xl">
+        <h2>🆕 Interactive Experiences</h2>
+        <div class="card-grid">
+          <a href="demos/interactive/game.html" class="card touch-active">
+            <h3 class="card-title">Memory Match Game</h3>
+            <p class="card-description">
+              Fun touch-based memory game with multiple difficulty levels. Test your memory!
+            </p>
+            <div class="card-tags">
+              <span class="tag">Game</span>
+              <span class="tag">Fun</span>
+              <span class="tag">v0.2</span>
+            </div>
+          </a>
+
+          <a href="demos/interactive/keyboard.html" class="card touch-active">
+            <h3 class="card-title">Virtual Keyboard</h3>
+            <p class="card-description">
+              Touch-optimized keyboards: QWERTY, numpad, and calculator with haptic feedback.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Keyboard</span>
+              <span class="tag">Input</span>
+              <span class="tag">v0.2</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- Advanced Features -->
+      <section class="mt-2xl">
+        <h2>🆕 Advanced Features</h2>
+        <div class="card-grid">
+          <a href="demos/advanced/pressure.html" class="card touch-active">
+            <h3 class="card-title">Pressure Sensitivity</h3>
+            <p class="card-description">
+              Detect pressure and force with stylus support. Includes tilt tracking and pressure-based drawing.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Pressure</span>
+              <span class="tag">Stylus</span>
+              <span class="tag">v0.3</span>
+            </div>
+          </a>
+
+          <a href="demos/advanced/multi-finger.html" class="card touch-active">
+            <h3 class="card-title">Multi-Finger Gestures</h3>
+            <p class="card-description">
+              Detect 3, 4, and 5 finger gestures. Advanced multi-touch with swipe and rotation detection.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Multi-touch</span>
+              <span class="tag">Advanced</span>
+              <span class="tag">v0.3</span>
+            </div>
+          </a>
+
+          <a href="demos/advanced/palm-rejection.html" class="card touch-active">
+            <h3 class="card-title">Palm Rejection</h3>
+            <p class="card-description">
+              Intelligent filtering to distinguish intentional touches from palm contact. Essential for drawing apps.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Palm Rejection</span>
+              <span class="tag">Drawing</span>
+              <span class="tag">v0.3</span>
+            </div>
+          </a>
+
+          <a href="demos/advanced/context-menu.html" class="card touch-active">
+            <h3 class="card-title">Context Menus</h3>
+            <p class="card-description">
+              Long-press to open touch-optimized context menus. File manager, gallery, and text interactions.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Context Menu</span>
+              <span class="tag">Long Press</span>
+              <span class="tag">v0.3</span>
+            </div>
+          </a>
+
+          <a href="demos/advanced/handwriting.html" class="card touch-active">
+            <h3 class="card-title">Handwriting Recognition</h3>
+            <p class="card-description">
+              Recognize handwritten letters, numbers, and shapes. Pattern matching with confidence scoring.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Handwriting</span>
+              <span class="tag">Recognition</span>
+              <span class="tag">v0.3</span>
+            </div>
+          </a>
+
+          <a href="demos/advanced/accessibility.html" class="card touch-active">
+            <h3 class="card-title">🆕 Accessibility Features</h3>
+            <p class="card-description">
+              WCAG 2.1 compliant touch interfaces with high contrast, large text, and screen reader support.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Accessibility</span>
+              <span class="tag">WCAG</span>
+              <span class="tag">v0.4</span>
+            </div>
+          </a>
+
+          <a href="demos/advanced/touch-analytics.html" class="card touch-active">
+            <h3 class="card-title">🆕 Touch Analytics</h3>
+            <p class="card-description">
+              Heatmap visualization and real-time metrics tracking for touch interactions and gestures.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Analytics</span>
+              <span class="tag">Heatmap</span>
+              <span class="tag">v0.4</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- Professional Use Cases -->
+      <section class="mt-2xl">
+        <h2>🆕 Professional Use Cases</h2>
+        <div class="card-grid">
+          <a href="demos/usecase/photo-editor.html" class="card touch-active">
+            <h3 class="card-title">Photo Editor</h3>
+            <p class="card-description">
+              Professional photo editing with pinch zoom, filters, transformations, and real-time preview.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Photo</span>
+              <span class="tag">Filters</span>
+              <span class="tag">v0.3</span>
+            </div>
+          </a>
+
+          <a href="demos/usecase/data-viz.html" class="card touch-active">
+            <h3 class="card-title">Data Visualization</h3>
+            <p class="card-description">
+              Interactive charts with touch exploration. Line, bar, and pie charts with tap-to-explore data.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Charts</span>
+              <span class="tag">Data</span>
+              <span class="tag">v0.3</span>
+            </div>
+          </a>
+
+          <a href="demos/usecase/3d-object.html" class="card touch-active">
+            <h3 class="card-title">3D Object Manipulation</h3>
+            <p class="card-description">
+              Rotate, zoom, and interact with 3D objects using intuitive touch gestures and transformations.
+            </p>
+            <div class="card-tags">
+              <span class="tag">3D</span>
+              <span class="tag">Graphics</span>
+              <span class="tag">v0.4</span>
+            </div>
+          </a>
+
+          <a href="demos/usecase/whiteboard.html" class="card touch-active">
+            <h3 class="card-title">Collaborative Whiteboard</h3>
+            <p class="card-description">
+              Multi-tool drawing system with pen, highlighter, eraser. Simulated multi-user collaboration.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Drawing</span>
+              <span class="tag">Collaborative</span>
+              <span class="tag">v0.4</span>
+            </div>
+          </a>
+
+          <a href="demos/usecase/music-synth.html" class="card touch-active">
+            <h3 class="card-title">Music Synthesizer</h3>
+            <p class="card-description">
+              Touch-based music creation with piano keyboard, drum pads, and Web Audio API synthesis.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Music</span>
+              <span class="tag">Audio</span>
+              <span class="tag">v0.4</span>
+            </div>
+          </a>
+
+          <a href="demos/usecase/map-interaction.html" class="card touch-active">
+            <h3 class="card-title">Interactive Map</h3>
+            <p class="card-description">
+              Touch-enabled map with pan, pinch-zoom, location markers, and momentum scrolling.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Maps</span>
+              <span class="tag">Navigation</span>
+              <span class="tag">v0.4</span>
+            </div>
+          </a>
+
+          <a href="demos/usecase/particle-physics.html" class="card touch-active">
+            <h3 class="card-title">🆕 Particle Physics Sandbox</h3>
+            <p class="card-description">
+              Interactive particle system with gravity, collisions, and touch forces. Multiple particle types and physics controls.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Physics</span>
+              <span class="tag">Particles</span>
+              <span class="tag">v0.5</span>
+            </div>
+          </a>
+
+          <a href="demos/usecase/fluid-simulation.html" class="card touch-active">
+            <h3 class="card-title">🆕 Fluid Simulation</h3>
+            <p class="card-description">
+              Real-time fluid dynamics with touch manipulation. Beautiful color mixing and multiple visualization modes.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Fluid</span>
+              <span class="tag">Physics</span>
+              <span class="tag">v0.5</span>
+            </div>
+          </a>
+
+          <a href="demos/usecase/generative-art.html" class="card touch-active">
+            <h3 class="card-title">🆕 Generative Art Studio</h3>
+            <p class="card-description">
+              Create algorithmic art with touch. 6 pattern types including spirographs, fractals, and L-systems.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Art</span>
+              <span class="tag">Generative</span>
+              <span class="tag">v0.5</span>
+            </div>
+          </a>
+
+          <a href="demos/usecase/rhythm-game.html" class="card touch-active">
+            <h3 class="card-title">🆕 Rhythm Game</h3>
+            <p class="card-description">
+              Test your touch timing precision! Multiple difficulty levels with combo system and detailed scoring.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Game</span>
+              <span class="tag">Music</span>
+              <span class="tag">v0.5</span>
+            </div>
+          </a>
+
+          <a href="demos/usecase/animation-timeline.html" class="card touch-active">
+            <h3 class="card-title">🆕 Animation Timeline</h3>
+            <p class="card-description">
+              Touch-based keyframe animation editor with drag-and-drop timeline and real-time preview.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Animation</span>
+              <span class="tag">Timeline</span>
+              <span class="tag">v0.5</span>
+            </div>
+          </a>
+
+          <a href="demos/usecase/gesture-presentation.html" class="card touch-active">
+            <h3 class="card-title">🆕 Gesture Presentation</h3>
+            <p class="card-description">
+              Swipe-driven presentation with smooth transitions. Showcases all v0.5 features in an interactive slideshow.
+            </p>
+            <div class="card-tags">
+              <span class="tag">Presentation</span>
+              <span class="tag">Gestures</span>
+              <span class="tag">v0.5</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- Resources -->
+      <section class="mt-2xl mb-2xl">
+        <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white;">
+          <h2 style="color: white;">Resources & Documentation</h2>
+          <p style="opacity: 0.9;">
+            All demos include commented source code and explanations. Check out the project on GitHub for more details.
+          </p>
+          <div style="margin-top: var(--space-lg); display: flex; gap: var(--space-md); flex-wrap: wrap;">
+            <button class="btn btn-large" style="background: white; color: var(--primary);">
+              View on GitHub
+            </button>
+            <button class="btn btn-large" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white;">
+              Read Docs
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.4</p>
+      <p style="font-size: 0.875rem; margin-top: var(--space-sm);">
+        Built with modern web technologies for exploring touch interfaces
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/touch-utils.js"></script>
+  <script>
+    // Add touch feedback to all interactive elements
+    document.querySelectorAll('.touch-active').forEach(element => {
+      element.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        TouchUtils.createTouchFeedback(touch.clientX, touch.clientY);
+      });
+    });
+
+    // Prevent bounce scrolling on iOS
+    document.body.addEventListener('touchmove', (e) => {
+      if (e.target.closest('.demo-area, .modal, .slide-menu')) {
+        e.stopPropagation();
+      }
+    }, { passive: false });
+  </script>
+</body>
+</html>

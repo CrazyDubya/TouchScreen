@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Touch Music Synthesizer - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .synth-container {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-xl);
+    }
+
+    .keyboard {
+      display: flex;
+      gap: 2px;
+      margin-bottom: var(--space-xl);
+      overflow-x: auto;
+      padding: var(--space-md);
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: var(--radius-lg);
+    }
+
+    .key {
+      flex: 1;
+      min-width: 50px;
+      height: 200px;
+      background: white;
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+      position: relative;
+      transition: all 0.1s;
+      border: 2px solid #ddd;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: var(--space-md);
+      font-weight: 700;
+      color: var(--gray-700);
+    }
+
+    .key:active, .key.playing {
+      background: var(--primary);
+      color: white;
+      transform: translateY(4px);
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.5);
+    }
+
+    .key.black {
+      background: #222;
+      color: white;
+      height: 120px;
+      min-width: 35px;
+      margin: 0 -20px;
+      z-index: 1;
+      border: 2px solid #000;
+    }
+
+    .key.black:active, .key.black.playing {
+      background: var(--secondary);
+    }
+
+    .pad-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+      padding: var(--space-md);
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: var(--radius-lg);
+    }
+
+    .pad {
+      aspect-ratio: 1;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.5rem;
+      transition: all 0.1s;
+      box-shadow: var(--shadow-md);
+    }
+
+    .pad:active, .pad.playing {
+      transform: scale(0.9);
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.8);
+    }
+
+    .pad:nth-child(1) { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .pad:nth-child(2) { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .pad:nth-child(3) { background: linear-gradient(135deg, #10b981, #059669); }
+    .pad:nth-child(4) { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .pad:nth-child(5) { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .pad:nth-child(6) { background: linear-gradient(135deg, #ec4899, #db2777); }
+    .pad:nth-child(7) { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+    .pad:nth-child(8) { background: linear-gradient(135deg, #84cc16, #65a30d); }
+
+    .controls-panel {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .control-label {
+      font-weight: 600;
+      color: var(--gray-900);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .control-value {
+      font-family: 'Monaco', monospace;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .slider {
+      width: 100%;
+    }
+
+    .waveform-selector {
+      display: flex;
+      gap: var(--space-sm);
+    }
+
+    .wave-btn {
+      flex: 1;
+      padding: var(--space-md);
+      background: var(--gray-100);
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .wave-btn:hover {
+      border-color: var(--primary);
+    }
+
+    .wave-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .visualizer {
+      width: 100%;
+      height: 150px;
+      background: #000;
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-xl);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-md);
+    }
+
+    .stat-card {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Monaco', monospace;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-top: var(--space-xs);
+    }
+
+    .mode-tabs {
+      display: flex;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-xl);
+      background: rgba(0, 0, 0, 0.3);
+      padding: var(--space-sm);
+      border-radius: var(--radius-lg);
+    }
+
+    .mode-tab {
+      flex: 1;
+      padding: var(--space-md);
+      background: transparent;
+      color: white;
+      border: 2px solid transparent;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+
+    .mode-tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Touch Music Synthesizer</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Create music with your fingers - piano keyboard and drum pads powered by Web Audio API.
+      </p>
+
+      <!-- Synth Container -->
+      <div class="synth-container">
+        <!-- Mode Tabs -->
+        <div class="mode-tabs">
+          <button class="mode-tab active" onclick="setMode('keyboard')">🎹 Keyboard</button>
+          <button class="mode-tab" onclick="setMode('pads')">🥁 Drum Pads</button>
+        </div>
+
+        <!-- Visualizer -->
+        <canvas id="visualizer" class="visualizer" width="800" height="150"></canvas>
+
+        <!-- Keyboard Mode -->
+        <div id="keyboardMode" class="keyboard">
+          <div class="key white" data-note="C4" onpointerdown="playNote('C4', this)">C</div>
+          <div class="key black" data-note="C#4" onpointerdown="playNote('C#4', this)">C#</div>
+          <div class="key white" data-note="D4" onpointerdown="playNote('D4', this)">D</div>
+          <div class="key black" data-note="D#4" onpointerdown="playNote('D#4', this)">D#</div>
+          <div class="key white" data-note="E4" onpointerdown="playNote('E4', this)">E</div>
+          <div class="key white" data-note="F4" onpointerdown="playNote('F4', this)">F</div>
+          <div class="key black" data-note="F#4" onpointerdown="playNote('F#4', this)">F#</div>
+          <div class="key white" data-note="G4" onpointerdown="playNote('G4', this)">G</div>
+          <div class="key black" data-note="G#4" onpointerdown="playNote('G#4', this)">G#</div>
+          <div class="key white" data-note="A4" onpointerdown="playNote('A4', this)">A</div>
+          <div class="key black" data-note="A#4" onpointerdown="playNote('A#4', this)">A#</div>
+          <div class="key white" data-note="B4" onpointerdown="playNote('B4', this)">B</div>
+          <div class="key white" data-note="C5" onpointerdown="playNote('C5', this)">C</div>
+        </div>
+
+        <!-- Drum Pads Mode -->
+        <div id="padsMode" class="pad-grid" style="display: none;">
+          <div class="pad" onpointerdown="playDrum('kick', this)">🥁 Kick</div>
+          <div class="pad" onpointerdown="playDrum('snare', this)">🥁 Snare</div>
+          <div class="pad" onpointerdown="playDrum('hihat', this)">🥁 Hi-Hat</div>
+          <div class="pad" onpointerdown="playDrum('clap', this)">👏 Clap</div>
+          <div class="pad" onpointerdown="playDrum('tom', this)">🥁 Tom</div>
+          <div class="pad" onpointerdown="playDrum('crash', this)">🥁 Crash</div>
+          <div class="pad" onpointerdown="playDrum('ride', this)">🥁 Ride</div>
+          <div class="pad" onpointerdown="playDrum('cowbell', this)">🔔 Cowbell</div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls-panel">
+        <h3>Synthesizer Controls</h3>
+
+        <div class="control-row">
+          <div class="control-group">
+            <label class="control-label">
+              <span>Waveform</span>
+            </label>
+            <div class="waveform-selector">
+              <button class="wave-btn active" onclick="setWaveform('sine')">Sine</button>
+              <button class="wave-btn" onclick="setWaveform('square')">Square</button>
+              <button class="wave-btn" onclick="setWaveform('sawtooth')">Saw</button>
+              <button class="wave-btn" onclick="setWaveform('triangle')">Triangle</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <div class="control-group">
+            <label class="control-label">
+              <span>Volume</span>
+              <span class="control-value" id="volumeValue">50%</span>
+            </label>
+            <input type="range" class="slider" id="volumeSlider" min="0" max="100" value="50">
+          </div>
+
+          <div class="control-group">
+            <label class="control-label">
+              <span>Attack</span>
+              <span class="control-value" id="attackValue">0.1s</span>
+            </label>
+            <input type="range" class="slider" id="attackSlider" min="0" max="1" step="0.01" value="0.1">
+          </div>
+
+          <div class="control-group">
+            <label class="control-label">
+              <span>Release</span>
+              <span class="control-value" id="releaseValue">0.3s</span>
+            </label>
+            <input type="range" class="slider" id="releaseSlider" min="0" max="2" step="0.01" value="0.3">
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="notesPlayed">0</div>
+          <div class="stat-label">Notes Played</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="currentWave">Sine</div>
+          <div class="stat-label">Waveform</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="activeVoices">0</div>
+          <div class="stat-label">Active Voices</div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Music Synthesis Features</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Web Audio API:</strong> Professional audio synthesis in the browser</li>
+          <li><strong>Multiple waveforms:</strong> Sine, square, sawtooth, and triangle</li>
+          <li><strong>ADSR envelope:</strong> Attack and release control</li>
+          <li><strong>Real-time visualizer:</strong> Oscilloscope display</li>
+          <li><strong>Multi-touch:</strong> Play multiple notes simultaneously</li>
+          <li><strong>Drum machine:</strong> Synthesized percussion sounds</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Web Audio Techniques</h4>
+        <ul style="margin-left: var(--space-lg);">
+          <li>OscillatorNode for tone generation</li>
+          <li>GainNode for volume control and envelopes</li>
+          <li>AnalyserNode for visualization</li>
+          <li>AudioContext for audio processing</li>
+          <li>Frequency calculations from note names</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.4 - Touch Music Synthesizer</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    // Audio Context
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.connect(audioContext.destination);
+
+    // Settings
+    let waveform = 'sine';
+    let volume = 0.5;
+    let attack = 0.1;
+    let release = 0.3;
+    let notesPlayed = 0;
+    let activeOscillators = new Map();
+    let currentMode = 'keyboard';
+
+    // Note frequencies
+    const noteFrequencies = {
+      'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13,
+      'E4': 329.63, 'F4': 349.23, 'F#4': 369.99, 'G4': 392.00,
+      'G#4': 415.30, 'A4': 440.00, 'A#4': 466.16, 'B4': 493.88,
+      'C5': 523.25
+    };
+
+    // Play note
+    function playNote(note, element) {
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+
+      // Visual feedback
+      element.classList.add('playing');
+      setTimeout(() => element.classList.remove('playing'), 200);
+
+      const frequency = noteFrequencies[note];
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.type = waveform;
+      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+
+      // ADSR envelope
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(volume, audioContext.currentTime + attack);
+      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + attack + release);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(analyser);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + attack + release);
+
+      activeOscillators.set(note, { oscillator, gainNode });
+
+      oscillator.onended = () => {
+        activeOscillators.delete(note);
+        updateActiveVoices();
+      };
+
+      notesPlayed++;
+      document.getElementById('notesPlayed').textContent = notesPlayed;
+      updateActiveVoices();
+
+      TouchUtils.vibrate(10);
+    }
+
+    // Play drum
+    function playDrum(drum, element) {
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+
+      element.classList.add('playing');
+      setTimeout(() => element.classList.remove('playing'), 200);
+
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      const noiseNode = audioContext.createBufferSource();
+
+      switch(drum) {
+        case 'kick':
+          oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+          oscillator.frequency.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+          gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+          break;
+
+        case 'snare':
+          // White noise
+          const bufferSize = audioContext.sampleRate * 0.2;
+          const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+          noiseNode.buffer = buffer;
+          noiseNode.connect(gainNode);
+          noiseNode.start(audioContext.currentTime);
+          noiseNode.stop(audioContext.currentTime + 0.2);
+
+          oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(volume * 0.8, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+          break;
+
+        case 'hihat':
+          oscillator.frequency.setValueAtTime(10000, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(volume * 0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+          break;
+
+        case 'clap':
+          oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(volume * 0.5, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+          break;
+
+        case 'tom':
+          oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+          oscillator.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.3);
+          gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          break;
+
+        case 'crash':
+          oscillator.frequency.setValueAtTime(5000, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(volume * 0.4, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+          break;
+
+        case 'ride':
+          oscillator.frequency.setValueAtTime(3000, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(volume * 0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+          break;
+
+        case 'cowbell':
+          oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(volume * 0.6, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+          break;
+      }
+
+      oscillator.type = 'square';
+      oscillator.connect(gainNode);
+      gainNode.connect(analyser);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 2);
+
+      notesPlayed++;
+      document.getElementById('notesPlayed').textContent = notesPlayed;
+
+      TouchUtils.vibrate(15);
+    }
+
+    // Controls
+    function setWaveform(wave) {
+      waveform = wave;
+      document.querySelectorAll('.wave-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.toLowerCase() === wave);
+      });
+      document.getElementById('currentWave').textContent =
+        wave.charAt(0).toUpperCase() + wave.slice(1);
+      TouchUtils.vibrate(5);
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.mode-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      document.getElementById('keyboardMode').style.display = mode === 'keyboard' ? 'flex' : 'none';
+      document.getElementById('padsMode').style.display = mode === 'pads' ? 'grid' : 'none';
+
+      TouchUtils.vibrate(10);
+    }
+
+    function updateActiveVoices() {
+      document.getElementById('activeVoices').textContent = activeOscillators.size;
+    }
+
+    // Sliders
+    document.getElementById('volumeSlider').addEventListener('input', (e) => {
+      volume = e.target.value / 100;
+      document.getElementById('volumeValue').textContent = e.target.value + '%';
+    });
+
+    document.getElementById('attackSlider').addEventListener('input', (e) => {
+      attack = parseFloat(e.target.value);
+      document.getElementById('attackValue').textContent = attack.toFixed(2) + 's';
+    });
+
+    document.getElementById('releaseSlider').addEventListener('input', (e) => {
+      release = parseFloat(e.target.value);
+      document.getElementById('releaseValue').textContent = release.toFixed(2) + 's';
+    });
+
+    // Visualizer
+    const canvas = document.getElementById('visualizer');
+    const ctx = canvas.getContext('2d');
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    function drawVisualizer() {
+      requestAnimationFrame(drawVisualizer);
+
+      analyser.getByteTimeDomainData(dataArray);
+
+      ctx.fillStyle = 'rgb(0, 0, 0)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgb(99, 102, 241)';
+      ctx.beginPath();
+
+      const sliceWidth = canvas.width / bufferLength;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = v * canvas.height / 2;
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+
+        x += sliceWidth;
+      }
+
+      ctx.lineTo(canvas.width, canvas.height / 2);
+      ctx.stroke();
+    }
+
+    drawVisualizer();
+
+    // Prevent default touch actions
+    document.querySelectorAll('.key, .pad').forEach(el => {
+      el.addEventListener('pointerup', (e) => {
+        el.classList.remove('playing');
+      });
+      el.addEventListener('pointerleave', (e) => {
+        el.classList.remove('playing');
+      });
+    });
+  </script>
+</body>
+</html>

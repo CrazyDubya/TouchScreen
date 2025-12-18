@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Memory Match Game - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .game-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-md);
+      margin: var(--space-xl) 0;
+      perspective: 1000px;
+    }
+
+    .card {
+      aspect-ratio: 1;
+      position: relative;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+      touch-action: manipulation;
+    }
+
+    .card:active {
+      transform: scale(0.95);
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card.matched {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-lg);
+      font-size: 3rem;
+      box-shadow: var(--shadow-lg);
+      user-select: none;
+    }
+
+    .card-front {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      font-weight: 700;
+    }
+
+    .card-back {
+      background: white;
+      transform: rotateY(180deg);
+    }
+
+    .game-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .stat-box {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      text-align: center;
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+    }
+
+    .game-controls {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: var(--space-xl) 0;
+    }
+
+    .difficulty-selector {
+      display: flex;
+      gap: var(--space-sm);
+      background: white;
+      padding: var(--space-sm);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+    }
+
+    .difficulty-btn {
+      padding: var(--space-sm) var(--space-md);
+      border: 2px solid var(--gray-300);
+      background: white;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-weight: 600;
+    }
+
+    .difficulty-btn:hover {
+      border-color: var(--primary);
+    }
+
+    .difficulty-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .win-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s;
+    }
+
+    .win-modal.show {
+      display: flex;
+    }
+
+    .win-content {
+      background: white;
+      padding: var(--space-2xl);
+      border-radius: var(--radius-xl);
+      text-align: center;
+      max-width: 400px;
+      animation: scaleIn 0.5s;
+    }
+
+    .win-icon {
+      font-size: 5rem;
+      margin-bottom: var(--space-lg);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes scaleIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .timer {
+      font-family: 'Monaco', monospace;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container game-container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Memory Match Game</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Touch cards to flip and find matching pairs. Test your memory!
+      </p>
+
+      <!-- Game Stats -->
+      <div class="game-stats">
+        <div class="stat-box">
+          <div class="stat-value" id="moves">0</div>
+          <div class="stat-label">Moves</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value timer" id="timer">00:00</div>
+          <div class="stat-label">Time</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="matched">0/<span id="total">8</span></div>
+          <div class="stat-label">Matched</div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="game-controls">
+        <div class="difficulty-selector">
+          <button class="difficulty-btn" data-level="easy" onclick="setDifficulty('easy')">Easy (12)</button>
+          <button class="difficulty-btn active" data-level="medium" onclick="setDifficulty('medium')">Medium (16)</button>
+          <button class="difficulty-btn" data-level="hard" onclick="setDifficulty('hard')">Hard (20)</button>
+        </div>
+        <button class="btn btn-primary btn-large" onclick="resetGame()">🔄 New Game</button>
+      </div>
+
+      <!-- Game Board -->
+      <div class="game-board" id="gameBoard"></div>
+
+      <!-- Win Modal -->
+      <div class="win-modal" id="winModal">
+        <div class="win-content">
+          <div class="win-icon">🎉</div>
+          <h2>Congratulations!</h2>
+          <p style="color: var(--gray-600); margin: var(--space-lg) 0;">
+            You completed the game!
+          </p>
+          <div style="margin: var(--space-xl) 0;">
+            <p><strong>Moves:</strong> <span id="finalMoves"></span></p>
+            <p><strong>Time:</strong> <span id="finalTime"></span></p>
+          </div>
+          <button class="btn btn-primary btn-large" onclick="closeWinModal(); resetGame();">
+            Play Again
+          </button>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>How to Play</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Tap to flip:</strong> Touch any card to reveal its icon</li>
+          <li><strong>Find pairs:</strong> Match two identical icons</li>
+          <li><strong>Memory test:</strong> Remember card positions</li>
+          <li><strong>Beat the clock:</strong> Complete as fast as possible</li>
+          <li><strong>Choose difficulty:</strong> Easy (12), Medium (16), or Hard (20) cards</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.2 - Memory Match Game</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const gameBoard = document.getElementById('gameBoard');
+    const movesEl = document.getElementById('moves');
+    const timerEl = document.getElementById('timer');
+    const matchedEl = document.getElementById('matched');
+    const totalEl = document.getElementById('total');
+    const winModal = document.getElementById('winModal');
+
+    const icons = ['🎮', '🎨', '🎭', '🎪', '🎸', '🎯', '🎲', '🎰', '🏆', '⚽', '🏀', '🎾', '🎱', '🎳', '🏐', '🏈', '⚾', '🥊', '🎿', '🏇'];
+
+    let cards = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let moves = 0;
+    let timer = 0;
+    let timerInterval = null;
+    let difficulty = 'medium';
+    let pairCount = 8;
+
+    function initGame() {
+      // Select random icons based on difficulty
+      const selectedIcons = icons.slice(0, pairCount);
+      const cardPairs = [...selectedIcons, ...selectedIcons];
+
+      // Shuffle cards
+      cards = cardPairs.sort(() => Math.random() - 0.5).map((icon, index) => ({
+        id: index,
+        icon: icon,
+        flipped: false,
+        matched: false
+      }));
+
+      renderBoard();
+      resetStats();
+    }
+
+    function renderBoard() {
+      const columns = difficulty === 'easy' ? 3 : 4;
+      gameBoard.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+
+      gameBoard.innerHTML = cards.map(card => `
+        <div class="card" data-id="${card.id}" onclick="flipCard(${card.id})">
+          <div class="card-face card-front">?</div>
+          <div class="card-face card-back">${card.icon}</div>
+        </div>
+      `).join('');
+    }
+
+    function flipCard(cardId) {
+      const card = cards[cardId];
+      const cardElement = document.querySelector(`[data-id="${cardId}"]`);
+
+      // Prevent flipping if already flipped or matched
+      if (card.flipped || card.matched || flippedCards.length >= 2) return;
+
+      // Flip the card
+      card.flipped = true;
+      cardElement.classList.add('flipped');
+      flippedCards.push(cardId);
+      TouchUtils.vibrate(10);
+
+      // Start timer on first move
+      if (moves === 0 && timer === 0) {
+        startTimer();
+      }
+
+      // Check for match when two cards are flipped
+      if (flippedCards.length === 2) {
+        moves++;
+        movesEl.textContent = moves;
+        checkMatch();
+      }
+    }
+
+    function checkMatch() {
+      const [id1, id2] = flippedCards;
+      const card1 = cards[id1];
+      const card2 = cards[id2];
+
+      if (card1.icon === card2.icon) {
+        // Match found!
+        setTimeout(() => {
+          card1.matched = true;
+          card2.matched = true;
+
+          document.querySelector(`[data-id="${id1}"]`).classList.add('matched');
+          document.querySelector(`[data-id="${id2}"]`).classList.add('matched');
+
+          matchedPairs++;
+          matchedEl.textContent = matchedPairs;
+
+          flippedCards = [];
+
+          TouchUtils.vibrate([20, 50, 20]);
+
+          // Check if game is won
+          if (matchedPairs === pairCount) {
+            setTimeout(() => winGame(), 500);
+          }
+        }, 500);
+      } else {
+        // No match - flip back
+        setTimeout(() => {
+          card1.flipped = false;
+          card2.flipped = false;
+
+          document.querySelector(`[data-id="${id1}"]`).classList.remove('flipped');
+          document.querySelector(`[data-id="${id2}"]`).classList.remove('flipped');
+
+          flippedCards = [];
+          TouchUtils.vibrate(10);
+        }, 1000);
+      }
+    }
+
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        timer++;
+        const minutes = Math.floor(timer / 60);
+        const seconds = timer % 60;
+        timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function resetStats() {
+      moves = 0;
+      timer = 0;
+      matchedPairs = 0;
+      flippedCards = [];
+
+      movesEl.textContent = '0';
+      timerEl.textContent = '00:00';
+      matchedEl.textContent = '0';
+      totalEl.textContent = pairCount;
+
+      stopTimer();
+    }
+
+    function resetGame() {
+      stopTimer();
+      initGame();
+    }
+
+    function setDifficulty(level) {
+      difficulty = level;
+
+      switch(level) {
+        case 'easy':
+          pairCount = 6;
+          break;
+        case 'medium':
+          pairCount = 8;
+          break;
+        case 'hard':
+          pairCount = 10;
+          break;
+      }
+
+      // Update active button
+      document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.level === level);
+      });
+
+      resetGame();
+      TouchUtils.vibrate(20);
+    }
+
+    function winGame() {
+      stopTimer();
+
+      const minutes = Math.floor(timer / 60);
+      const seconds = timer % 60;
+      const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+      document.getElementById('finalMoves').textContent = moves;
+      document.getElementById('finalTime').textContent = timeStr;
+
+      winModal.classList.add('show');
+      TouchUtils.vibrate([100, 50, 100, 50, 100]);
+    }
+
+    function closeWinModal() {
+      winModal.classList.remove('show');
+    }
+
+    // Click outside modal to close
+    winModal.addEventListener('click', (e) => {
+      if (e.target === winModal) {
+        closeWinModal();
+      }
+    });
+
+    // Initialize game
+    initGame();
+  </script>
+</body>
+</html>

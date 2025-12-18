@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Touch Context Menus - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .demo-section {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .context-menu {
+      position: fixed;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      min-width: 200px;
+      overflow: hidden;
+      z-index: 1000;
+      transform-origin: top left;
+      animation: menuAppear 0.2s ease-out;
+      display: none;
+    }
+
+    .context-menu.show {
+      display: block;
+    }
+
+    @keyframes menuAppear {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .menu-item {
+      padding: var(--space-md) var(--space-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      user-select: none;
+      min-height: 48px;
+    }
+
+    .menu-item:hover {
+      background: var(--gray-100);
+    }
+
+    .menu-item:active {
+      background: var(--gray-200);
+    }
+
+    .menu-item.danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .menu-item .icon {
+      font-size: 1.25rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    .menu-item .label {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    .menu-item .shortcut {
+      font-size: 0.75rem;
+      color: var(--gray-500);
+      font-family: 'Monaco', monospace;
+    }
+
+    .menu-divider {
+      height: 1px;
+      background: var(--gray-200);
+      margin: var(--space-xs) 0;
+    }
+
+    .menu-header {
+      padding: var(--space-sm) var(--space-lg);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--gray-600);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .file-list {
+      display: grid;
+      gap: var(--space-md);
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-lg);
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .file-item:active {
+      transform: scale(0.98);
+    }
+
+    .file-item.selected {
+      background: var(--primary);
+      color: white;
+    }
+
+    .file-icon {
+      font-size: 2rem;
+    }
+
+    .file-details {
+      flex: 1;
+    }
+
+    .file-name {
+      font-weight: 600;
+      margin-bottom: var(--space-xs);
+    }
+
+    .file-meta {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+    }
+
+    .file-item.selected .file-meta {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: var(--space-md);
+    }
+
+    .image-item {
+      aspect-ratio: 1;
+      background: var(--gray-200);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .image-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .image-item.selected::after {
+      content: '✓';
+      position: absolute;
+      top: var(--space-sm);
+      right: var(--space-sm);
+      width: 32px;
+      height: 32px;
+      background: var(--success);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.125rem;
+    }
+
+    .text-demo {
+      background: var(--gray-50);
+      padding: var(--space-xl);
+      border-radius: var(--radius-md);
+      line-height: 1.8;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .text-demo p {
+      margin-bottom: var(--space-md);
+    }
+
+    .long-press-indicator {
+      position: fixed;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(99, 102, 241, 0.2);
+      border: 3px solid var(--primary);
+      pointer-events: none;
+      display: none;
+      z-index: 999;
+    }
+
+    .long-press-indicator.active {
+      display: block;
+      animation: pulse 0.8s ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(0.8);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.2);
+        opacity: 0.5;
+      }
+    }
+
+    .menu-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: none;
+    }
+
+    .menu-backdrop.show {
+      display: block;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+      padding: var(--space-lg);
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-top: var(--space-xs);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Touch Context Menus</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Long-press to open context menus with touch-optimized interactions.
+      </p>
+
+      <!-- File Manager Demo -->
+      <div class="demo-section">
+        <h3>File Manager</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Long-press on any file to open the context menu
+        </p>
+        <div class="file-list" id="fileList">
+          <!-- Files will be generated -->
+        </div>
+      </div>
+
+      <!-- Image Gallery Demo -->
+      <div class="demo-section">
+        <h3>Image Gallery</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Long-press on images to access photo actions
+        </p>
+        <div class="image-grid" id="imageGrid">
+          <!-- Images will be generated -->
+        </div>
+      </div>
+
+      <!-- Text Selection Demo -->
+      <div class="demo-section">
+        <h3>Text Actions</h3>
+        <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+          Long-press on text to show formatting options
+        </p>
+        <div class="text-demo" id="textDemo">
+          <p>
+            Long-press anywhere on this text to access formatting and editing options.
+            This demonstrates how context menus can enhance text interaction on touch devices.
+          </p>
+          <p>
+            Context menus provide quick access to common actions without cluttering the interface.
+            They're especially useful on mobile devices where screen space is limited.
+          </p>
+          <p>
+            Try long-pressing different areas to see the menu adapt to the context.
+            Notice how the menu position adjusts to stay within the viewport.
+          </p>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value" id="menuOpenCount">0</div>
+          <div class="stat-label">Menus Opened</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="actionCount">0</div>
+          <div class="stat-label">Actions Executed</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="avgDuration">0ms</div>
+          <div class="stat-label">Avg Long-Press</div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Context Menu Best Practices</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Long-press duration:</strong> 500-800ms is optimal for triggering</li>
+          <li><strong>Visual feedback:</strong> Show indicator during long-press</li>
+          <li><strong>Touch targets:</strong> Minimum 44px height for menu items</li>
+          <li><strong>Smart positioning:</strong> Adjust menu to stay within viewport</li>
+          <li><strong>Haptic feedback:</strong> Vibrate when menu opens</li>
+          <li><strong>Clear actions:</strong> Use icons and labels for clarity</li>
+          <li><strong>Dismiss easily:</strong> Tap outside to close menu</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Implementation Details</h4>
+        <p style="margin-top: var(--space-md);">
+          This demo uses a combination of techniques:
+        </p>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li>TouchUtils.detectLongPress() for consistent detection</li>
+          <li>Dynamic menu positioning based on touch location</li>
+          <li>Viewport boundary detection to prevent overflow</li>
+          <li>Event delegation for efficient handling</li>
+          <li>CSS animations for smooth appearance</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.3 - Touch Context Menus</p>
+    </div>
+  </footer>
+
+  <!-- Context Menu Template -->
+  <div class="context-menu" id="contextMenu"></div>
+  <div class="menu-backdrop" id="menuBackdrop"></div>
+  <div class="long-press-indicator" id="longPressIndicator"></div>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const contextMenu = document.getElementById('contextMenu');
+    const menuBackdrop = document.getElementById('menuBackdrop');
+    const longPressIndicator = document.getElementById('longPressIndicator');
+
+    let stats = {
+      menuOpens: 0,
+      actions: 0,
+      durations: []
+    };
+
+    let longPressStart = 0;
+    let currentContext = null;
+
+    // File list data
+    const files = [
+      { id: 1, name: 'Project Proposal.pdf', type: 'pdf', size: '2.4 MB', icon: '📄' },
+      { id: 2, name: 'Vacation Photos', type: 'folder', size: '156 items', icon: '📁' },
+      { id: 3, name: 'Budget 2024.xlsx', type: 'excel', size: '892 KB', icon: '📊' },
+      { id: 4, name: 'Meeting Notes.docx', type: 'word', size: '124 KB', icon: '📝' },
+      { id: 5, name: 'Presentation.pptx', type: 'powerpoint', size: '5.2 MB', icon: '📽️' },
+      { id: 6, name: 'Code Archive.zip', type: 'zip', size: '15.8 MB', icon: '🗜️' }
+    ];
+
+    // Initialize file list
+    function initFileList() {
+      const fileList = document.getElementById('fileList');
+      fileList.innerHTML = files.map(file => `
+        <div class="file-item" data-file-id="${file.id}">
+          <div class="file-icon">${file.icon}</div>
+          <div class="file-details">
+            <div class="file-name">${file.name}</div>
+            <div class="file-meta">${file.type.toUpperCase()} • ${file.size}</div>
+          </div>
+        </div>
+      `).join('');
+
+      // Attach long-press to each file
+      document.querySelectorAll('.file-item').forEach(item => {
+        TouchUtils.detectLongPress(item, (e) => {
+          const fileId = parseInt(item.dataset.fileId);
+          const file = files.find(f => f.id === fileId);
+          showFileMenu(e, file, item);
+        }, 600);
+      });
+    }
+
+    // Initialize image grid
+    function initImageGrid() {
+      const imageGrid = document.getElementById('imageGrid');
+      const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B500', '#52B788'];
+
+      imageGrid.innerHTML = Array.from({ length: 12 }, (_, i) => `
+        <div class="image-item" data-image-id="${i + 1}" style="background: ${colors[i % colors.length]};">
+          <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 2rem; color: white;">
+            📷
+          </div>
+        </div>
+      `).join('');
+
+      document.querySelectorAll('.image-item').forEach(item => {
+        TouchUtils.detectLongPress(item, (e) => {
+          const imageId = parseInt(item.dataset.imageId);
+          showImageMenu(e, imageId, item);
+        }, 600);
+      });
+    }
+
+    // Initialize text demo
+    function initTextDemo() {
+      const textDemo = document.getElementById('textDemo');
+      TouchUtils.detectLongPress(textDemo, (e) => {
+        showTextMenu(e);
+      }, 600);
+    }
+
+    // Show file menu
+    function showFileMenu(e, file, element) {
+      currentContext = { type: 'file', file, element };
+
+      const menuItems = [
+        { icon: '👁️', label: 'Open', action: 'open' },
+        { icon: '📤', label: 'Share', action: 'share' },
+        { icon: '✏️', label: 'Rename', action: 'rename' },
+        { icon: '📋', label: 'Copy', action: 'copy', shortcut: '⌘C' },
+        { icon: '✂️', label: 'Cut', action: 'cut', shortcut: '⌘X' },
+        'divider',
+        { icon: '⭐', label: 'Add to Favorites', action: 'favorite' },
+        { icon: '📥', label: 'Download', action: 'download' },
+        'divider',
+        { icon: '🗑️', label: 'Delete', action: 'delete', danger: true }
+      ];
+
+      showMenu(e, menuItems, file.name);
+    }
+
+    // Show image menu
+    function showImageMenu(e, imageId, element) {
+      currentContext = { type: 'image', imageId, element };
+
+      const menuItems = [
+        { icon: '👁️', label: 'View Full Size', action: 'view' },
+        { icon: '✏️', label: 'Edit', action: 'edit' },
+        'divider',
+        { icon: '📤', label: 'Share', action: 'share' },
+        { icon: '📥', label: 'Download', action: 'download' },
+        { icon: '📋', label: 'Copy', action: 'copy' },
+        'divider',
+        { icon: '⭐', label: 'Add to Favorites', action: 'favorite' },
+        { icon: '🏷️', label: 'Add Tags', action: 'tags' },
+        'divider',
+        { icon: '🗑️', label: 'Delete', action: 'delete', danger: true }
+      ];
+
+      showMenu(e, menuItems, `Photo ${imageId}`);
+    }
+
+    // Show text menu
+    function showTextMenu(e) {
+      currentContext = { type: 'text' };
+
+      const menuItems = [
+        { icon: '📋', label: 'Copy', action: 'copy', shortcut: '⌘C' },
+        { icon: '✂️', label: 'Cut', action: 'cut', shortcut: '⌘X' },
+        { icon: '📄', label: 'Paste', action: 'paste', shortcut: '⌘V' },
+        'divider',
+        { icon: '🔍', label: 'Search', action: 'search' },
+        { icon: '🔗', label: 'Insert Link', action: 'link' },
+        'divider',
+        { icon: 'B', label: 'Bold', action: 'bold', shortcut: '⌘B' },
+        { icon: 'I', label: 'Italic', action: 'italic', shortcut: '⌘I' },
+        { icon: 'U', label: 'Underline', action: 'underline', shortcut: '⌘U' }
+      ];
+
+      showMenu(e, menuItems, 'Text Formatting');
+    }
+
+    // Show menu
+    function showMenu(e, items, headerText = null) {
+      e.preventDefault();
+
+      const duration = Date.now() - longPressStart;
+      stats.durations.push(duration);
+      stats.menuOpens++;
+      updateStats();
+
+      let html = '';
+
+      if (headerText) {
+        html += `<div class="menu-header">${headerText}</div>`;
+      }
+
+      items.forEach(item => {
+        if (item === 'divider') {
+          html += '<div class="menu-divider"></div>';
+        } else {
+          const dangerClass = item.danger ? ' danger' : '';
+          html += `
+            <div class="menu-item${dangerClass}" data-action="${item.action}">
+              <span class="icon">${item.icon}</span>
+              <span class="label">${item.label}</span>
+              ${item.shortcut ? `<span class="shortcut">${item.shortcut}</span>` : ''}
+            </div>
+          `;
+        }
+      });
+
+      contextMenu.innerHTML = html;
+
+      // Position menu
+      const touch = e.touches ? e.touches[0] : e;
+      let x = touch.clientX;
+      let y = touch.clientY;
+
+      // Show menu to measure size
+      contextMenu.style.left = x + 'px';
+      contextMenu.style.top = y + 'px';
+      contextMenu.classList.add('show');
+
+      // Adjust if menu goes off screen
+      const rect = contextMenu.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      if (rect.right > viewportWidth) {
+        x = viewportWidth - rect.width - 10;
+      }
+      if (rect.bottom > viewportHeight) {
+        y = viewportHeight - rect.height - 10;
+      }
+      if (x < 10) x = 10;
+      if (y < 10) y = 10;
+
+      contextMenu.style.left = x + 'px';
+      contextMenu.style.top = y + 'px';
+
+      // Show backdrop
+      menuBackdrop.classList.add('show');
+
+      // Attach action handlers
+      contextMenu.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const action = item.dataset.action;
+          executeAction(action);
+        });
+      });
+
+      TouchUtils.vibrate(20);
+    }
+
+    // Execute menu action
+    function executeAction(action) {
+      stats.actions++;
+      updateStats();
+
+      let message = '';
+
+      if (currentContext.type === 'file') {
+        message = `${action.charAt(0).toUpperCase() + action.slice(1)}: ${currentContext.file.name}`;
+
+        if (action === 'delete') {
+          currentContext.element.style.opacity = '0.5';
+          currentContext.element.style.transform = 'scale(0.95)';
+        } else if (action === 'favorite') {
+          currentContext.element.style.border = '2px solid gold';
+        }
+      } else if (currentContext.type === 'image') {
+        message = `${action.charAt(0).toUpperCase() + action.slice(1)}: Photo ${currentContext.imageId}`;
+
+        if (action === 'favorite') {
+          currentContext.element.classList.toggle('selected');
+        }
+      } else if (currentContext.type === 'text') {
+        message = `Text action: ${action}`;
+      }
+
+      // Show toast notification
+      showToast(message);
+
+      closeMenu();
+      TouchUtils.vibrate([10, 50, 10]);
+    }
+
+    // Close menu
+    function closeMenu() {
+      contextMenu.classList.remove('show');
+      menuBackdrop.classList.remove('show');
+      currentContext = null;
+    }
+
+    // Show toast notification
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--gray-900);
+        color: white;
+        padding: var(--space-md) var(--space-lg);
+        border-radius: var(--radius-full);
+        z-index: 10000;
+        animation: fadeIn 0.3s ease-out;
+        box-shadow: var(--shadow-xl);
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
+    }
+
+    // Update statistics
+    function updateStats() {
+      document.getElementById('menuOpenCount').textContent = stats.menuOpens;
+      document.getElementById('actionCount').textContent = stats.actions;
+
+      if (stats.durations.length > 0) {
+        const avg = stats.durations.reduce((a, b) => a + b, 0) / stats.durations.length;
+        document.getElementById('avgDuration').textContent = Math.round(avg) + 'ms';
+      }
+    }
+
+    // Long-press visual indicator
+    document.addEventListener('touchstart', (e) => {
+      longPressStart = Date.now();
+
+      const touch = e.touches[0];
+      longPressIndicator.style.left = (touch.clientX - 30) + 'px';
+      longPressIndicator.style.top = (touch.clientY - 30) + 'px';
+
+      setTimeout(() => {
+        if (Date.now() - longPressStart >= 500) {
+          longPressIndicator.classList.add('active');
+        }
+      }, 500);
+    });
+
+    document.addEventListener('touchend', () => {
+      longPressIndicator.classList.remove('active');
+    });
+
+    // Close menu when clicking backdrop
+    menuBackdrop.addEventListener('click', closeMenu);
+
+    // Initialize all demos
+    initFileList();
+    initImageGrid();
+    initTextDemo();
+
+    // Add fadeOut animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeOut {
+        from { opacity: 1; transform: translateX(-50%) translateY(0); }
+        to { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

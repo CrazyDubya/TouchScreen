@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluid Simulation - TouchScreen Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .back-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        #canvas {
+            flex: 1;
+            background: #000;
+            cursor: pointer;
+        }
+
+        .controls {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            min-width: 250px;
+            z-index: 5;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-group h3 {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .control-btn:active,
+        .control-btn.active {
+            background: rgba(42, 82, 152, 0.6);
+            border-color: rgba(42, 82, 152, 0.8);
+            transform: scale(0.98);
+        }
+
+        .slider-control {
+            margin-bottom: 15px;
+        }
+
+        .slider-control:last-child {
+            margin-bottom: 0;
+        }
+
+        .slider-control label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+
+        .slider-control input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #2a5298;
+            cursor: pointer;
+        }
+
+        .slider-control input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #2a5298;
+            cursor: pointer;
+            border: none;
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px 20px;
+            color: white;
+            max-width: 300px;
+            font-size: 0.85rem;
+            z-index: 5;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                top: auto;
+                bottom: 80px;
+                right: 10px;
+                left: 10px;
+                min-width: auto;
+                max-height: 50vh;
+                overflow-y: auto;
+            }
+
+            .hint {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💧 Fluid Simulation</h1>
+            <button class="back-btn" onclick="window.location.href='../../index.html'">← Back</button>
+        </header>
+
+        <canvas id="canvas"></canvas>
+
+        <div class="controls">
+            <div class="control-group">
+                <h3>Visualization</h3>
+                <div class="button-group">
+                    <button class="control-btn active" data-mode="dye">Dye</button>
+                    <button class="control-btn" data-mode="velocity">Velocity</button>
+                    <button class="control-btn" data-mode="pressure">Pressure</button>
+                    <button class="control-btn" data-mode="vorticity">Vorticity</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>Parameters</h3>
+                <div class="slider-control">
+                    <label>Viscosity: <span id="viscosityValue">30</span></label>
+                    <input type="range" id="viscositySlider" min="1" max="100" step="1" value="30">
+                </div>
+                <div class="slider-control">
+                    <label>Diffusion: <span id="diffusionValue">50</span></label>
+                    <input type="range" id="diffusionSlider" min="0" max="100" step="1" value="50">
+                </div>
+                <div class="slider-control">
+                    <label>Color Intensity: <span id="colorValue">80</span></label>
+                    <input type="range" id="colorSlider" min="10" max="100" step="1" value="80">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <button class="control-btn" onclick="clearFluid()" style="grid-column: 1 / -1;">Clear Fluid</button>
+            </div>
+        </div>
+
+        <div class="hint">
+            💡 <strong>Touch and drag to create fluid!</strong><br>
+            Move your finger through the canvas to see beautiful fluid dynamics and color mixing in real-time.
+        </div>
+    </div>
+
+    <script src="../../js/touch-utils.js"></script>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Simulation parameters
+        let simWidth, simHeight;
+        let cellSize = 4;
+        let viscosity = 30;
+        let diffusion = 50;
+        let colorIntensity = 80;
+        let displayMode = 'dye';
+
+        // Fluid grid
+        let density = [];
+        let densityPrev = [];
+        let velocityX = [];
+        let velocityY = [];
+        let velocityXPrev = [];
+        let velocityYPrev = [];
+
+        // Touch state
+        let touchActive = false;
+        let touchX = 0, touchY = 0;
+        let prevTouchX = 0, prevTouchY = 0;
+        let touchColor = { h: 200, s: 100, l: 60 };
+
+        // Initialize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            simWidth = Math.floor(canvas.width / cellSize);
+            simHeight = Math.floor(canvas.height / cellSize);
+
+            initializeGrid();
+        }
+
+        function initializeGrid() {
+            const size = simWidth * simHeight;
+            density = new Float32Array(size);
+            densityPrev = new Float32Array(size);
+            velocityX = new Float32Array(size);
+            velocityY = new Float32Array(size);
+            velocityXPrev = new Float32Array(size);
+            velocityYPrev = new Float32Array(size);
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Helper: Convert 2D coordinates to 1D array index
+        function IX(x, y) {
+            x = Math.max(0, Math.min(simWidth - 1, x));
+            y = Math.max(0, Math.min(simHeight - 1, y));
+            return x + y * simWidth;
+        }
+
+        // Add density at position
+        function addDensity(x, y, amount) {
+            const index = IX(x, y);
+            density[index] += amount;
+        }
+
+        // Add velocity at position
+        function addVelocity(x, y, amountX, amountY) {
+            const index = IX(x, y);
+            velocityX[index] += amountX;
+            velocityY[index] += amountY;
+        }
+
+        // Diffusion step
+        function diffuse(b, x, x0, diff, dt) {
+            const a = dt * diff * simWidth * simHeight;
+            linearSolve(b, x, x0, a, 1 + 4 * a);
+        }
+
+        // Linear solver (Gauss-Seidel relaxation)
+        function linearSolve(b, x, x0, a, c) {
+            const iterations = 4;
+
+            for (let k = 0; k < iterations; k++) {
+                for (let j = 1; j < simHeight - 1; j++) {
+                    for (let i = 1; i < simWidth - 1; i++) {
+                        const idx = IX(i, j);
+                        x[idx] = (
+                            x0[idx] +
+                            a * (
+                                x[IX(i + 1, j)] +
+                                x[IX(i - 1, j)] +
+                                x[IX(i, j + 1)] +
+                                x[IX(i, j - 1)]
+                            )
+                        ) / c;
+                    }
+                }
+                setBoundary(b, x);
+            }
+        }
+
+        // Project step (make velocity field mass-conserving)
+        function project(velocX, velocY, p, div) {
+            for (let j = 1; j < simHeight - 1; j++) {
+                for (let i = 1; i < simWidth - 1; i++) {
+                    const idx = IX(i, j);
+                    div[idx] = -0.5 * (
+                        velocX[IX(i + 1, j)] -
+                        velocX[IX(i - 1, j)] +
+                        velocY[IX(i, j + 1)] -
+                        velocY[IX(i, j - 1)]
+                    ) / simWidth;
+                    p[idx] = 0;
+                }
+            }
+
+            setBoundary(0, div);
+            setBoundary(0, p);
+            linearSolve(0, p, div, 1, 4);
+
+            for (let j = 1; j < simHeight - 1; j++) {
+                for (let i = 1; i < simWidth - 1; i++) {
+                    const idx = IX(i, j);
+                    velocX[idx] -= 0.5 * (p[IX(i + 1, j)] - p[IX(i - 1, j)]) * simWidth;
+                    velocY[idx] -= 0.5 * (p[IX(i, j + 1)] - p[IX(i, j - 1)]) * simHeight;
+                }
+            }
+
+            setBoundary(1, velocX);
+            setBoundary(2, velocY);
+        }
+
+        // Advection step
+        function advect(b, d, d0, velocX, velocY, dt) {
+            const dt0 = dt * simWidth;
+
+            for (let j = 1; j < simHeight - 1; j++) {
+                for (let i = 1; i < simWidth - 1; i++) {
+                    let x = i - dt0 * velocX[IX(i, j)];
+                    let y = j - dt0 * velocY[IX(i, j)];
+
+                    x = Math.max(0.5, Math.min(simWidth - 1.5, x));
+                    y = Math.max(0.5, Math.min(simHeight - 1.5, y));
+
+                    const i0 = Math.floor(x);
+                    const i1 = i0 + 1;
+                    const j0 = Math.floor(y);
+                    const j1 = j0 + 1;
+
+                    const s1 = x - i0;
+                    const s0 = 1 - s1;
+                    const t1 = y - j0;
+                    const t0 = 1 - t1;
+
+                    d[IX(i, j)] =
+                        s0 * (t0 * d0[IX(i0, j0)] + t1 * d0[IX(i0, j1)]) +
+                        s1 * (t0 * d0[IX(i1, j0)] + t1 * d0[IX(i1, j1)]);
+                }
+            }
+
+            setBoundary(b, d);
+        }
+
+        // Set boundary conditions
+        function setBoundary(b, x) {
+            for (let i = 1; i < simWidth - 1; i++) {
+                x[IX(i, 0)] = b === 2 ? -x[IX(i, 1)] : x[IX(i, 1)];
+                x[IX(i, simHeight - 1)] = b === 2 ? -x[IX(i, simHeight - 2)] : x[IX(i, simHeight - 2)];
+            }
+
+            for (let j = 1; j < simHeight - 1; j++) {
+                x[IX(0, j)] = b === 1 ? -x[IX(1, j)] : x[IX(1, j)];
+                x[IX(simWidth - 1, j)] = b === 1 ? -x[IX(simWidth - 2, j)] : x[IX(simWidth - 2, j)];
+            }
+
+            x[IX(0, 0)] = 0.5 * (x[IX(1, 0)] + x[IX(0, 1)]);
+            x[IX(0, simHeight - 1)] = 0.5 * (x[IX(1, simHeight - 1)] + x[IX(0, simHeight - 2)]);
+            x[IX(simWidth - 1, 0)] = 0.5 * (x[IX(simWidth - 2, 0)] + x[IX(simWidth - 1, 1)]);
+            x[IX(simWidth - 1, simHeight - 1)] = 0.5 * (x[IX(simWidth - 2, simHeight - 1)] + x[IX(simWidth - 1, simHeight - 2)]);
+        }
+
+        // Step simulation
+        function step(dt) {
+            const visc = viscosity / 10000;
+            const diff = diffusion / 10000;
+
+            // Velocity step
+            diffuse(1, velocityXPrev, velocityX, visc, dt);
+            diffuse(2, velocityYPrev, velocityY, visc, dt);
+
+            project(velocityXPrev, velocityYPrev, velocityX, velocityY);
+
+            advect(1, velocityX, velocityXPrev, velocityXPrev, velocityYPrev, dt);
+            advect(2, velocityY, velocityYPrev, velocityXPrev, velocityYPrev, dt);
+
+            project(velocityX, velocityY, velocityXPrev, velocityYPrev);
+
+            // Density step
+            diffuse(0, densityPrev, density, diff, dt);
+            advect(0, density, densityPrev, velocityX, velocityY, dt);
+
+            // Fade density
+            for (let i = 0; i < density.length; i++) {
+                density[i] *= 0.995;
+            }
+        }
+
+        // Render
+        function render() {
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const pixels = imageData.data;
+
+            for (let j = 0; j < simHeight; j++) {
+                for (let i = 0; i < simWidth; i++) {
+                    const idx = IX(i, j);
+                    let value;
+
+                    switch (displayMode) {
+                        case 'dye':
+                            value = Math.min(255, density[idx] * colorIntensity);
+                            break;
+                        case 'velocity':
+                            value = Math.min(255, Math.sqrt(velocityX[idx] ** 2 + velocityY[idx] ** 2) * 500);
+                            break;
+                        case 'pressure':
+                            value = Math.min(255, Math.abs(density[idx] - 0.5) * 500);
+                            break;
+                        case 'vorticity':
+                            const curl = (
+                                velocityY[IX(i + 1, j)] - velocityY[IX(i - 1, j)] -
+                                velocityX[IX(i, j + 1)] + velocityX[IX(i, j - 1)]
+                            );
+                            value = Math.min(255, Math.abs(curl) * 500);
+                            break;
+                    }
+
+                    // Color based on mode
+                    let r, g, b;
+                    if (displayMode === 'dye') {
+                        // Use HSL color
+                        const hsl = hslToRgb(touchColor.h / 360, touchColor.s / 100, touchColor.l / 100);
+                        r = hsl[0] * value / 255;
+                        g = hsl[1] * value / 255;
+                        b = hsl[2] * value / 255;
+                    } else {
+                        // Gradient from blue to red
+                        r = value;
+                        g = 100;
+                        b = 255 - value;
+                    }
+
+                    // Fill cell
+                    for (let dy = 0; dy < cellSize; dy++) {
+                        for (let dx = 0; dx < cellSize; dx++) {
+                            const x = i * cellSize + dx;
+                            const y = j * cellSize + dy;
+
+                            if (x < canvas.width && y < canvas.height) {
+                                const pIdx = (y * canvas.width + x) * 4;
+                                pixels[pIdx] = r;
+                                pixels[pIdx + 1] = g;
+                                pixels[pIdx + 2] = b;
+                                pixels[pIdx + 3] = 255;
+                            }
+                        }
+                    }
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        // HSL to RGB conversion
+        function hslToRgb(h, s, l) {
+            let r, g, b;
+
+            if (s === 0) {
+                r = g = b = l;
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        }
+
+        // Touch/mouse input
+        function handleInput(x, y, isStart) {
+            const simX = Math.floor(x / cellSize);
+            const simY = Math.floor(y / cellSize);
+
+            if (isStart) {
+                // Change color on new touch
+                touchColor.h = Math.random() * 360;
+                prevTouchX = x;
+                prevTouchY = y;
+            }
+
+            const dx = x - prevTouchX;
+            const dy = y - prevTouchY;
+
+            // Add density and velocity
+            const radius = 3;
+            for (let j = -radius; j <= radius; j++) {
+                for (let i = -radius; i <= radius; i++) {
+                    const dist = Math.sqrt(i * i + j * j);
+                    if (dist <= radius) {
+                        const amount = (1 - dist / radius) * 2;
+                        addDensity(simX + i, simY + j, amount);
+                        addVelocity(simX + i, simY + j, dx * 0.5, dy * 0.5);
+                    }
+                }
+            }
+
+            prevTouchX = x;
+            prevTouchY = y;
+        }
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchActive = true;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            touchX = touch.clientX - rect.left;
+            touchY = touch.clientY - rect.top;
+            handleInput(touchX, touchY, true);
+            TouchUtils.vibrate(5);
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!touchActive) return;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            touchX = touch.clientX - rect.left;
+            touchY = touch.clientY - rect.top;
+            handleInput(touchX, touchY, false);
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchActive = false;
+        });
+
+        // Mouse events
+        let mouseDown = false;
+        canvas.addEventListener('mousedown', (e) => {
+            mouseDown = true;
+            touchActive = true;
+            const rect = canvas.getBoundingClientRect();
+            touchX = e.clientX - rect.left;
+            touchY = e.clientY - rect.top;
+            handleInput(touchX, touchY, true);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!mouseDown) return;
+            const rect = canvas.getBoundingClientRect();
+            touchX = e.clientX - rect.left;
+            touchY = e.clientY - rect.top;
+            handleInput(touchX, touchY, false);
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            mouseDown = false;
+            touchActive = false;
+        });
+
+        // Controls
+        document.querySelectorAll('[data-mode]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                displayMode = btn.dataset.mode;
+                TouchUtils.vibrate(5);
+            });
+        });
+
+        document.getElementById('viscositySlider').addEventListener('input', (e) => {
+            viscosity = parseInt(e.target.value);
+            document.getElementById('viscosityValue').textContent = viscosity;
+        });
+
+        document.getElementById('diffusionSlider').addEventListener('input', (e) => {
+            diffusion = parseInt(e.target.value);
+            document.getElementById('diffusionValue').textContent = diffusion;
+        });
+
+        document.getElementById('colorSlider').addEventListener('input', (e) => {
+            colorIntensity = parseInt(e.target.value);
+            document.getElementById('colorValue').textContent = colorIntensity;
+        });
+
+        function clearFluid() {
+            density.fill(0);
+            densityPrev.fill(0);
+            velocityX.fill(0);
+            velocityY.fill(0);
+            velocityXPrev.fill(0);
+            velocityYPrev.fill(0);
+            TouchUtils.vibrate(10);
+        }
+
+        // Animation loop
+        let lastTime = performance.now();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const now = performance.now();
+            const dt = Math.min((now - lastTime) / 1000, 0.016);
+            lastTime = now;
+
+            step(dt);
+            render();
+        }
+
+        animate();
+    </script>
+</body>
+</html>

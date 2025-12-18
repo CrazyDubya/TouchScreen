@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Collaborative Whiteboard - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .whiteboard-container {
+      background: white;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+      margin-bottom: var(--space-xl);
+    }
+
+    .toolbar {
+      background: var(--gray-100);
+      padding: var(--space-md);
+      display: flex;
+      gap: var(--space-sm);
+      overflow-x: auto;
+      border-bottom: 1px solid var(--gray-300);
+      align-items: center;
+    }
+
+    .tool-btn {
+      min-width: 44px;
+      height: 44px;
+      background: white;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .tool-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .tool-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .divider {
+      width: 1px;
+      height: 30px;
+      background: var(--gray-300);
+      margin: 0 var(--space-xs);
+    }
+
+    #canvas {
+      width: 100%;
+      display: block;
+      touch-action: none;
+      cursor: crosshair;
+      background: white;
+    }
+
+    .color-palette {
+      display: flex;
+      gap: var(--space-xs);
+    }
+
+    .color-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all var(--transition-fast);
+      flex-shrink: 0;
+    }
+
+    .color-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .color-btn.active {
+      border-color: var(--gray-900);
+      transform: scale(1.2);
+    }
+
+    .brush-sizes {
+      display: flex;
+      gap: var(--space-xs);
+      align-items: center;
+    }
+
+    .size-btn {
+      width: 36px;
+      height: 36px;
+      border: 2px solid var(--gray-300);
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      flex-shrink: 0;
+    }
+
+    .size-btn.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .size-dot {
+      background: var(--gray-700);
+      border-radius: 50%;
+    }
+
+    .users-panel {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .user-list {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+      margin-top: var(--space-md);
+    }
+
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      font-size: 1.125rem;
+      position: relative;
+    }
+
+    .user-status {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 12px;
+      height: 12px;
+      background: var(--success);
+      border: 2px solid white;
+      border-radius: 50%;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-xl);
+    }
+
+    .stat-box {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Monaco', monospace;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-top: var(--space-xs);
+    }
+
+    .cursors-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .remote-cursor {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      transition: all 0.1s;
+      pointer-events: none;
+    }
+
+    .cursor-label {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Collaborative Whiteboard</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Draw, sketch, and collaborate in real-time with multi-user support (simulated).
+      </p>
+
+      <!-- Active Users -->
+      <div class="users-panel">
+        <h3>Active Users (Demo)</h3>
+        <div class="user-list" id="userList">
+          <!-- User avatars will be inserted here -->
+        </div>
+      </div>
+
+      <!-- Whiteboard -->
+      <div class="whiteboard-container">
+        <div class="toolbar">
+          <button class="tool-btn active" data-tool="pen" onclick="setTool('pen')" title="Pen">
+            ✏️
+          </button>
+          <button class="tool-btn" data-tool="highlighter" onclick="setTool('highlighter')" title="Highlighter">
+            🖍️
+          </button>
+          <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser')" title="Eraser">
+            🧹
+          </button>
+
+          <div class="divider"></div>
+
+          <div class="brush-sizes">
+            <button class="size-btn" data-size="2" onclick="setBrushSize(2)">
+              <div class="size-dot" style="width: 4px; height: 4px;"></div>
+            </button>
+            <button class="size-btn active" data-size="5" onclick="setBrushSize(5)">
+              <div class="size-dot" style="width: 8px; height: 8px;"></div>
+            </button>
+            <button class="size-btn" data-size="10" onclick="setBrushSize(10)">
+              <div class="size-dot" style="width: 14px; height: 14px;"></div>
+            </button>
+            <button class="size-btn" data-size="20" onclick="setBrushSize(20)">
+              <div class="size-dot" style="width: 20px; height: 20px;"></div>
+            </button>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="color-palette">
+            <div class="color-btn active" style="background: #000000;" onclick="setColor('#000000')"></div>
+            <div class="color-btn" style="background: #ef4444;" onclick="setColor('#ef4444')"></div>
+            <div class="color-btn" style="background: #f59e0b;" onclick="setColor('#f59e0b')"></div>
+            <div class="color-btn" style="background: #10b981;" onclick="setColor('#10b981')"></div>
+            <div class="color-btn" style="background: #3b82f6;" onclick="setColor('#3b82f6')"></div>
+            <div class="color-btn" style="background: #8b5cf6;" onclick="setColor('#8b5cf6')"></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <button class="tool-btn" onclick="undo()" title="Undo">
+            ↶
+          </button>
+          <button class="tool-btn" onclick="clearCanvas()" title="Clear">
+            🗑️
+          </button>
+          <button class="tool-btn" onclick="saveImage()" title="Save">
+            💾
+          </button>
+        </div>
+
+        <canvas id="canvas" width="1200" height="800"></canvas>
+      </div>
+
+      <!-- Statistics -->
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-value" id="strokeCount">0</div>
+          <div class="stat-label">Total Strokes</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="userCount">3</div>
+          <div class="stat-label">Active Users</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="canvasSize">1.2 MB</div>
+          <div class="stat-label">Canvas Size</div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Whiteboard Features</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Drawing tools:</strong> Pen, highlighter, and eraser</li>
+          <li><strong>Brush customization:</strong> Multiple sizes and colors</li>
+          <li><strong>Smooth curves:</strong> Pressure-sensitive lines with interpolation</li>
+          <li><strong>Undo/Redo:</strong> Track drawing history</li>
+          <li><strong>Save & Export:</strong> Download as PNG image</li>
+          <li><strong>Multi-user simulation:</strong> Simulated collaborative cursors</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Real Collaboration Features</h4>
+        <p style="margin-top: var(--space-md);">
+          In a production environment, this could integrate with WebSocket or WebRTC for:
+        </p>
+        <ul style="margin-left: var(--space-lg);">
+          <li>Real-time stroke synchronization</li>
+          <li>Live cursor tracking</li>
+          <li>User presence indicators</li>
+          <li>Chat and annotations</li>
+          <li>Version history and playback</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.4 - Collaborative Whiteboard</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let isDrawing = false;
+    let currentTool = 'pen';
+    let currentColor = '#000000';
+    let brushSize = 5;
+    let strokes = [];
+    let currentStroke = [];
+    let strokeCount = 0;
+
+    // Simulated users
+    const users = [
+      { id: 1, name: 'You', color: '#6366f1', x: 0, y: 0 },
+      { id: 2, name: 'Alice', color: '#10b981', x: 0, y: 0 },
+      { id: 3, name: 'Bob', color: '#f59e0b', x: 0, y: 0 }
+    ];
+
+    // Initialize canvas
+    function initCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = 1200;
+      canvas.height = 800;
+
+      canvas.style.width = '100%';
+      canvas.style.height = 'auto';
+
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+    }
+
+    initCanvas();
+
+    // Render users
+    function renderUsers() {
+      const userList = document.getElementById('userList');
+      userList.innerHTML = users.map(user => `
+        <div>
+          <div class="user-avatar" style="background: ${user.color};">
+            ${user.name[0]}
+            <div class="user-status"></div>
+          </div>
+          <div style="text-align: center; font-size: 0.75rem; margin-top: var(--space-xs);">
+            ${user.name}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    renderUsers();
+
+    // Drawing functions
+    function startDrawing(e) {
+      e.preventDefault();
+      isDrawing = true;
+      currentStroke = [];
+
+      const point = getPoint(e);
+      currentStroke.push(point);
+
+      TouchUtils.vibrate(5);
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+
+      const point = getPoint(e);
+      currentStroke.push(point);
+
+      if (currentStroke.length < 2) return;
+
+      const lastPoint = currentStroke[currentStroke.length - 2];
+
+      ctx.beginPath();
+      ctx.moveTo(lastPoint.x, lastPoint.y);
+      ctx.lineTo(point.x, point.y);
+
+      if (currentTool === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
+        ctx.lineWidth = brushSize * 2;
+      } else if (currentTool === 'highlighter') {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = currentColor;
+        ctx.globalAlpha = 0.3;
+        ctx.lineWidth = brushSize * 3;
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = currentColor;
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = brushSize;
+      }
+
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    function stopDrawing(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+
+      isDrawing = false;
+
+      if (currentStroke.length > 1) {
+        strokes.push({
+          points: [...currentStroke],
+          tool: currentTool,
+          color: currentColor,
+          size: brushSize
+        });
+
+        strokeCount++;
+        document.getElementById('strokeCount').textContent = strokeCount;
+      }
+
+      currentStroke = [];
+    }
+
+    function getPoint(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      const touch = e.touches ? e.touches[0] : e;
+
+      return {
+        x: (touch.clientX - rect.left) * scaleX,
+        y: (touch.clientY - rect.top) * scaleY
+      };
+    }
+
+    // Event listeners
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+
+    // Tool functions
+    function setTool(tool) {
+      currentTool = tool;
+
+      document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tool === tool);
+      });
+
+      if (tool === 'eraser') {
+        canvas.style.cursor = 'grab';
+      } else {
+        canvas.style.cursor = 'crosshair';
+      }
+
+      TouchUtils.vibrate(10);
+    }
+
+    function setColor(color) {
+      currentColor = color;
+
+      document.querySelectorAll('.color-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      event.target.classList.add('active');
+      TouchUtils.vibrate(5);
+    }
+
+    function setBrushSize(size) {
+      brushSize = size;
+
+      document.querySelectorAll('.size-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.size) === size);
+      });
+
+      TouchUtils.vibrate(5);
+    }
+
+    function undo() {
+      if (strokes.length === 0) return;
+
+      strokes.pop();
+      redrawCanvas();
+      strokeCount = Math.max(0, strokeCount - 1);
+      document.getElementById('strokeCount').textContent = strokeCount;
+
+      TouchUtils.vibrate(20);
+    }
+
+    function clearCanvas() {
+      if (!confirm('Clear the entire canvas?')) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      strokes = [];
+      strokeCount = 0;
+      document.getElementById('strokeCount').textContent = 0;
+
+      TouchUtils.vibrate(20);
+    }
+
+    function redrawCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      strokes.forEach(stroke => {
+        ctx.beginPath();
+
+        stroke.points.forEach((point, i) => {
+          if (i === 0) {
+            ctx.moveTo(point.x, point.y);
+          } else {
+            ctx.lineTo(point.x, point.y);
+          }
+        });
+
+        if (stroke.tool === 'eraser') {
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.strokeStyle = 'rgba(0,0,0,1)';
+          ctx.lineWidth = stroke.size * 2;
+        } else if (stroke.tool === 'highlighter') {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.strokeStyle = stroke.color;
+          ctx.globalAlpha = 0.3;
+          ctx.lineWidth = stroke.size * 3;
+        } else {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.strokeStyle = stroke.color;
+          ctx.globalAlpha = 1;
+          ctx.lineWidth = stroke.size;
+        }
+
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      });
+    }
+
+    function saveImage() {
+      const link = document.createElement('a');
+      link.download = `whiteboard-${Date.now()}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+
+      TouchUtils.vibrate([20, 50, 20]);
+    }
+
+    // Simulate remote users drawing (demo only)
+    setInterval(() => {
+      if (Math.random() > 0.7) {
+        const user = users[Math.floor(Math.random() * (users.length - 1)) + 1];
+        const startX = Math.random() * canvas.width;
+        const startY = Math.random() * canvas.height;
+
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = user.color;
+        ctx.globalAlpha = 0.5;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+
+        for (let i = 0; i < 10; i++) {
+          const x = startX + (Math.random() - 0.5) * 100;
+          const y = startY + (Math.random() - 0.5) * 100;
+          ctx.lineTo(x, y);
+        }
+
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }, 5000);
+
+    // Update canvas size stat
+    setInterval(() => {
+      const dataUrl = canvas.toDataURL();
+      const size = (dataUrl.length * 0.75) / (1024 * 1024);
+      document.getElementById('canvasSize').textContent = size.toFixed(2) + ' MB';
+    }, 2000);
+  </script>
+</body>
+</html>

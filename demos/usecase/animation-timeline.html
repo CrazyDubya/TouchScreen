@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation Timeline - TouchScreen Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a2e;
+            overflow: hidden;
+            touch-action: none;
+            color: white;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .back-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-area {
+            flex: 1;
+            background: #0f0f1e;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #previewCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .toolbar {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-x: auto;
+        }
+
+        .tool-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tool-btn:active,
+        .tool-btn.active {
+            background: rgba(59, 130, 246, 0.5);
+            border-color: rgba(59, 130, 246, 0.8);
+        }
+
+        .timeline-area {
+            background: #16213e;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .playback-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .play-btn {
+            background: rgba(34, 197, 94, 0.3);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .play-btn:active {
+            background: rgba(34, 197, 94, 0.5);
+        }
+
+        .time-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+
+        #timelineCanvas {
+            flex: 1;
+            background: #1a1a2e;
+            cursor: crosshair;
+        }
+
+        .properties-panel {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            min-width: 250px;
+            max-height: calc(100vh - 320px);
+            overflow-y: auto;
+            z-index: 5;
+        }
+
+        .property-group {
+            margin-bottom: 20px;
+        }
+
+        .property-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .property-group h3 {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .property-control {
+            margin-bottom: 15px;
+        }
+
+        .property-control:last-child {
+            margin-bottom: 0;
+        }
+
+        .property-control label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+
+        .property-control input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .property-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+
+        .property-control input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: none;
+        }
+
+        @media (max-width: 768px) {
+            .properties-panel {
+                top: auto;
+                bottom: 220px;
+                left: 10px;
+                right: 10px;
+                max-height: 40vh;
+            }
+
+            .toolbar {
+                padding: 10px;
+            }
+
+            .timeline-area {
+                height: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 Animation Timeline</h1>
+            <button class="back-btn" onclick="window.location.href='../../index.html'">← Back</button>
+        </header>
+
+        <div class="workspace">
+            <div class="toolbar">
+                <button class="tool-btn active" data-tool="select">Select</button>
+                <button class="tool-btn" data-tool="move">Move</button>
+                <button class="tool-btn" data-tool="rotate">Rotate</button>
+                <button class="tool-btn" data-tool="scale">Scale</button>
+                <button class="tool-btn" onclick="addKeyframe()">+ Add Keyframe</button>
+                <button class="tool-btn" onclick="deleteKeyframe()">Delete Keyframe</button>
+                <button class="tool-btn" onclick="resetAnimation()">Reset</button>
+            </div>
+
+            <div class="preview-area">
+                <canvas id="previewCanvas"></canvas>
+            </div>
+
+            <div class="timeline-area">
+                <div class="timeline-header">
+                    <div class="playback-controls">
+                        <button class="play-btn" id="playBtn" onclick="togglePlayback()">▶ Play</button>
+                        <button class="tool-btn" onclick="stepBackward()">⏮</button>
+                        <button class="tool-btn" onclick="stepForward()">⏭</button>
+                    </div>
+                    <div class="time-display">
+                        <span id="currentTime">0.00</span>s / <span id="duration">5.00</span>s
+                    </div>
+                </div>
+                <canvas id="timelineCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="properties-panel">
+            <div class="property-group">
+                <h3>Transform</h3>
+                <div class="property-control">
+                    <label>X: <span id="xValue">400</span>px</label>
+                    <input type="range" id="xSlider" min="0" max="800" step="1" value="400">
+                </div>
+                <div class="property-control">
+                    <label>Y: <span id="yValue">300</span>px</label>
+                    <input type="range" id="ySlider" min="0" max="600" step="1" value="300">
+                </div>
+                <div class="property-control">
+                    <label>Rotation: <span id="rotValue">0</span>°</label>
+                    <input type="range" id="rotSlider" min="0" max="360" step="1" value="0">
+                </div>
+                <div class="property-control">
+                    <label>Scale: <span id="scaleValue">1.0</span>×</label>
+                    <input type="range" id="scaleSlider" min="0.1" max="3" step="0.1" value="1">
+                </div>
+            </div>
+
+            <div class="property-group">
+                <h3>Animation</h3>
+                <div class="property-control">
+                    <label>Duration: <span id="durationValue">5.0</span>s</label>
+                    <input type="range" id="durationSlider" min="1" max="10" step="0.5" value="5">
+                </div>
+                <div class="property-control">
+                    <label>Easing</label>
+                    <select id="easingSelect" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                        <option value="linear">Linear</option>
+                        <option value="easeIn">Ease In</option>
+                        <option value="easeOut" selected>Ease Out</option>
+                        <option value="easeInOut">Ease In Out</option>
+                        <option value="bounce">Bounce</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/touch-utils.js"></script>
+    <script>
+        const previewCanvas = document.getElementById('previewCanvas');
+        const previewCtx = previewCanvas.getContext('2d');
+        const timelineCanvas = document.getElementById('timelineCanvas');
+        const timelineCtx = timelineCanvas.getContext('2d');
+
+        // Animation state
+        let animatedObject = {
+            x: 400,
+            y: 300,
+            rotation: 0,
+            scale: 1,
+            color: '#3b82f6'
+        };
+
+        let keyframes = [
+            { time: 0, x: 400, y: 300, rotation: 0, scale: 1 },
+            { time: 2.5, x: 600, y: 200, rotation: 180, scale: 1.5 },
+            { time: 5, x: 400, y: 300, rotation: 360, scale: 1 }
+        ];
+
+        let currentTime = 0;
+        let duration = 5;
+        let playing = false;
+        let selectedKeyframe = null;
+        let currentTool = 'select';
+        let easingFunction = 'easeOut';
+
+        // Setup canvases
+        function resizeCanvases() {
+            previewCanvas.width = previewCanvas.offsetWidth;
+            previewCanvas.height = previewCanvas.offsetHeight;
+            timelineCanvas.width = timelineCanvas.offsetWidth;
+            timelineCanvas.height = timelineCanvas.offsetHeight;
+
+            updateSliderRanges();
+        }
+        resizeCanvases();
+        window.addEventListener('resize', resizeCanvases);
+
+        function updateSliderRanges() {
+            document.getElementById('xSlider').max = previewCanvas.width;
+            document.getElementById('ySlider').max = previewCanvas.height;
+        }
+
+        // Easing functions
+        const easings = {
+            linear: t => t,
+            easeIn: t => t * t * t,
+            easeOut: t => 1 - Math.pow(1 - t, 3),
+            easeInOut: t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+            bounce: t => {
+                const n1 = 7.5625;
+                const d1 = 2.75;
+                if (t < 1 / d1) return n1 * t * t;
+                else if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+                else if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+                else return n1 * (t -= 2.625 / d1) * t + 0.984375;
+            }
+        };
+
+        // Interpolate between keyframes
+        function interpolate(time) {
+            // Find surrounding keyframes
+            let before = keyframes[0];
+            let after = keyframes[keyframes.length - 1];
+
+            for (let i = 0; i < keyframes.length - 1; i++) {
+                if (time >= keyframes[i].time && time <= keyframes[i + 1].time) {
+                    before = keyframes[i];
+                    after = keyframes[i + 1];
+                    break;
+                }
+            }
+
+            if (before === after) return { ...before };
+
+            // Calculate interpolation factor
+            const t = (time - before.time) / (after.time - before.time);
+            const eased = easings[easingFunction](t);
+
+            return {
+                x: before.x + (after.x - before.x) * eased,
+                y: before.y + (after.y - before.y) * eased,
+                rotation: before.rotation + (after.rotation - before.rotation) * eased,
+                scale: before.scale + (after.scale - before.scale) * eased
+            };
+        }
+
+        // Draw preview
+        function drawPreview() {
+            previewCtx.fillStyle = '#0f0f1e';
+            previewCtx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+            // Grid
+            previewCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            previewCtx.lineWidth = 1;
+            for (let x = 0; x < previewCanvas.width; x += 50) {
+                previewCtx.beginPath();
+                previewCtx.moveTo(x, 0);
+                previewCtx.lineTo(x, previewCanvas.height);
+                previewCtx.stroke();
+            }
+            for (let y = 0; y < previewCanvas.height; y += 50) {
+                previewCtx.beginPath();
+                previewCtx.moveTo(0, y);
+                previewCtx.lineTo(previewCanvas.width, y);
+                previewCtx.stroke();
+            }
+
+            // Draw object
+            previewCtx.save();
+            previewCtx.translate(animatedObject.x, animatedObject.y);
+            previewCtx.rotate(animatedObject.rotation * Math.PI / 180);
+            previewCtx.scale(animatedObject.scale, animatedObject.scale);
+
+            // Shadow
+            previewCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            previewCtx.shadowBlur = 20;
+            previewCtx.shadowOffsetY = 5;
+
+            // Object (rounded square)
+            const size = 60;
+            previewCtx.fillStyle = animatedObject.color;
+            previewCtx.beginPath();
+            previewCtx.roundRect(-size / 2, -size / 2, size, size, 10);
+            previewCtx.fill();
+
+            // Highlight
+            previewCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            previewCtx.beginPath();
+            previewCtx.roundRect(-size / 2, -size / 2, size / 2, size / 2, 10);
+            previewCtx.fill();
+
+            previewCtx.restore();
+        }
+
+        // Draw timeline
+        function drawTimeline() {
+            timelineCtx.fillStyle = '#1a1a2e';
+            timelineCtx.fillRect(0, 0, timelineCanvas.width, timelineCanvas.height);
+
+            const padding = 40;
+            const timelineWidth = timelineCanvas.width - padding * 2;
+            const trackHeight = 40;
+            const trackY = 20;
+
+            // Time markers
+            timelineCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            timelineCtx.font = '10px monospace';
+            for (let i = 0; i <= duration; i++) {
+                const x = padding + (i / duration) * timelineWidth;
+                timelineCtx.fillText(`${i}s`, x - 10, trackY - 5);
+                timelineCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                timelineCtx.beginPath();
+                timelineCtx.moveTo(x, trackY);
+                timelineCtx.lineTo(x, trackY + trackHeight);
+                timelineCtx.stroke();
+            }
+
+            // Track background
+            timelineCtx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+            timelineCtx.fillRect(padding, trackY, timelineWidth, trackHeight);
+
+            // Keyframes
+            keyframes.forEach((kf, i) => {
+                const x = padding + (kf.time / duration) * timelineWidth;
+                const isSelected = selectedKeyframe === i;
+
+                timelineCtx.fillStyle = isSelected ? '#fbbf24' : '#3b82f6';
+                timelineCtx.beginPath();
+                timelineCtx.arc(x, trackY + trackHeight / 2, isSelected ? 8 : 6, 0, Math.PI * 2);
+                timelineCtx.fill();
+
+                if (isSelected) {
+                    timelineCtx.strokeStyle = 'rgba(251, 191, 36, 0.5)';
+                    timelineCtx.lineWidth = 2;
+                    timelineCtx.beginPath();
+                    timelineCtx.arc(x, trackY + trackHeight / 2, 12, 0, Math.PI * 2);
+                    timelineCtx.stroke();
+                }
+            });
+
+            // Playhead
+            const playheadX = padding + (currentTime / duration) * timelineWidth;
+            timelineCtx.strokeStyle = '#ef4444';
+            timelineCtx.lineWidth = 2;
+            timelineCtx.beginPath();
+            timelineCtx.moveTo(playheadX, trackY);
+            timelineCtx.lineTo(playheadX, trackY + trackHeight);
+            timelineCtx.stroke();
+
+            // Playhead handle
+            timelineCtx.fillStyle = '#ef4444';
+            timelineCtx.beginPath();
+            timelineCtx.arc(playheadX, trackY - 5, 5, 0, Math.PI * 2);
+            timelineCtx.fill();
+        }
+
+        // Update animation
+        function updateAnimation() {
+            const state = interpolate(currentTime);
+            animatedObject.x = state.x;
+            animatedObject.y = state.y;
+            animatedObject.rotation = state.rotation;
+            animatedObject.scale = state.scale;
+
+            updatePropertiesUI();
+        }
+
+        // Update properties UI
+        function updatePropertiesUI() {
+            document.getElementById('xSlider').value = animatedObject.x;
+            document.getElementById('xValue').textContent = Math.round(animatedObject.x);
+
+            document.getElementById('ySlider').value = animatedObject.y;
+            document.getElementById('yValue').textContent = Math.round(animatedObject.y);
+
+            document.getElementById('rotSlider').value = animatedObject.rotation;
+            document.getElementById('rotValue').textContent = Math.round(animatedObject.rotation);
+
+            document.getElementById('scaleSlider').value = animatedObject.scale;
+            document.getElementById('scaleValue').textContent = animatedObject.scale.toFixed(1);
+
+            document.getElementById('currentTime').textContent = currentTime.toFixed(2);
+        }
+
+        // Playback
+        function togglePlayback() {
+            playing = !playing;
+            document.getElementById('playBtn').textContent = playing ? '⏸ Pause' : '▶ Play';
+            TouchUtils.vibrate(5);
+        }
+
+        function stepForward() {
+            currentTime = Math.min(duration, currentTime + 0.1);
+            updateAnimation();
+            TouchUtils.vibrate(5);
+        }
+
+        function stepBackward() {
+            currentTime = Math.max(0, currentTime - 0.1);
+            updateAnimation();
+            TouchUtils.vibrate(5);
+        }
+
+        // Keyframe management
+        function addKeyframe() {
+            const newKf = {
+                time: currentTime,
+                x: animatedObject.x,
+                y: animatedObject.y,
+                rotation: animatedObject.rotation,
+                scale: animatedObject.scale
+            };
+
+            keyframes.push(newKf);
+            keyframes.sort((a, b) => a.time - b.time);
+            selectedKeyframe = keyframes.indexOf(newKf);
+
+            TouchUtils.vibrate(10);
+        }
+
+        function deleteKeyframe() {
+            if (selectedKeyframe !== null && keyframes.length > 2) {
+                keyframes.splice(selectedKeyframe, 1);
+                selectedKeyframe = null;
+                TouchUtils.vibrate(10);
+            }
+        }
+
+        function resetAnimation() {
+            currentTime = 0;
+            playing = false;
+            document.getElementById('playBtn').textContent = '▶ Play';
+            updateAnimation();
+            TouchUtils.vibrate(10);
+        }
+
+        // Timeline interaction
+        let draggingPlayhead = false;
+        let draggingKeyframe = false;
+
+        timelineCanvas.addEventListener('touchstart', handleTimelineTouch);
+        timelineCanvas.addEventListener('touchmove', handleTimelineTouch);
+        timelineCanvas.addEventListener('touchend', () => {
+            draggingPlayhead = false;
+            draggingKeyframe = false;
+        });
+
+        timelineCanvas.addEventListener('mousedown', handleTimelineTouch);
+        timelineCanvas.addEventListener('mousemove', handleTimelineTouch);
+        timelineCanvas.addEventListener('mouseup', () => {
+            draggingPlayhead = false;
+            draggingKeyframe = false;
+        });
+
+        function handleTimelineTouch(e) {
+            e.preventDefault();
+            const rect = timelineCanvas.getBoundingClientRect();
+            const touch = e.touches ? e.touches[0] : e;
+            const x = touch.clientX - rect.left;
+
+            const padding = 40;
+            const timelineWidth = timelineCanvas.width - padding * 2;
+
+            if (e.type.includes('start') || e.type === 'mousedown') {
+                // Check keyframe click
+                const trackY = 20;
+                const trackHeight = 40;
+                keyframes.forEach((kf, i) => {
+                    const kfX = padding + (kf.time / duration) * timelineWidth;
+                    const dist = Math.abs(x - kfX);
+                    if (dist < 15 && Math.abs((touch.clientY - rect.top) - (trackY + trackHeight / 2)) < 15) {
+                        selectedKeyframe = i;
+                        draggingKeyframe = true;
+                        TouchUtils.vibrate(5);
+                    }
+                });
+
+                if (!draggingKeyframe) {
+                    draggingPlayhead = true;
+                }
+            }
+
+            if ((e.type.includes('move') || e.type === 'mousemove') && (draggingPlayhead || draggingKeyframe)) {
+                const newTime = Math.max(0, Math.min(duration, ((x - padding) / timelineWidth) * duration));
+
+                if (draggingPlayhead) {
+                    currentTime = newTime;
+                    updateAnimation();
+                } else if (draggingKeyframe && selectedKeyframe !== null) {
+                    keyframes[selectedKeyframe].time = newTime;
+                    keyframes.sort((a, b) => a.time - b.time);
+                }
+            }
+        }
+
+        // Property controls
+        document.getElementById('xSlider').addEventListener('input', (e) => {
+            animatedObject.x = parseFloat(e.target.value);
+            document.getElementById('xValue').textContent = Math.round(animatedObject.x);
+        });
+
+        document.getElementById('ySlider').addEventListener('input', (e) => {
+            animatedObject.y = parseFloat(e.target.value);
+            document.getElementById('yValue').textContent = Math.round(animatedObject.y);
+        });
+
+        document.getElementById('rotSlider').addEventListener('input', (e) => {
+            animatedObject.rotation = parseFloat(e.target.value);
+            document.getElementById('rotValue').textContent = Math.round(animatedObject.rotation);
+        });
+
+        document.getElementById('scaleSlider').addEventListener('input', (e) => {
+            animatedObject.scale = parseFloat(e.target.value);
+            document.getElementById('scaleValue').textContent = animatedObject.scale.toFixed(1);
+        });
+
+        document.getElementById('durationSlider').addEventListener('input', (e) => {
+            duration = parseFloat(e.target.value);
+            document.getElementById('durationValue').textContent = duration.toFixed(1);
+            document.getElementById('duration').textContent = duration.toFixed(2);
+        });
+
+        document.getElementById('easingSelect').addEventListener('change', (e) => {
+            easingFunction = e.target.value;
+        });
+
+        // Tool selection
+        document.querySelectorAll('[data-tool]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-tool]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTool = btn.dataset.tool;
+                TouchUtils.vibrate(5);
+            });
+        });
+
+        // Animation loop
+        let lastTime = performance.now();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const now = performance.now();
+            const delta = (now - lastTime) / 1000;
+            lastTime = now;
+
+            if (playing) {
+                currentTime += delta;
+                if (currentTime >= duration) {
+                    currentTime = 0;
+                }
+                updateAnimation();
+            }
+
+            drawPreview();
+            drawTimeline();
+        }
+
+        // Initialize
+        updateAnimation();
+        animate();
+    </script>
+</body>
+</html>

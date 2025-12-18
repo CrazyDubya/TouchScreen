@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Pull to Refresh - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .refresh-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .pull-indicator {
+      position: absolute;
+      top: -80px;
+      left: 0;
+      right: 0;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      transition: top 0.3s;
+      z-index: 10;
+    }
+
+    .pull-indicator.visible {
+      top: 0;
+    }
+
+    .refresh-icon {
+      font-size: 2rem;
+      margin-right: var(--space-md);
+      transition: transform 0.3s;
+    }
+
+    .refresh-icon.spinning {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .content-area {
+      padding: var(--space-xl);
+      touch-action: pan-y;
+      overflow-y: auto;
+      max-height: 600px;
+      position: relative;
+    }
+
+    .content-item {
+      padding: var(--space-lg);
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-md);
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-fast);
+    }
+
+    .content-item:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-sm);
+    }
+
+    .item-title {
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .item-time {
+      font-size: 0.875rem;
+      color: var(--gray-500);
+    }
+
+    .item-content {
+      color: var(--gray-700);
+      font-size: 0.875rem;
+    }
+
+    .item-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--primary);
+      color: white;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: var(--space-sm);
+    }
+
+    .pull-instructions {
+      text-align: center;
+      padding: var(--space-2xl);
+      color: var(--gray-500);
+      font-size: 0.875rem;
+    }
+
+    .stats-bar {
+      display: flex;
+      justify-content: space-around;
+      padding: var(--space-lg);
+      background: var(--gray-100);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-top: var(--space-xs);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Pull to Refresh</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Pull down on the content area to refresh. Classic mobile pattern!
+      </p>
+
+      <div class="refresh-container">
+        <div class="pull-indicator" id="pullIndicator">
+          <div class="refresh-icon" id="refreshIcon">↓</div>
+          <span id="pullText">Pull down to refresh</span>
+        </div>
+
+        <div class="stats-bar">
+          <div class="stat">
+            <div class="stat-value" id="itemCount">5</div>
+            <div class="stat-label">Items</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="refreshCount">0</div>
+            <div class="stat-label">Refreshes</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="lastRefresh">Never</div>
+            <div class="stat-label">Last Refresh</div>
+          </div>
+        </div>
+
+        <div class="content-area" id="contentArea">
+          <div class="pull-instructions">
+            👆 Pull down from the top to refresh content
+          </div>
+
+          <div id="contentList">
+            <!-- Content items will be inserted here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>How It Works</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Pull down:</strong> Drag content downwards when scrolled to top</li>
+          <li><strong>Release to refresh:</strong> Let go when indicator shows "Release"</li>
+          <li><strong>Loading state:</strong> Spinner appears while fetching new content</li>
+          <li><strong>New items:</strong> Fresh content appears at the top after refresh</li>
+          <li><strong>Haptic feedback:</strong> Vibration on successful refresh</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.2 - Pull to Refresh</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const contentArea = document.getElementById('contentArea');
+    const pullIndicator = document.getElementById('pullIndicator');
+    const refreshIcon = document.getElementById('refreshIcon');
+    const pullText = document.getElementById('pullText');
+    const contentList = document.getElementById('contentList');
+
+    let startY = 0;
+    let currentY = 0;
+    let isPulling = false;
+    let isRefreshing = false;
+    let refreshCount = 0;
+
+    const PULL_THRESHOLD = 80;
+    const MAX_PULL = 150;
+
+    // Sample content data
+    const contentTypes = [
+      { icon: '📰', title: 'News Update', content: 'Breaking: New touch gesture discovered!' },
+      { icon: '💬', title: 'Message', content: 'You have a new message from the future' },
+      { icon: '📧', title: 'Email', content: 'Your weekly digest is ready' },
+      { icon: '🔔', title: 'Notification', content: 'Someone liked your post' },
+      { icon: '⭐', title: 'Achievement', content: 'You unlocked a new badge!' },
+      { icon: '📱', title: 'App Update', content: 'Version 2.0 is now available' },
+      { icon: '🎉', title: 'Event', content: 'Party tonight at 8 PM' },
+      { icon: '📊', title: 'Report', content: 'Your monthly stats are ready' }
+    ];
+
+    let items = [];
+
+    // Initialize with some content
+    function initContent() {
+      items = [];
+      for (let i = 0; i < 5; i++) {
+        addRandomItem();
+      }
+      renderContent();
+    }
+
+    function addRandomItem() {
+      const template = contentTypes[Math.floor(Math.random() * contentTypes.length)];
+      const now = new Date();
+      items.unshift({
+        ...template,
+        id: Date.now() + Math.random(),
+        time: now.toLocaleTimeString(),
+        isNew: true
+      });
+    }
+
+    function renderContent() {
+      contentList.innerHTML = items.map((item, index) => `
+        <div class="content-item" style="animation: fadeIn 0.5s ease-out ${index * 0.1}s both;">
+          <div class="item-header">
+            <div>
+              <span style="font-size: 1.5rem; margin-right: var(--space-sm);">${item.icon}</span>
+              <span class="item-title">${item.title}</span>
+              ${item.isNew ? '<span class="item-badge">NEW</span>' : ''}
+            </div>
+            <span class="item-time">${item.time}</span>
+          </div>
+          <div class="item-content">${item.content}</div>
+        </div>
+      `).join('');
+
+      // Remove new badges after animation
+      setTimeout(() => {
+        items.forEach(item => item.isNew = false);
+      }, 2000);
+
+      document.getElementById('itemCount').textContent = items.length;
+    }
+
+    // Touch handlers
+    function onTouchStart(e) {
+      if (contentArea.scrollTop !== 0 || isRefreshing) return;
+
+      const touch = e.touches[0];
+      startY = touch.clientY;
+      isPulling = true;
+    }
+
+    function onTouchMove(e) {
+      if (!isPulling || isRefreshing) return;
+
+      const touch = e.touches[0];
+      currentY = touch.clientY;
+      const diff = currentY - startY;
+
+      if (diff > 0 && contentArea.scrollTop === 0) {
+        e.preventDefault();
+
+        const pullDistance = Math.min(diff, MAX_PULL);
+        const percentage = (pullDistance / PULL_THRESHOLD) * 100;
+
+        // Update indicator position
+        pullIndicator.style.top = `-${80 - pullDistance}px`;
+
+        // Update icon rotation
+        refreshIcon.style.transform = `rotate(${percentage * 3.6}deg)`;
+
+        // Update text
+        if (pullDistance >= PULL_THRESHOLD) {
+          pullText.textContent = 'Release to refresh';
+          pullIndicator.style.background = 'var(--success)';
+          TouchUtils.vibrate(5);
+        } else {
+          pullText.textContent = 'Pull down to refresh';
+          pullIndicator.style.background = 'var(--primary)';
+        }
+      }
+    }
+
+    function onTouchEnd(e) {
+      if (!isPulling) return;
+
+      const diff = currentY - startY;
+
+      if (diff >= PULL_THRESHOLD && !isRefreshing) {
+        triggerRefresh();
+      } else {
+        resetPull();
+      }
+
+      isPulling = false;
+      startY = 0;
+      currentY = 0;
+    }
+
+    function triggerRefresh() {
+      isRefreshing = true;
+      pullIndicator.classList.add('visible');
+      refreshIcon.classList.add('spinning');
+      pullText.textContent = 'Refreshing...';
+
+      TouchUtils.vibrate(20);
+
+      // Simulate loading
+      setTimeout(() => {
+        // Add new items
+        const newItemCount = Math.floor(Math.random() * 3) + 1;
+        for (let i = 0; i < newItemCount; i++) {
+          addRandomItem();
+        }
+
+        renderContent();
+        refreshCount++;
+        document.getElementById('refreshCount').textContent = refreshCount;
+        document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString();
+
+        // Reset
+        setTimeout(() => {
+          resetPull();
+          isRefreshing = false;
+        }, 500);
+
+        TouchUtils.vibrate([20, 50, 20]);
+      }, 1500);
+    }
+
+    function resetPull() {
+      pullIndicator.classList.remove('visible');
+      pullIndicator.style.top = '-80px';
+      pullIndicator.style.background = 'var(--primary)';
+      refreshIcon.classList.remove('spinning');
+      refreshIcon.style.transform = '';
+      pullText.textContent = 'Pull down to refresh';
+    }
+
+    // Event listeners
+    contentArea.addEventListener('touchstart', onTouchStart, { passive: false });
+    contentArea.addEventListener('touchmove', onTouchMove, { passive: false });
+    contentArea.addEventListener('touchend', onTouchEnd);
+
+    // Initialize
+    initContent();
+
+    // Add fadeIn animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

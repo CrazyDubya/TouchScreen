@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Web Components Touch - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .component-section {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .demo-grid {
+      display: grid;
+      gap: var(--space-xl);
+    }
+
+    /* Touch Slider Component Styles */
+    touch-slider {
+      display: block;
+      width: 100%;
+    }
+
+    /* Swipe Card Component Styles */
+    swipe-card-deck {
+      display: block;
+      min-height: 300px;
+    }
+
+    /* Rating Component Styles */
+    touch-rating {
+      display: inline-block;
+    }
+
+    /* Ripple Button Component Styles */
+    ripple-button {
+      display: inline-block;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+
+    .stat-box {
+      background: var(--gray-50);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Monaco', monospace;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-top: var(--space-xs);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Web Components Touch</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Reusable custom elements with built-in touch support - framework-agnostic and future-proof.
+      </p>
+
+      <div class="demo-grid">
+        <!-- Touch Slider Component -->
+        <div class="component-section">
+          <h3>Touch Slider Component</h3>
+          <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+            Custom &lt;touch-slider&gt; element with drag interaction
+          </p>
+
+          <touch-slider
+            min="0"
+            max="100"
+            value="50"
+            label="Volume"
+            id="volumeSlider"
+          ></touch-slider>
+
+          <touch-slider
+            min="0"
+            max="100"
+            value="75"
+            label="Brightness"
+            color="#10b981"
+            id="brightnessSlider"
+          ></touch-slider>
+
+          <touch-slider
+            min="0"
+            max="100"
+            value="30"
+            label="Temperature"
+            color="#f59e0b"
+            id="tempSlider"
+          ></touch-slider>
+        </div>
+
+        <!-- Swipe Card Deck Component -->
+        <div class="component-section">
+          <h3>Swipe Card Deck Component</h3>
+          <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+            Custom &lt;swipe-card-deck&gt; with stackable cards
+          </p>
+
+          <swipe-card-deck id="cardDeck"></swipe-card-deck>
+
+          <div class="stats-row">
+            <div class="stat-box">
+              <div class="stat-value" id="likesCount">0</div>
+              <div class="stat-label">Likes</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value" id="passesCount">0</div>
+              <div class="stat-label">Passes</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Touch Rating Component -->
+        <div class="component-section">
+          <h3>Touch Rating Component</h3>
+          <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+            Custom &lt;touch-rating&gt; with star ratings
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: var(--space-lg);">
+            <div>
+              <label style="display: block; margin-bottom: var(--space-sm); font-weight: 600;">
+                Rate our app:
+              </label>
+              <touch-rating stars="5" value="0" id="appRating"></touch-rating>
+            </div>
+
+            <div>
+              <label style="display: block; margin-bottom: var(--space-sm); font-weight: 600;">
+                User experience:
+              </label>
+              <touch-rating stars="5" value="3" id="uxRating"></touch-rating>
+            </div>
+
+            <div>
+              <label style="display: block; margin-bottom: var(--space-sm); font-weight: 600;">
+                Performance:
+              </label>
+              <touch-rating stars="5" value="4" id="perfRating"></touch-rating>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ripple Button Component -->
+        <div class="component-section">
+          <h3>Ripple Button Component</h3>
+          <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+            Custom &lt;ripple-button&gt; with Material Design ripple effect
+          </p>
+
+          <div class="btn-row">
+            <ripple-button color="#6366f1">Primary Action</ripple-button>
+            <ripple-button color="#10b981">Success</ripple-button>
+            <ripple-button color="#f59e0b">Warning</ripple-button>
+            <ripple-button color="#ef4444">Danger</ripple-button>
+          </div>
+
+          <div class="stat-box" style="margin-top: var(--space-lg);">
+            <div class="stat-value" id="clickCount">0</div>
+            <div class="stat-label">Button Clicks</div>
+          </div>
+        </div>
+
+        <!-- Code Examples -->
+        <div class="component-section">
+          <h3>Usage Examples</h3>
+          <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">
+            Simple HTML syntax for powerful touch interactions
+          </p>
+
+          <div style="background: var(--gray-900); color: var(--gray-100); padding: var(--space-lg); border-radius: var(--radius-md); font-family: 'Monaco', monospace; font-size: 0.875rem; overflow-x: auto;">
+            <div style="margin-bottom: var(--space-lg);">
+              <div style="color: var(--gray-500);"><!-- Touch Slider --></div>
+              <div>&lt;touch-slider min="0" max="100" value="50" label="Volume"&gt;&lt;/touch-slider&gt;</div>
+            </div>
+
+            <div style="margin-bottom: var(--space-lg);">
+              <div style="color: var(--gray-500);"><!-- Swipe Cards --></div>
+              <div>&lt;swipe-card-deck&gt;&lt;/swipe-card-deck&gt;</div>
+            </div>
+
+            <div style="margin-bottom: var(--space-lg);">
+              <div style="color: var(--gray-500);"><!-- Star Rating --></div>
+              <div>&lt;touch-rating stars="5" value="3"&gt;&lt;/touch-rating&gt;</div>
+            </div>
+
+            <div>
+              <div style="color: var(--gray-500);"><!-- Ripple Button --></div>
+              <div>&lt;ripple-button color="#6366f1"&gt;Click Me&lt;/ripple-button&gt;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Web Components Advantages</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Framework-agnostic:</strong> Works with any framework or vanilla JavaScript</li>
+          <li><strong>Encapsulation:</strong> Shadow DOM isolates styles and markup</li>
+          <li><strong>Reusability:</strong> True component reuse across projects</li>
+          <li><strong>Native browser API:</strong> No build step required</li>
+          <li><strong>Future-proof:</strong> Web standard supported by all modern browsers</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Custom Elements Features</h4>
+        <ul style="margin-left: var(--space-lg);">
+          <li>Lifecycle callbacks (connectedCallback, disconnectedCallback)</li>
+          <li>Attribute observation and reactivity</li>
+          <li>Custom events for component communication</li>
+          <li>Shadow DOM for style encapsulation</li>
+          <li>Slots for content projection</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.4 - Web Components</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    // Touch Slider Component
+    class TouchSlider extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+        this.isDragging = false;
+      }
+
+      connectedCallback() {
+        this.render();
+        this.setupEventListeners();
+      }
+
+      static get observedAttributes() {
+        return ['value', 'min', 'max', 'label', 'color'];
+      }
+
+      attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue !== newValue) {
+          this.render();
+        }
+      }
+
+      get value() {
+        return parseFloat(this.getAttribute('value')) || 0;
+      }
+
+      set value(val) {
+        this.setAttribute('value', val);
+        this.dispatchEvent(new CustomEvent('change', { detail: { value: val } }));
+      }
+
+      render() {
+        const min = parseFloat(this.getAttribute('min')) || 0;
+        const max = parseFloat(this.getAttribute('max')) || 100;
+        const value = this.value;
+        const label = this.getAttribute('label') || 'Value';
+        const color = this.getAttribute('color') || '#6366f1';
+        const percentage = ((value - min) / (max - min)) * 100;
+
+        this.shadowRoot.innerHTML = `
+          <style>
+            :host {
+              display: block;
+              margin-bottom: 2rem;
+            }
+            .slider-container {
+              padding: 1rem;
+              background: #f9fafb;
+              border-radius: 0.5rem;
+            }
+            .slider-header {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 0.5rem;
+            }
+            .slider-label {
+              font-weight: 600;
+              color: #374151;
+            }
+            .slider-value {
+              font-weight: 700;
+              color: ${color};
+              font-family: 'Monaco', monospace;
+            }
+            .slider-track {
+              width: 100%;
+              height: 50px;
+              background: #e5e7eb;
+              border-radius: 25px;
+              position: relative;
+              cursor: pointer;
+              touch-action: none;
+            }
+            .slider-fill {
+              height: 100%;
+              background: ${color};
+              border-radius: 25px;
+              width: ${percentage}%;
+              transition: width 0.1s;
+              position: relative;
+            }
+            .slider-thumb {
+              position: absolute;
+              right: -20px;
+              top: 50%;
+              transform: translateY(-50%);
+              width: 40px;
+              height: 40px;
+              background: white;
+              border: 3px solid ${color};
+              border-radius: 50%;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 0.75rem;
+              font-weight: 700;
+              color: ${color};
+            }
+          </style>
+          <div class="slider-container">
+            <div class="slider-header">
+              <span class="slider-label">${label}</span>
+              <span class="slider-value">${Math.round(value)}</span>
+            </div>
+            <div class="slider-track" id="track">
+              <div class="slider-fill">
+                <div class="slider-thumb">${Math.round(value)}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      setupEventListeners() {
+        const track = this.shadowRoot.getElementById('track');
+
+        track.addEventListener('touchstart', (e) => this.startDrag(e));
+        track.addEventListener('touchmove', (e) => this.drag(e));
+        track.addEventListener('touchend', () => this.stopDrag());
+
+        track.addEventListener('mousedown', (e) => this.startDrag(e));
+        document.addEventListener('mousemove', (e) => this.drag(e));
+        document.addEventListener('mouseup', () => this.stopDrag());
+      }
+
+      startDrag(e) {
+        this.isDragging = true;
+        this.updateValue(e);
+      }
+
+      drag(e) {
+        if (!this.isDragging) return;
+        e.preventDefault();
+        this.updateValue(e);
+      }
+
+      stopDrag() {
+        this.isDragging = false;
+      }
+
+      updateValue(e) {
+        const track = this.shadowRoot.getElementById('track');
+        const rect = track.getBoundingClientRect();
+        const touch = e.touches ? e.touches[0] : e;
+        const x = touch.clientX - rect.left;
+        const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+
+        const min = parseFloat(this.getAttribute('min')) || 0;
+        const max = parseFloat(this.getAttribute('max')) || 100;
+        const newValue = min + (percentage / 100) * (max - min);
+
+        this.value = Math.round(newValue);
+        TouchUtils.vibrate(5);
+      }
+    }
+
+    // Swipe Card Deck Component
+    class SwipeCardDeck extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+        this.cards = [
+          { id: 1, title: 'Mountain Hike', emoji: '🏔️', description: 'Epic mountain adventure' },
+          { id: 2, title: 'Beach Sunset', emoji: '🏖️', description: 'Relax by the ocean' },
+          { id: 3, title: 'City Tour', emoji: '🏙️', description: 'Explore urban life' },
+          { id: 4, title: 'Forest Trail', emoji: '🌲', description: 'Nature walk' },
+          { id: 5, title: 'Desert Safari', emoji: '🏜️', description: 'Desert expedition' }
+        ];
+        this.currentIndex = 0;
+      }
+
+      connectedCallback() {
+        this.render();
+        this.setupEventListeners();
+      }
+
+      render() {
+        if (this.currentIndex >= this.cards.length) {
+          this.shadowRoot.innerHTML = `
+            <style>
+              .no-more {
+                text-align: center;
+                padding: 4rem 2rem;
+                color: #9ca3af;
+              }
+            </style>
+            <div class="no-more">
+              <div style="font-size: 4rem; margin-bottom: 1rem;">✨</div>
+              <div style="font-size: 1.25rem; font-weight: 700;">All done!</div>
+              <div style="margin-top: 0.5rem;">No more cards to swipe</div>
+            </div>
+          `;
+          return;
+        }
+
+        const card = this.cards[this.currentIndex];
+
+        this.shadowRoot.innerHTML = `
+          <style>
+            .card {
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              padding: 3rem 2rem;
+              border-radius: 1rem;
+              text-align: center;
+              cursor: grab;
+              user-select: none;
+              touch-action: none;
+              box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+              min-height: 250px;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+            }
+            .card:active {
+              cursor: grabbing;
+            }
+            .card-emoji {
+              font-size: 5rem;
+              margin-bottom: 1rem;
+            }
+            .card-title {
+              font-size: 1.75rem;
+              font-weight: 700;
+              margin-bottom: 0.5rem;
+            }
+            .card-description {
+              opacity: 0.9;
+            }
+            .card-hint {
+              margin-top: 1rem;
+              font-size: 0.875rem;
+              opacity: 0.7;
+            }
+          </style>
+          <div class="card" id="card">
+            <div class="card-emoji">${card.emoji}</div>
+            <div class="card-title">${card.title}</div>
+            <div class="card-description">${card.description}</div>
+            <div class="card-hint">Swipe left or right</div>
+          </div>
+        `;
+      }
+
+      setupEventListeners() {
+        const card = this.shadowRoot.getElementById('card');
+        if (!card) return;
+
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+
+        card.addEventListener('touchstart', (e) => {
+          isDragging = true;
+          startX = e.touches[0].clientX;
+        });
+
+        card.addEventListener('touchmove', (e) => {
+          if (!isDragging) return;
+          currentX = e.touches[0].clientX;
+          const deltaX = currentX - startX;
+          const rotation = deltaX / 20;
+          card.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg)`;
+        });
+
+        card.addEventListener('touchend', () => {
+          if (!isDragging) return;
+          isDragging = false;
+
+          const deltaX = currentX - startX;
+
+          if (Math.abs(deltaX) > 100) {
+            const direction = deltaX > 0 ? 'right' : 'left';
+            this.dispatchEvent(new CustomEvent('swipe', {
+              detail: { direction, card: this.cards[this.currentIndex] }
+            }));
+
+            card.style.transition = 'transform 0.3s';
+            card.style.transform = `translateX(${direction === 'right' ? 1000 : -1000}px) rotate(${direction === 'right' ? 45 : -45}deg)`;
+
+            setTimeout(() => {
+              this.currentIndex++;
+              this.render();
+              this.setupEventListeners();
+              TouchUtils.vibrate(20);
+            }, 300);
+          } else {
+            card.style.transition = 'transform 0.3s';
+            card.style.transform = '';
+          }
+        });
+      }
+    }
+
+    // Touch Rating Component
+    class TouchRating extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+      }
+
+      connectedCallback() {
+        this.render();
+      }
+
+      static get observedAttributes() {
+        return ['value', 'stars'];
+      }
+
+      attributeChangedCallback() {
+        this.render();
+      }
+
+      get value() {
+        return parseInt(this.getAttribute('value')) || 0;
+      }
+
+      set value(val) {
+        this.setAttribute('value', val);
+        this.dispatchEvent(new CustomEvent('rate', { detail: { rating: val } }));
+      }
+
+      render() {
+        const stars = parseInt(this.getAttribute('stars')) || 5;
+        const value = this.value;
+
+        this.shadowRoot.innerHTML = `
+          <style>
+            :host {
+              display: inline-block;
+            }
+            .rating {
+              display: flex;
+              gap: 0.25rem;
+            }
+            .star {
+              font-size: 2rem;
+              cursor: pointer;
+              user-select: none;
+              transition: transform 0.2s;
+              touch-action: manipulation;
+            }
+            .star:hover, .star:active {
+              transform: scale(1.2);
+            }
+          </style>
+          <div class="rating">
+            ${Array.from({ length: stars }, (_, i) => `
+              <span class="star" data-value="${i + 1}">
+                ${i < value ? '⭐' : '☆'}
+              </span>
+            `).join('')}
+          </div>
+        `;
+
+        this.shadowRoot.querySelectorAll('.star').forEach(star => {
+          star.addEventListener('click', () => {
+            this.value = parseInt(star.dataset.value);
+            TouchUtils.vibrate(10);
+          });
+        });
+      }
+    }
+
+    // Ripple Button Component
+    class RippleButton extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+      }
+
+      connectedCallback() {
+        this.render();
+        this.setupEventListeners();
+      }
+
+      render() {
+        const color = this.getAttribute('color') || '#6366f1';
+
+        this.shadowRoot.innerHTML = `
+          <style>
+            button {
+              position: relative;
+              padding: 0.75rem 2rem;
+              background: ${color};
+              color: white;
+              border: none;
+              border-radius: 0.5rem;
+              font-size: 1rem;
+              font-weight: 600;
+              cursor: pointer;
+              overflow: hidden;
+              touch-action: manipulation;
+              min-height: 48px;
+              transition: transform 0.1s;
+            }
+            button:active {
+              transform: scale(0.95);
+            }
+            .ripple {
+              position: absolute;
+              border-radius: 50%;
+              background: rgba(255, 255, 255, 0.6);
+              transform: scale(0);
+              animation: ripple 0.6s ease-out;
+            }
+            @keyframes ripple {
+              to {
+                transform: scale(4);
+                opacity: 0;
+              }
+            }
+          </style>
+          <button><slot></slot></button>
+        `;
+      }
+
+      setupEventListeners() {
+        const button = this.shadowRoot.querySelector('button');
+
+        button.addEventListener('click', (e) => {
+          const ripple = document.createElement('span');
+          ripple.classList.add('ripple');
+
+          const rect = button.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height);
+          const x = e.clientX - rect.left - size / 2;
+          const y = e.clientY - rect.top - size / 2;
+
+          ripple.style.width = ripple.style.height = size + 'px';
+          ripple.style.left = x + 'px';
+          ripple.style.top = y + 'px';
+
+          button.appendChild(ripple);
+
+          setTimeout(() => ripple.remove(), 600);
+
+          this.dispatchEvent(new CustomEvent('buttonclick'));
+          TouchUtils.vibrate(10);
+        });
+      }
+    }
+
+    // Register Custom Elements
+    customElements.define('touch-slider', TouchSlider);
+    customElements.define('swipe-card-deck', SwipeCardDeck);
+    customElements.define('touch-rating', TouchRating);
+    customElements.define('ripple-button', RippleButton);
+
+    // Event listeners
+    document.getElementById('cardDeck').addEventListener('swipe', (e) => {
+      const direction = e.detail.direction;
+      if (direction === 'right') {
+        document.getElementById('likesCount').textContent =
+          parseInt(document.getElementById('likesCount').textContent) + 1;
+      } else {
+        document.getElementById('passesCount').textContent =
+          parseInt(document.getElementById('passesCount').textContent) + 1;
+      }
+    });
+
+    document.querySelectorAll('ripple-button').forEach(btn => {
+      btn.addEventListener('buttonclick', () => {
+        document.getElementById('clickCount').textContent =
+          parseInt(document.getElementById('clickCount').textContent) + 1;
+      });
+    });
+  </script>
+</body>
+</html>

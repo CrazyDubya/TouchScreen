@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Color Picker - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .picker-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .color-wheel-section {
+      background: white;
+      padding: var(--space-2xl);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      margin: var(--space-xl) 0;
+    }
+
+    .color-wheel {
+      width: 300px;
+      height: 300px;
+      margin: 0 auto var(--space-xl);
+      position: relative;
+      border-radius: 50%;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    #wheelCanvas {
+      border-radius: 50%;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .wheel-picker {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border: 4px solid white;
+      border-radius: 50%;
+      box-shadow: var(--shadow-xl);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s;
+    }
+
+    .wheel-picker:active {
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+
+    .brightness-slider-container {
+      margin: var(--space-xl) 0;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: var(--space-sm);
+      font-weight: 600;
+    }
+
+    .gradient-slider {
+      width: 100%;
+      height: 40px;
+      border-radius: var(--radius-md);
+      position: relative;
+      cursor: pointer;
+      touch-action: none;
+      box-shadow: var(--shadow-md);
+    }
+
+    .slider-handle {
+      position: absolute;
+      width: 20px;
+      height: 50px;
+      background: white;
+      border: 3px solid var(--gray-700);
+      border-radius: var(--radius-md);
+      top: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: var(--shadow-lg);
+      cursor: grab;
+      transition: transform 0.1s;
+    }
+
+    .slider-handle:active {
+      cursor: grabbing;
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    .current-color {
+      width: 100%;
+      height: 150px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg) inset;
+      margin: var(--space-xl) 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.5rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .color-values {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-md);
+      margin: var(--space-xl) 0;
+    }
+
+    .color-value {
+      background: var(--gray-100);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+
+    .color-value-label {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-bottom: var(--space-xs);
+    }
+
+    .color-value-text {
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: var(--gray-900);
+      cursor: pointer;
+      user-select: all;
+    }
+
+    .color-value-text:active {
+      background: var(--primary);
+      color: white;
+      padding: var(--space-xs);
+      border-radius: var(--radius-sm);
+    }
+
+    .presets {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+      gap: var(--space-sm);
+      margin-top: var(--space-lg);
+    }
+
+    .preset-color {
+      aspect-ratio: 1;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      box-shadow: var(--shadow-sm);
+      border: 3px solid transparent;
+    }
+
+    .preset-color:hover {
+      transform: scale(1.1);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .preset-color.active {
+      border-color: white;
+      box-shadow: 0 0 0 3px var(--primary);
+    }
+
+    .saved-colors {
+      display: flex;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+      min-height: 50px;
+      padding: var(--space-md);
+      background: var(--gray-100);
+      border-radius: var(--radius-md);
+      margin-top: var(--space-md);
+    }
+
+    .saved-color {
+      width: 50px;
+      height: 50px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: transform var(--transition-fast);
+      box-shadow: var(--shadow-md);
+      position: relative;
+    }
+
+    .saved-color:hover {
+      transform: scale(1.1);
+    }
+
+    .saved-color .remove {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 20px;
+      height: 20px;
+      background: var(--danger);
+      color: white;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .saved-color:hover .remove {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container picker-container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Color Picker</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Touch-friendly color picker with hue wheel and brightness control.
+      </p>
+
+      <div class="color-wheel-section">
+        <!-- Color Wheel -->
+        <div class="color-wheel" id="colorWheel">
+          <canvas id="wheelCanvas" width="300" height="300"></canvas>
+          <div class="wheel-picker" id="wheelPicker"></div>
+        </div>
+
+        <!-- Brightness Slider -->
+        <div class="brightness-slider-container">
+          <div class="slider-label">
+            <span>Brightness</span>
+            <span id="brightnessValue">50%</span>
+          </div>
+          <div class="gradient-slider" id="brightnessSlider" style="background: linear-gradient(to right, #000, #fff);">
+            <div class="slider-handle" id="brightnessHandle" style="left: 50%;"></div>
+          </div>
+        </div>
+
+        <!-- Current Color Display -->
+        <div class="current-color" id="currentColor">
+          <span id="colorHex">#808080</span>
+        </div>
+
+        <!-- Color Values -->
+        <div class="color-values">
+          <div class="color-value">
+            <div class="color-value-label">HEX</div>
+            <div class="color-value-text" id="hexValue" onclick="copyValue(this)">#808080</div>
+          </div>
+          <div class="color-value">
+            <div class="color-value-label">RGB</div>
+            <div class="color-value-text" id="rgbValue" onclick="copyValue(this)">128, 128, 128</div>
+          </div>
+          <div class="color-value">
+            <div class="color-value-label">HSL</div>
+            <div class="color-value-text" id="hslValue" onclick="copyValue(this)">0°, 0%, 50%</div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-xl);">
+          <button class="btn btn-primary" onclick="saveColor()" style="flex: 1;">
+            💾 Save Color
+          </button>
+          <button class="btn btn-secondary" onclick="randomColor()">
+            🎲 Random
+          </button>
+        </div>
+
+        <!-- Saved Colors -->
+        <div>
+          <h3 style="margin-top: var(--space-xl); margin-bottom: var(--space-md);">Saved Colors</h3>
+          <div class="saved-colors" id="savedColors">
+            <div style="color: var(--gray-500); font-size: 0.875rem; width: 100%; text-align: center;">
+              No saved colors yet
+            </div>
+          </div>
+        </div>
+
+        <!-- Presets -->
+        <div>
+          <h3 style="margin-top: var(--space-xl); margin-bottom: var(--space-md);">Color Presets</h3>
+          <div class="presets" id="presets"></div>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="demo-info">
+        <h3>Features</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Color Wheel:</strong> Touch and drag to select hue and saturation</li>
+          <li><strong>Brightness:</strong> Adjust brightness with the slider</li>
+          <li><strong>Multiple Formats:</strong> Get HEX, RGB, and HSL values</li>
+          <li><strong>Save Colors:</strong> Save your favorite colors for later use</li>
+          <li><strong>Presets:</strong> Quick access to common colors</li>
+          <li><strong>Copy Values:</strong> Tap any color value to copy it</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.2 - Color Picker</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const wheelPicker = document.getElementById('wheelPicker');
+    const currentColorDiv = document.getElementById('currentColor');
+
+    let currentHue = 0;
+    let currentSaturation = 0;
+    let currentBrightness = 50;
+    let savedColorsList = [];
+
+    // Draw color wheel
+    function drawColorWheel() {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const radius = canvas.width / 2;
+
+      for (let angle = 0; angle < 360; angle += 1) {
+        const startAngle = (angle - 1) * Math.PI / 180;
+        const endAngle = angle * Math.PI / 180;
+
+        for (let r = 0; r < radius; r += 1) {
+          const saturation = r / radius * 100;
+
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, r, startAngle, endAngle);
+          ctx.strokeStyle = `hsl(${angle}, ${saturation}%, 50%)`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+      }
+    }
+
+    drawColorWheel();
+
+    // Color wheel interaction
+    let isDraggingWheel = false;
+
+    function updateColorFromWheel(e) {
+      const rect = canvas.getBoundingClientRect();
+      const point = e.type.includes('touch') ? e.touches[0] : e;
+
+      const x = point.clientX - rect.left - canvas.width / 2;
+      const y = point.clientY - rect.top - canvas.height / 2;
+
+      const angle = Math.atan2(y, x);
+      const distance = Math.min(Math.sqrt(x * x + y * y), canvas.width / 2);
+
+      currentHue = (angle * 180 / Math.PI + 360) % 360;
+      currentSaturation = (distance / (canvas.width / 2)) * 100;
+
+      updateColor();
+      updateWheelPicker(x + canvas.width / 2, y + canvas.height / 2);
+    }
+
+    function updateWheelPicker(x, y) {
+      wheelPicker.style.left = x + 'px';
+      wheelPicker.style.top = y + 'px';
+    }
+
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      isDraggingWheel = true;
+      updateColorFromWheel(e);
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (isDraggingWheel) {
+        e.preventDefault();
+        updateColorFromWheel(e);
+      }
+    });
+
+    canvas.addEventListener('touchend', () => {
+      isDraggingWheel = false;
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+      isDraggingWheel = true;
+      updateColorFromWheel(e);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (isDraggingWheel) {
+        updateColorFromWheel(e);
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDraggingWheel = false;
+    });
+
+    // Brightness slider
+    const brightnessSlider = document.getElementById('brightnessSlider');
+    const brightnessHandle = document.getElementById('brightnessHandle');
+    let isDraggingBrightness = false;
+
+    function updateBrightness(e) {
+      const rect = brightnessSlider.getBoundingClientRect();
+      const point = e.type.includes('touch') ? e.touches[0] : e;
+      const x = Math.max(0, Math.min(point.clientX - rect.left, rect.width));
+
+      currentBrightness = (x / rect.width) * 100;
+      brightnessHandle.style.left = (currentBrightness) + '%';
+      document.getElementById('brightnessValue').textContent = Math.round(currentBrightness) + '%';
+
+      updateColor();
+    }
+
+    brightnessSlider.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      isDraggingBrightness = true;
+      updateBrightness(e);
+    });
+
+    brightnessSlider.addEventListener('touchmove', (e) => {
+      if (isDraggingBrightness) {
+        e.preventDefault();
+        updateBrightness(e);
+      }
+    });
+
+    brightnessSlider.addEventListener('touchend', () => {
+      isDraggingBrightness = false;
+    });
+
+    brightnessSlider.addEventListener('mousedown', (e) => {
+      isDraggingBrightness = true;
+      updateBrightness(e);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDraggingBrightness) {
+        updateBrightness(e);
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDraggingBrightness = false;
+    });
+
+    // Update color display
+    function updateColor() {
+      const hsl = `hsl(${currentHue}, ${currentSaturation}%, ${currentBrightness}%)`;
+      const rgb = hslToRgb(currentHue, currentSaturation, currentBrightness);
+      const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+
+      currentColorDiv.style.background = hsl;
+      document.getElementById('colorHex').textContent = hex;
+      document.getElementById('hexValue').textContent = hex;
+      document.getElementById('rgbValue').textContent = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+      document.getElementById('hslValue').textContent =
+        `${Math.round(currentHue)}°, ${Math.round(currentSaturation)}%, ${Math.round(currentBrightness)}%`;
+
+      // Update brightness slider gradient
+      const baseColor = `hsl(${currentHue}, ${currentSaturation}%, 50%)`;
+      brightnessSlider.style.background =
+        `linear-gradient(to right, #000, ${baseColor}, #fff)`;
+    }
+
+    // Color conversion functions
+    function hslToRgb(h, s, l) {
+      s /= 100;
+      l /= 100;
+
+      const c = (1 - Math.abs(2 * l - 1)) * s;
+      const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+      const m = l - c / 2;
+
+      let r, g, b;
+
+      if (h < 60) { r = c; g = x; b = 0; }
+      else if (h < 120) { r = x; g = c; b = 0; }
+      else if (h < 180) { r = 0; g = c; b = x; }
+      else if (h < 240) { r = 0; g = x; b = c; }
+      else if (h < 300) { r = x; g = 0; b = c; }
+      else { r = c; g = 0; b = x; }
+
+      return {
+        r: Math.round((r + m) * 255),
+        g: Math.round((g + m) * 255),
+        b: Math.round((b + m) * 255)
+      };
+    }
+
+    function rgbToHex(r, g, b) {
+      return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Copy value
+    function copyValue(element) {
+      const text = element.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = element.textContent;
+        element.textContent = 'Copied!';
+        TouchUtils.vibrate(20);
+        setTimeout(() => {
+          element.textContent = originalText;
+        }, 1000);
+      });
+    }
+
+    // Save color
+    function saveColor() {
+      const hex = document.getElementById('hexValue').textContent;
+
+      if (!savedColorsList.includes(hex)) {
+        savedColorsList.push(hex);
+        renderSavedColors();
+        TouchUtils.vibrate(20);
+      }
+    }
+
+    function renderSavedColors() {
+      const container = document.getElementById('savedColors');
+
+      if (savedColorsList.length === 0) {
+        container.innerHTML = '<div style="color: var(--gray-500); font-size: 0.875rem; width: 100%; text-align: center;">No saved colors yet</div>';
+        return;
+      }
+
+      container.innerHTML = savedColorsList.map(color => `
+        <div class="saved-color" style="background: ${color};" onclick="loadColor('${color}')">
+          <div class="remove" onclick="event.stopPropagation(); removeSavedColor('${color}')">×</div>
+        </div>
+      `).join('');
+    }
+
+    function removeSavedColor(color) {
+      savedColorsList = savedColorsList.filter(c => c !== color);
+      renderSavedColors();
+      TouchUtils.vibrate(10);
+    }
+
+    function loadColor(hex) {
+      // Convert hex to HSL and update
+      const rgb = hexToRgb(hex);
+      const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+
+      currentHue = hsl.h;
+      currentSaturation = hsl.s;
+      currentBrightness = hsl.l;
+
+      updateColor();
+      updateWheelPickerFromHSL();
+      brightnessHandle.style.left = currentBrightness + '%';
+      document.getElementById('brightnessValue').textContent = Math.round(currentBrightness) + '%';
+
+      TouchUtils.vibrate(10);
+    }
+
+    function hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    }
+
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+
+      if (max === min) {
+        h = s = 0;
+      } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+          case g: h = ((b - r) / d + 2) / 6; break;
+          case b: h = ((r - g) / d + 4) / 6; break;
+        }
+      }
+
+      return { h: h * 360, s: s * 100, l: l * 100 };
+    }
+
+    function updateWheelPickerFromHSL() {
+      const angle = currentHue * Math.PI / 180;
+      const distance = currentSaturation / 100 * (canvas.width / 2);
+
+      const x = Math.cos(angle) * distance + canvas.width / 2;
+      const y = Math.sin(angle) * distance + canvas.height / 2;
+
+      updateWheelPicker(x, y);
+    }
+
+    // Random color
+    function randomColor() {
+      currentHue = Math.random() * 360;
+      currentSaturation = Math.random() * 100;
+      currentBrightness = 30 + Math.random() * 50;
+
+      updateColor();
+      updateWheelPickerFromHSL();
+      brightnessHandle.style.left = currentBrightness + '%';
+      document.getElementById('brightnessValue').textContent = Math.round(currentBrightness) + '%';
+
+      TouchUtils.vibrate(20);
+    }
+
+    // Presets
+    const presetColors = [
+      '#FF0000', '#FF6B00', '#FFD700', '#00FF00',
+      '#00CED1', '#0000FF', '#8B00FF', '#FF1493',
+      '#000000', '#404040', '#808080', '#C0C0C0',
+      '#FFFFFF', '#8B4513', '#228B22', '#FFB6C1'
+    ];
+
+    function renderPresets() {
+      const container = document.getElementById('presets');
+      container.innerHTML = presetColors.map(color => `
+        <div class="preset-color" style="background: ${color};" onclick="loadColor('${color}')"></div>
+      `).join('');
+    }
+
+    // Initialize
+    renderPresets();
+    updateColor();
+    updateWheelPickerFromHSL();
+  </script>
+</body>
+</html>

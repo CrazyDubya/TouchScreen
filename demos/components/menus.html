@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Touch Menus - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .demo-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-md);
+      margin: var(--space-xl) 0;
+    }
+
+    .hamburger {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      padding: var(--space-sm);
+      transition: transform var(--transition-fast);
+    }
+
+    .hamburger:active {
+      transform: scale(0.9);
+    }
+
+    .hamburger-line {
+      width: 30px;
+      height: 3px;
+      background: var(--gray-700);
+      border-radius: 3px;
+      transition: all var(--transition-base);
+    }
+
+    .hamburger.open .hamburger-line:nth-child(1) {
+      transform: rotate(45deg) translate(8px, 8px);
+    }
+
+    .hamburger.open .hamburger-line:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.open .hamburger-line:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -7px);
+    }
+
+    .section-demo {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin: var(--space-xl) 0;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <div class="hamburger" onclick="toggleMenu()">
+          <div class="hamburger-line"></div>
+          <div class="hamburger-line"></div>
+          <div class="hamburger-line"></div>
+        </div>
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Slide-out Menu -->
+  <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+  <nav class="slide-menu" id="slideMenu">
+    <div class="menu-header">Navigation Menu</div>
+    <ul class="menu-items">
+      <li class="menu-item"><a href="../../index.html">🏠 Home</a></li>
+      <li class="menu-item"><a href="../vanilla/basic-touch.html">👆 Basic Touch</a></li>
+      <li class="menu-item"><a href="../vanilla/gestures.html">✋ Gestures</a></li>
+      <li class="menu-item"><a href="../vanilla/drawing.html">🎨 Drawing</a></li>
+      <li class="menu-item"><a href="toggles.html">🔘 Toggles</a></li>
+      <li class="menu-item"><a href="sliders.html">🎚️ Sliders</a></li>
+      <li class="menu-item"><a href="menus.html">📱 Menus</a></li>
+      <li class="menu-item"><a href="../showcase/gallery.html">🖼️ Gallery</a></li>
+      <li class="menu-item"><a href="../showcase/settings.html">⚙️ Settings</a></li>
+    </ul>
+  </nav>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Touch Menus & Navigation</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Various menu patterns optimized for touch: slide-out menus, modals, bottom sheets, tabs, and accordions.
+      </p>
+
+      <!-- Slide-out Menu Demo -->
+      <section class="section-demo">
+        <h2>Slide-out Menu</h2>
+        <p class="mb-lg" style="color: var(--gray-600);">
+          The navigation menu in the header is a live demo! Click the hamburger icon to open it.
+        </p>
+        <button class="btn btn-primary" onclick="toggleMenu()">
+          Open Side Menu
+        </button>
+      </section>
+
+      <!-- Modal Dialog Demo -->
+      <section class="section-demo">
+        <h2>Modal Dialogs</h2>
+        <p class="mb-lg" style="color: var(--gray-600);">
+          Centered overlays for focused interactions
+        </p>
+        <div class="demo-buttons">
+          <button class="btn btn-primary" onclick="openModal('infoModal')">
+            Info Modal
+          </button>
+          <button class="btn btn-primary" onclick="openModal('confirmModal')">
+            Confirmation Modal
+          </button>
+          <button class="btn btn-primary" onclick="openModal('formModal')">
+            Form Modal
+          </button>
+        </div>
+      </section>
+
+      <!-- Bottom Sheet Demo -->
+      <section class="section-demo">
+        <h2>Bottom Sheets</h2>
+        <p class="mb-lg" style="color: var(--gray-600);">
+          Mobile-friendly sheets that slide up from the bottom
+        </p>
+        <div class="demo-buttons">
+          <button class="btn btn-primary" onclick="openBottomSheet('optionsSheet')">
+            Options Sheet
+          </button>
+          <button class="btn btn-primary" onclick="openBottomSheet('shareSheet')">
+            Share Sheet
+          </button>
+        </div>
+      </section>
+
+      <!-- Tabs Demo -->
+      <section class="section-demo">
+        <h2>Tab Navigation</h2>
+        <p class="mb-lg" style="color: var(--gray-600);">
+          Organize content into swipeable tabs
+        </p>
+
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab(0)">Profile</button>
+          <button class="tab" onclick="switchTab(1)">Activity</button>
+          <button class="tab" onclick="switchTab(2)">Settings</button>
+          <button class="tab" onclick="switchTab(3)">Notifications</button>
+        </div>
+
+        <div class="tab-content active" id="tab0">
+          <h3>Profile</h3>
+          <p>Your personal information and account details.</p>
+          <div class="card mt-lg">
+            <h4>User Information</h4>
+            <p>Name: John Doe</p>
+            <p>Email: john@example.com</p>
+            <p>Member since: 2024</p>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab1">
+          <h3>Activity</h3>
+          <p>Recent activity and interactions.</p>
+          <div class="card mt-lg">
+            <p>📝 Created a new project - 2 hours ago</p>
+            <p>✅ Completed 5 tasks - Yesterday</p>
+            <p>💬 Received 3 messages - 2 days ago</p>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab2">
+          <h3>Settings</h3>
+          <p>Customize your preferences.</p>
+          <div class="card mt-lg">
+            <p>⚙️ Configure your account settings here</p>
+            <button class="btn btn-secondary mt-md">Manage Settings</button>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab3">
+          <h3>Notifications</h3>
+          <p>Stay updated with alerts.</p>
+          <div class="card mt-lg">
+            <p>🔔 You have 3 new notifications</p>
+            <p>📧 2 unread messages</p>
+            <p>⭐ 1 new follower</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Accordion Demo -->
+      <section class="section-demo">
+        <h2>Accordion Menu</h2>
+        <p class="mb-lg" style="color: var(--gray-600);">
+          Expandable sections for organizing information
+        </p>
+
+        <div class="accordion">
+          <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+              <span>What is TouchScreen Demo?</span>
+              <span class="accordion-icon">▼</span>
+            </button>
+            <div class="accordion-content">
+              <div class="accordion-body">
+                TouchScreen Demo is a comprehensive showcase of touch-enabled interfaces,
+                demonstrating various gestures, components, and interaction patterns for
+                modern web applications.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+              <span>How do I use these demos?</span>
+              <span class="accordion-icon">▼</span>
+            </button>
+            <div class="accordion-content">
+              <div class="accordion-body">
+                Simply touch or click on any interactive element. For the best experience,
+                use a touch-enabled device or enable touch simulation in Chrome DevTools.
+                Each demo includes instructions and visual feedback.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+              <span>Can I use this code in my projects?</span>
+              <span class="accordion-icon">▼</span>
+            </button>
+            <div class="accordion-content">
+              <div class="accordion-body">
+                Yes! All code is designed to be reusable. Check the source files for
+                implementation details. The CSS and JavaScript can be easily adapted
+                to your needs.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+              <span>What browsers are supported?</span>
+              <span class="accordion-icon">▼</span>
+            </button>
+            <div class="accordion-content">
+              <div class="accordion-body">
+                All modern browsers are supported including Chrome, Firefox, Safari, and Edge.
+                Touch events work on mobile devices (iOS/Android) as well as touch-enabled
+                laptops and tablets.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Demo Info -->
+      <div class="demo-info">
+        <h3>Navigation Patterns</h3>
+        <p>
+          Each menu pattern serves different use cases:
+        </p>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li><strong>Slide-out Menu:</strong> Primary navigation for app-like experiences</li>
+          <li><strong>Modal:</strong> Focused tasks requiring user attention</li>
+          <li><strong>Bottom Sheet:</strong> Mobile-first action menus and options</li>
+          <li><strong>Tabs:</strong> Organizing related content sections</li>
+          <li><strong>Accordion:</strong> Collapsible FAQ and information sections</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Overlays -->
+  <div class="modal-overlay" id="infoModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Information</h3>
+        <button class="modal-close" onclick="closeModal('infoModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>This is an informational modal dialog. It displays important information to the user.</p>
+        <p style="margin-top: var(--space-md);">Touch outside the modal or click the ✕ to close it.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeModal('infoModal')">Got it!</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Action</h3>
+        <button class="modal-close" onclick="closeModal('confirmModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to proceed with this action?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmAction()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="formModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Contact Form</h3>
+        <button class="modal-close" onclick="closeModal('formModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleFormSubmit(event)">
+          <div style="margin-bottom: var(--space-md);">
+            <label style="display: block; margin-bottom: var(--space-xs); font-weight: 600;">Name</label>
+            <input type="text" placeholder="Your name" style="width: 100%; padding: var(--space-sm); border: 1px solid var(--gray-300); border-radius: var(--radius-sm);">
+          </div>
+          <div style="margin-bottom: var(--space-md);">
+            <label style="display: block; margin-bottom: var(--space-xs); font-weight: 600;">Email</label>
+            <input type="email" placeholder="your@email.com" style="width: 100%; padding: var(--space-sm); border: 1px solid var(--gray-300); border-radius: var(--radius-sm);">
+          </div>
+          <div style="margin-bottom: var(--space-md);">
+            <label style="display: block; margin-bottom: var(--space-xs); font-weight: 600;">Message</label>
+            <textarea rows="4" placeholder="Your message..." style="width: 100%; padding: var(--space-sm); border: 1px solid var(--gray-300); border-radius: var(--radius-sm);"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Sheets -->
+  <div class="bottom-sheet-overlay" id="optionsSheetOverlay" onclick="closeBottomSheet('optionsSheet')"></div>
+  <div class="bottom-sheet" id="optionsSheet">
+    <div class="bottom-sheet-handle"></div>
+    <div class="bottom-sheet-content">
+      <h3>Options</h3>
+      <div style="margin-top: var(--space-lg);">
+        <button class="btn btn-primary" style="width: 100%; margin-bottom: var(--space-sm);" onclick="closeBottomSheet('optionsSheet')">
+          Edit
+        </button>
+        <button class="btn btn-primary" style="width: 100%; margin-bottom: var(--space-sm);" onclick="closeBottomSheet('optionsSheet')">
+          Share
+        </button>
+        <button class="btn btn-primary" style="width: 100%; margin-bottom: var(--space-sm);" onclick="closeBottomSheet('optionsSheet')">
+          Download
+        </button>
+        <button class="btn btn-secondary" style="width: 100%;" onclick="closeBottomSheet('optionsSheet')">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-sheet-overlay" id="shareSheetOverlay" onclick="closeBottomSheet('shareSheet')"></div>
+  <div class="bottom-sheet" id="shareSheet">
+    <div class="bottom-sheet-handle"></div>
+    <div class="bottom-sheet-content">
+      <h3>Share</h3>
+      <p style="color: var(--gray-600); margin-bottom: var(--space-lg);">Share this content with...</p>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-lg); text-align: center;">
+        <div onclick="shareAction('Twitter')">
+          <div style="width: 60px; height: 60px; background: #1da1f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; margin: 0 auto;">🐦</div>
+          <div style="margin-top: var(--space-xs); font-size: 0.875rem;">Twitter</div>
+        </div>
+        <div onclick="shareAction('Facebook')">
+          <div style="width: 60px; height: 60px; background: #4267B2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; margin: 0 auto;">📘</div>
+          <div style="margin-top: var(--space-xs); font-size: 0.875rem;">Facebook</div>
+        </div>
+        <div onclick="shareAction('Email')">
+          <div style="width: 60px; height: 60px; background: var(--warning); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; margin: 0 auto;">✉️</div>
+          <div style="margin-top: var(--space-xs); font-size: 0.875rem;">Email</div>
+        </div>
+        <div onclick="shareAction('Copy')">
+          <div style="width: 60px; height: 60px; background: var(--gray-600); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; margin: 0 auto;">📋</div>
+          <div style="margin-top: var(--space-xs); font-size: 0.875rem;">Copy</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.1 - Touch Menus</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    // Slide-out Menu
+    function toggleMenu() {
+      const menu = document.getElementById('slideMenu');
+      const overlay = document.getElementById('menuOverlay');
+      const hamburger = document.querySelector('.hamburger');
+
+      menu.classList.toggle('active');
+      overlay.classList.toggle('active');
+      hamburger.classList.toggle('open');
+      TouchUtils.vibrate(10);
+    }
+
+    // Modal Functions
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      modal.classList.add('active');
+      TouchUtils.vibrate(10);
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      modal.classList.remove('active');
+      TouchUtils.vibrate(10);
+    }
+
+    function confirmAction() {
+      closeModal('confirmModal');
+      alert('Action confirmed!');
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      closeModal('formModal');
+      alert('Form submitted! (Demo only)');
+    }
+
+    // Click outside modal to close
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.classList.remove('active');
+        }
+      });
+    });
+
+    // Bottom Sheet Functions
+    function openBottomSheet(id) {
+      const sheet = document.getElementById(id);
+      const overlay = document.getElementById(id + 'Overlay');
+      sheet.classList.add('active');
+      overlay.classList.add('active');
+      TouchUtils.vibrate(10);
+    }
+
+    function closeBottomSheet(id) {
+      const sheet = document.getElementById(id);
+      const overlay = document.getElementById(id + 'Overlay');
+      sheet.classList.remove('active');
+      overlay.classList.remove('active');
+      TouchUtils.vibrate(10);
+    }
+
+    function shareAction(platform) {
+      closeBottomSheet('shareSheet');
+      alert(`Sharing to ${platform}! (Demo only)`);
+    }
+
+    // Tab Functions
+    function switchTab(index) {
+      const tabs = document.querySelectorAll('.tab');
+      const contents = document.querySelectorAll('.tab-content');
+
+      tabs.forEach(tab => tab.classList.remove('active'));
+      contents.forEach(content => content.classList.remove('active'));
+
+      tabs[index].classList.add('active');
+      contents[index].classList.add('active');
+      TouchUtils.vibrate(10);
+    }
+
+    // Accordion Functions
+    function toggleAccordion(button) {
+      const item = button.parentElement;
+      const wasActive = item.classList.contains('active');
+
+      // Close all accordion items
+      document.querySelectorAll('.accordion-item').forEach(i => {
+        i.classList.remove('active');
+      });
+
+      // Open clicked item if it wasn't active
+      if (!wasActive) {
+        item.classList.add('active');
+      }
+
+      TouchUtils.vibrate(10);
+    }
+  </script>
+</body>
+</html>

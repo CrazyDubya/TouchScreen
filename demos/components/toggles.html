@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Toggles & Switches - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .toggle-demo-grid {
+      display: grid;
+      gap: var(--space-lg);
+      margin: var(--space-2xl) 0;
+    }
+
+    .toggle-item {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all var(--transition-fast);
+    }
+
+    .toggle-item:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .toggle-info {
+      flex: 1;
+    }
+
+    .toggle-title {
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: var(--space-xs);
+    }
+
+    .toggle-description {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+    }
+
+    .demo-section {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin: var(--space-xl) 0;
+    }
+
+    .checkbox-custom {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+
+    .radio-option:hover {
+      background: var(--gray-100);
+    }
+
+    .radio-option input {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    .state-display {
+      background: var(--gray-100);
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      margin-top: var(--space-lg);
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 0.875rem;
+    }
+
+    .state-item {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--space-xs) 0;
+    }
+
+    .state-value {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .state-value.on {
+      color: var(--success);
+    }
+
+    .state-value.off {
+      color: var(--gray-400);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Toggles & Switches</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Touch-optimized toggle switches, checkboxes, and radio buttons with visual feedback.
+      </p>
+
+      <!-- Toggle Switches Section -->
+      <section class="demo-section">
+        <h2>Toggle Switches</h2>
+        <p class="mb-lg" style="color: var(--gray-600);">
+          iOS-style toggle switches perfect for on/off settings
+        </p>
+
+        <div class="toggle-demo-grid">
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <div class="toggle-title">Wi-Fi</div>
+              <div class="toggle-description">Connect to available networks</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="wifiToggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <div class="toggle-title">Bluetooth</div>
+              <div class="toggle-description">Pair with nearby devices</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="bluetoothToggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <div class="toggle-title">Notifications</div>
+              <div class="toggle-description">Show alerts and badges</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="notificationsToggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <div class="toggle-title">Location Services</div>
+              <div class="toggle-description">Allow apps to access location</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="locationToggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <div class="toggle-title">Dark Mode</div>
+              <div class="toggle-description">Use dark color scheme</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="darkModeToggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <div class="toggle-title">Auto-Updates</div>
+              <div class="toggle-description">Download updates automatically</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="autoUpdateToggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="state-display">
+          <div class="state-item">
+            <span>Wi-Fi:</span>
+            <span class="state-value on" id="wifiState">ON</span>
+          </div>
+          <div class="state-item">
+            <span>Bluetooth:</span>
+            <span class="state-value off" id="bluetoothState">OFF</span>
+          </div>
+          <div class="state-item">
+            <span>Notifications:</span>
+            <span class="state-value on" id="notificationsState">ON</span>
+          </div>
+          <div class="state-item">
+            <span>Location:</span>
+            <span class="state-value on" id="locationState">ON</span>
+          </div>
+          <div class="state-item">
+            <span>Dark Mode:</span>
+            <span class="state-value off" id="darkModeState">OFF</span>
+          </div>
+          <div class="state-item">
+            <span>Auto-Updates:</span>
+            <span class="state-value on" id="autoUpdateState">ON</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Checkboxes Section -->
+      <section class="demo-section">
+        <h2>Checkboxes</h2>
+        <p class="mb-lg" style="color: var(--gray-600);">
+          Multi-selection with touch-friendly checkboxes
+        </p>
+
+        <div class="toggle-demo-grid">
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <div class="toggle-title">Newsletter Subscription</div>
+              <div class="toggle-description">Receive weekly updates</div>
+            </div>
+            <input type="checkbox" class="checkbox-custom" id="newsletter">
+          </div>
+
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <div class="toggle-title">Marketing Emails</div>
+              <div class="toggle-description">Get promotional offers</div>
+            </div>
+            <input type="checkbox" class="checkbox-custom" id="marketing">
+          </div>
+
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <div class="toggle-title">Product Updates</div>
+              <div class="toggle-description">New features and improvements</div>
+            </div>
+            <input type="checkbox" class="checkbox-custom" id="updates" checked>
+          </div>
+
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <div class="toggle-title">Terms & Conditions</div>
+              <div class="toggle-description">I agree to the terms</div>
+            </div>
+            <input type="checkbox" class="checkbox-custom" id="terms" required>
+          </div>
+        </div>
+
+        <div class="demo-controls mt-lg">
+          <button class="btn btn-primary" onclick="selectAll()">Select All</button>
+          <button class="btn btn-secondary" onclick="deselectAll()">Deselect All</button>
+        </div>
+      </section>
+
+      <!-- Radio Buttons Section -->
+      <section class="demo-section">
+        <h2>Radio Buttons</h2>
+        <p class="mb-lg" style="color: var(--gray-600);">
+          Single selection from multiple options
+        </p>
+
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="theme" value="light" checked>
+            <div class="toggle-info">
+              <div class="toggle-title">Light Theme</div>
+              <div class="toggle-description">Classic bright interface</div>
+            </div>
+          </label>
+
+          <label class="radio-option">
+            <input type="radio" name="theme" value="dark">
+            <div class="toggle-info">
+              <div class="toggle-title">Dark Theme</div>
+              <div class="toggle-description">Easy on the eyes</div>
+            </div>
+          </label>
+
+          <label class="radio-option">
+            <input type="radio" name="theme" value="auto">
+            <div class="toggle-info">
+              <div class="toggle-title">Auto Theme</div>
+              <div class="toggle-description">Match system preferences</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="state-display mt-lg">
+          <div class="state-item">
+            <span>Selected Theme:</span>
+            <span class="state-value" id="themeState">Light</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Demo Info -->
+      <div class="demo-info">
+        <h3>Touch Optimization</h3>
+        <p>
+          All interactive elements are designed with touch in mind:
+        </p>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li><strong>Minimum size:</strong> 44x44px tap targets for easy touching</li>
+          <li><strong>Visual feedback:</strong> Immediate response to touches</li>
+          <li><strong>Smooth animations:</strong> Satisfying transitions on state changes</li>
+          <li><strong>Large touch areas:</strong> Entire item clickable, not just the switch</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.1 - Toggles & Switches</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    // Toggle Switches State Management
+    const toggles = {
+      wifi: document.getElementById('wifiToggle'),
+      bluetooth: document.getElementById('bluetoothToggle'),
+      notifications: document.getElementById('notificationsToggle'),
+      location: document.getElementById('locationToggle'),
+      darkMode: document.getElementById('darkModeToggle'),
+      autoUpdate: document.getElementById('autoUpdateToggle')
+    };
+
+    const stateDisplays = {
+      wifi: document.getElementById('wifiState'),
+      bluetooth: document.getElementById('bluetoothState'),
+      notifications: document.getElementById('notificationsState'),
+      location: document.getElementById('locationState'),
+      darkMode: document.getElementById('darkModeState'),
+      autoUpdate: document.getElementById('autoUpdateState')
+    };
+
+    function updateToggleState(name, element) {
+      const isChecked = element.checked;
+      const display = stateDisplays[name];
+
+      display.textContent = isChecked ? 'ON' : 'OFF';
+      display.className = isChecked ? 'state-value on' : 'state-value off';
+
+      // Vibrate on toggle
+      TouchUtils.vibrate(10);
+    }
+
+    Object.entries(toggles).forEach(([name, element]) => {
+      element.addEventListener('change', () => updateToggleState(name, element));
+      // Initialize state
+      updateToggleState(name, element);
+    });
+
+    // Checkbox Management
+    const checkboxes = {
+      newsletter: document.getElementById('newsletter'),
+      marketing: document.getElementById('marketing'),
+      updates: document.getElementById('updates'),
+      terms: document.getElementById('terms')
+    };
+
+    function selectAll() {
+      Object.values(checkboxes).forEach(cb => {
+        cb.checked = true;
+      });
+      TouchUtils.vibrate(20);
+    }
+
+    function deselectAll() {
+      Object.values(checkboxes).forEach(cb => {
+        cb.checked = false;
+      });
+      TouchUtils.vibrate(20);
+    }
+
+    // Radio Buttons
+    const themeRadios = document.querySelectorAll('input[name="theme"]');
+    const themeState = document.getElementById('themeState');
+
+    themeRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        const value = radio.value;
+        themeState.textContent = value.charAt(0).toUpperCase() + value.slice(1);
+        TouchUtils.vibrate(10);
+      });
+    });
+
+    // Make entire toggle items clickable
+    document.querySelectorAll('.toggle-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        // Don't trigger if clicking the toggle itself
+        if (e.target.tagName === 'INPUT' || e.target.classList.contains('toggle-slider')) {
+          return;
+        }
+
+        const toggle = item.querySelector('input[type="checkbox"]');
+        if (toggle) {
+          toggle.checked = !toggle.checked;
+          toggle.dispatchEvent(new Event('change'));
+        }
+      });
+    });
+
+    // Add touch feedback to all checkboxes and radios
+    document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(input => {
+      input.addEventListener('change', () => {
+        TouchUtils.vibrate(10);
+      });
+    });
+  </script>
+</body>
+</html>

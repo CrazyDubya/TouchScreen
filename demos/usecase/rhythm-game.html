@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhythm Game - TouchScreen Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .back-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        #gameCanvas {
+            flex: 1;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        .hud {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px 20px;
+            color: white;
+            min-width: 120px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .combo {
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .multiplier {
+            font-size: 1.2rem;
+            color: #ffd700;
+            margin-top: 5px;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            color: white;
+            text-align: center;
+            z-index: 20;
+            display: none;
+            min-width: 300px;
+        }
+
+        .game-over.show {
+            display: block;
+        }
+
+        .game-over h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+
+        .final-stats {
+            margin: 20px 0;
+        }
+
+        .final-stat {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+
+        .final-stat .label {
+            opacity: 0.8;
+        }
+
+        .final-stat .value {
+            font-weight: 700;
+        }
+
+        .game-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .game-btn {
+            flex: 1;
+            background: rgba(102, 126, 234, 0.8);
+            border: none;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            pointer-events: all;
+        }
+
+        .game-btn:active {
+            background: rgba(102, 126, 234, 1);
+            transform: scale(0.98);
+        }
+
+        .start-screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 15;
+            pointer-events: all;
+        }
+
+        .start-screen.hidden {
+            display: none;
+        }
+
+        .start-screen h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .start-screen p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            max-width: 400px;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .difficulty-btns {
+            display: flex;
+            gap: 15px;
+        }
+
+        .diff-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .diff-btn:active {
+            background: rgba(102, 126, 234, 0.5);
+            border-color: rgba(102, 126, 234, 0.8);
+            transform: scale(0.98);
+        }
+
+        .accuracy-feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: 700;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .perfect { color: #ffd700; }
+        .great { color: #4caf50; }
+        .good { color: #2196f3; }
+        .miss { color: #f44336; }
+
+        @media (max-width: 768px) {
+            .hud {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .stat-box {
+                min-width: calc(50% - 5px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Rhythm Game</h1>
+            <button class="back-btn" onclick="window.location.href='../../index.html'">← Back</button>
+        </header>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div class="hud">
+            <div class="stat-box">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-box combo">
+                <div class="stat-label">Combo</div>
+                <div class="stat-value" id="combo">0</div>
+                <div class="multiplier" id="multiplier">×1</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Accuracy</div>
+                <div class="stat-value" id="accuracy">100%</div>
+            </div>
+        </div>
+
+        <div class="accuracy-feedback" id="feedback"></div>
+
+        <div class="start-screen" id="startScreen">
+            <h2>🎵 Rhythm Master</h2>
+            <p>Tap the notes as they reach the target circles at the bottom. Perfect timing = higher score!</p>
+            <div class="difficulty-btns">
+                <button class="diff-btn" onclick="startGame('easy')">Easy</button>
+                <button class="diff-btn" onclick="startGame('medium')">Medium</button>
+                <button class="diff-btn" onclick="startGame('hard')">Hard</button>
+            </div>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h2>🎉 Game Over!</h2>
+            <div class="final-stats">
+                <div class="final-stat">
+                    <span class="label">Final Score:</span>
+                    <span class="value" id="finalScore">0</span>
+                </div>
+                <div class="final-stat">
+                    <span class="label">Max Combo:</span>
+                    <span class="value" id="maxCombo">0</span>
+                </div>
+                <div class="final-stat">
+                    <span class="label">Accuracy:</span>
+                    <span class="value" id="finalAccuracy">0%</span>
+                </div>
+                <div class="final-stat">
+                    <span class="label">Perfect:</span>
+                    <span class="value" id="perfectCount">0</span>
+                </div>
+                <div class="final-stat">
+                    <span class="label">Great:</span>
+                    <span class="value" id="greatCount">0</span>
+                </div>
+                <div class="final-stat">
+                    <span class="label">Good:</span>
+                    <span class="value" id="goodCount">0</span>
+                </div>
+                <div class="final-stat">
+                    <span class="label">Miss:</span>
+                    <span class="value" id="missCount">0</span>
+                </div>
+            </div>
+            <div class="game-btns">
+                <button class="game-btn" onclick="restart()">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/touch-utils.js"></script>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameActive = false;
+        let score = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let hits = { perfect: 0, great: 0, good: 0, miss: 0 };
+        let difficulty = 'medium';
+
+        // Difficulty settings
+        const difficulties = {
+            easy: { speed: 2, spawnRate: 60, lanes: 3 },
+            medium: { speed: 3.5, spawnRate: 45, lanes: 4 },
+            hard: { speed: 5, spawnRate: 30, lanes: 5 }
+        };
+
+        // Notes
+        const notes = [];
+        let frameCount = 0;
+
+        // Target zones (at bottom)
+        let targets = [];
+
+        // Canvas setup
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            setupTargets();
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Setup target circles
+        function setupTargets() {
+            targets = [];
+            const settings = difficulties[difficulty];
+            const spacing = Math.min(canvas.width / (settings.lanes + 1), 120);
+            const startX = (canvas.width - (spacing * (settings.lanes - 1))) / 2;
+            const targetY = canvas.height - 150;
+
+            for (let i = 0; i < settings.lanes; i++) {
+                targets.push({
+                    x: startX + i * spacing,
+                    y: targetY,
+                    radius: 40,
+                    color: `hsl(${i * (360 / settings.lanes)}, 70%, 60%)`
+                });
+            }
+        }
+
+        // Note class
+        class Note {
+            constructor(lane) {
+                this.lane = lane;
+                this.x = targets[lane].x;
+                this.y = -50;
+                this.radius = 30;
+                this.speed = difficulties[difficulty].speed;
+                this.color = targets[lane].color;
+                this.hit = false;
+                this.missed = false;
+            }
+
+            update() {
+                this.y += this.speed;
+
+                // Check if missed
+                if (this.y > targets[this.lane].y + 100 && !this.hit && !this.missed) {
+                    this.missed = true;
+                    registerHit('miss');
+                }
+            }
+
+            draw() {
+                // Glow effect
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * 1.5);
+                gradient.addColorStop(0, this.color);
+                gradient.addColorStop(0.7, this.color.replace('60%', '40%'));
+                gradient.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Note circle
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Inner circle
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            checkHit(touchX, touchY) {
+                const dx = touchX - this.x;
+                const dy = touchY - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < this.radius + targets[this.lane].radius) {
+                    const targetDist = Math.abs(this.y - targets[this.lane].y);
+
+                    let accuracy;
+                    if (targetDist < 20) accuracy = 'perfect';
+                    else if (targetDist < 40) accuracy = 'great';
+                    else if (targetDist < 60) accuracy = 'good';
+                    else return false;
+
+                    this.hit = true;
+                    registerHit(accuracy);
+                    showFeedback(accuracy);
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        // Spawn notes
+        function spawnNote() {
+            const settings = difficulties[difficulty];
+            const lane = Math.floor(Math.random() * settings.lanes);
+            notes.push(new Note(lane));
+        }
+
+        // Register hit
+        function registerHit(type) {
+            hits[type]++;
+
+            if (type !== 'miss') {
+                combo++;
+                maxCombo = Math.max(maxCombo, combo);
+
+                const points = {
+                    perfect: 100,
+                    great: 75,
+                    good: 50
+                };
+
+                const multiplier = Math.min(Math.floor(combo / 10) + 1, 8);
+                score += points[type] * multiplier;
+
+                TouchUtils.vibrate(type === 'perfect' ? 10 : 5);
+            } else {
+                combo = 0;
+                TouchUtils.vibrate(20);
+            }
+
+            updateHUD();
+        }
+
+        // Show feedback
+        function showFeedback(type) {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = type.toUpperCase();
+            feedback.className = `accuracy-feedback ${type}`;
+            feedback.style.opacity = '1';
+
+            setTimeout(() => {
+                feedback.style.opacity = '0';
+            }, 300);
+        }
+
+        // Update HUD
+        function updateHUD() {
+            document.getElementById('score').textContent = score.toLocaleString();
+            document.getElementById('combo').textContent = combo;
+
+            const multiplier = Math.min(Math.floor(combo / 10) + 1, 8);
+            document.getElementById('multiplier').textContent = `×${multiplier}`;
+
+            const totalHits = hits.perfect + hits.great + hits.good + hits.miss;
+            const accuracy = totalHits > 0 ?
+                ((hits.perfect + hits.great + hits.good) / totalHits * 100).toFixed(1) : 100;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+
+        // Draw targets
+        function drawTargets() {
+            targets.forEach((target, i) => {
+                // Glow ring
+                ctx.strokeStyle = target.color.replace('60%', '50%');
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(target.x, target.y, target.radius + 10, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Target circle
+                ctx.strokeStyle = target.color;
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Inner circle
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.beginPath();
+                ctx.arc(target.x, target.y, target.radius - 10, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        // Draw lane lines
+        function drawLanes() {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 10]);
+
+            targets.forEach(target => {
+                ctx.beginPath();
+                ctx.moveTo(target.x, 0);
+                ctx.lineTo(target.x, canvas.height);
+                ctx.stroke();
+            });
+
+            ctx.setLineDash([]);
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (!gameActive) return;
+
+            // Clear
+            ctx.fillStyle = 'rgba(22, 33, 62, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw lanes
+            drawLanes();
+
+            // Draw targets
+            drawTargets();
+
+            // Spawn notes
+            frameCount++;
+            if (frameCount % difficulties[difficulty].spawnRate === 0) {
+                spawnNote();
+            }
+
+            // Update and draw notes
+            for (let i = notes.length - 1; i >= 0; i--) {
+                notes[i].update();
+                notes[i].draw();
+
+                // Remove off-screen notes
+                if (notes[i].y > canvas.height + 100) {
+                    notes.splice(i, 1);
+                }
+            }
+
+            // End game after 60 seconds
+            if (frameCount > 60 * 60) {
+                endGame();
+                return;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Touch handling
+        canvas.addEventListener('touchstart', (e) => {
+            if (!gameActive) return;
+            e.preventDefault();
+
+            for (let touch of e.touches) {
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+
+                // Check notes
+                for (let note of notes) {
+                    if (!note.hit && note.checkHit(x, y)) {
+                        break;
+                    }
+                }
+            }
+        });
+
+        // Mouse handling
+        canvas.addEventListener('mousedown', (e) => {
+            if (!gameActive) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            for (let note of notes) {
+                if (!note.hit && note.checkHit(x, y)) {
+                    break;
+                }
+            }
+        });
+
+        // Start game
+        function startGame(diff) {
+            difficulty = diff;
+            setupTargets();
+
+            gameActive = true;
+            score = 0;
+            combo = 0;
+            maxCombo = 0;
+            hits = { perfect: 0, great: 0, good: 0, miss: 0 };
+            notes.length = 0;
+            frameCount = 0;
+
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameOver').classList.remove('show');
+
+            updateHUD();
+            gameLoop();
+        }
+
+        // End game
+        function endGame() {
+            gameActive = false;
+
+            const totalHits = hits.perfect + hits.great + hits.good + hits.miss;
+            const accuracy = totalHits > 0 ?
+                ((hits.perfect + hits.great + hits.good) / totalHits * 100).toFixed(1) : 100;
+
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('maxCombo').textContent = maxCombo;
+            document.getElementById('finalAccuracy').textContent = accuracy + '%';
+            document.getElementById('perfectCount').textContent = hits.perfect;
+            document.getElementById('greatCount').textContent = hits.great;
+            document.getElementById('goodCount').textContent = hits.good;
+            document.getElementById('missCount').textContent = hits.miss;
+
+            document.getElementById('gameOver').classList.add('show');
+        }
+
+        // Restart
+        function restart() {
+            document.getElementById('startScreen').classList.remove('hidden');
+            document.getElementById('gameOver').classList.remove('show');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Multi-Finger Gestures - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .gesture-arena {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 500px;
+      border-radius: var(--radius-xl);
+      padding: var(--space-2xl);
+      position: relative;
+      overflow: hidden;
+      touch-action: none;
+      user-select: none;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .touch-point {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      border: 3px solid white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.5rem;
+      pointer-events: none;
+      box-shadow: var(--shadow-xl);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .gesture-display {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: white;
+      pointer-events: none;
+    }
+
+    .gesture-icon {
+      font-size: 5rem;
+      margin-bottom: var(--space-lg);
+      animation: scaleIn 0.5s;
+    }
+
+    .gesture-name {
+      font-size: 2rem;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    @keyframes scaleIn {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-md);
+      margin: var(--space-xl) 0;
+    }
+
+    .stat-card {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+    }
+
+    .gesture-log {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-top: var(--space-xl);
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .log-item {
+      padding: var(--space-sm);
+      border-bottom: 1px solid var(--gray-200);
+      font-family: 'Monaco', monospace;
+      font-size: 0.875rem;
+    }
+
+    .log-item:last-child {
+      border-bottom: none;
+    }
+
+    .log-time {
+      color: var(--gray-500);
+      margin-right: var(--space-md);
+    }
+
+    .log-gesture {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .finger-count-indicator {
+      position: absolute;
+      top: var(--space-lg);
+      right: var(--space-lg);
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: var(--space-md) var(--space-lg);
+      border-radius: var(--radius-full);
+      font-weight: 700;
+      font-size: 1.25rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .gestures-guide {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-top: var(--space-xl);
+    }
+
+    .gesture-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-lg);
+      padding: var(--space-md);
+      margin-bottom: var(--space-md);
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+    }
+
+    .gesture-emoji {
+      font-size: 2rem;
+      min-width: 50px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Multi-Finger Gestures</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Advanced 3, 4, and 5-finger gesture detection - rare but powerful touch interactions.
+      </p>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="currentFingers">0</div>
+          <div class="stat-label">Active Fingers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="maxFingers">0</div>
+          <div class="stat-label">Max Detected</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="gestureCount">0</div>
+          <div class="stat-label">Gestures Detected</div>
+        </div>
+      </div>
+
+      <!-- Gesture Arena -->
+      <div class="gesture-arena" id="gestureArena">
+        <div class="finger-count-indicator" id="fingerCount">
+          👆 Touch with multiple fingers
+        </div>
+        <div class="gesture-display" id="gestureDisplay"></div>
+      </div>
+
+      <!-- Supported Gestures Guide -->
+      <div class="gestures-guide">
+        <h3>Supported Multi-Finger Gestures</h3>
+        <div class="gesture-item">
+          <div class="gesture-emoji">👆👆👆</div>
+          <div>
+            <strong>3-Finger Swipe</strong><br>
+            <span style="font-size: 0.875rem; color: var(--gray-600);">
+              Swipe with 3 fingers (up/down/left/right)
+            </span>
+          </div>
+        </div>
+
+        <div class="gesture-item">
+          <div class="gesture-emoji">👆👆👆👆</div>
+          <div>
+            <strong>4-Finger Swipe</strong><br>
+            <span style="font-size: 0.875rem; color: var(--gray-600);">
+              Swipe with 4 fingers (app switching gesture)
+            </span>
+          </div>
+        </div>
+
+        <div class="gesture-item">
+          <div class="gesture-emoji">✋</div>
+          <div>
+            <strong>5-Finger Pinch</strong><br>
+            <span style="font-size: 0.875rem; color: var(--gray-600);">
+              Pinch/spread with all 5 fingers (iPad gesture)
+            </span>
+          </div>
+        </div>
+
+        <div class="gesture-item">
+          <div class="gesture-emoji">👆👆👆 ⟳</div>
+          <div>
+            <strong>3-Finger Rotate</strong><br>
+            <span style="font-size: 0.875rem; color: var(--gray-600);">
+              Rotate with 3 fingers
+            </span>
+          </div>
+        </div>
+
+        <div class="gesture-item">
+          <div class="gesture-emoji">👆👆👆 ⏱️</div>
+          <div>
+            <strong>3-Finger Tap/Hold</strong><br>
+            <span style="font-size: 0.875rem; color: var(--gray-600);">
+              Tap or hold with 3 fingers simultaneously
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gesture Log -->
+      <div class="gesture-log">
+        <h4>Gesture History</h4>
+        <div id="logContainer">
+          <div class="log-item">
+            <span class="log-time">Ready</span>
+            <span>Start touching to detect gestures...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Multi-Finger Gestures in Practice</h3>
+        <p>
+          Multi-finger gestures are commonly used in:
+        </p>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li><strong>iPad/iOS:</strong> 3-finger swipe for app switching, 5-finger pinch to home</li>
+          <li><strong>macOS:</strong> 3-finger drag, 4-finger swipe between desktops</li>
+          <li><strong>Design apps:</strong> Multi-finger zoom, rotate, and transform</li>
+          <li><strong>Music apps:</strong> Multi-track control and manipulation</li>
+          <li><strong>Games:</strong> Complex control schemes using multiple fingers</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">Implementation Tips</h4>
+        <ul style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li>Use <code>e.touches.length</code> to detect number of simultaneous touches</li>
+          <li>Track touch movement to determine swipe direction</li>
+          <li>Calculate center point for rotation gestures</li>
+          <li>Use debouncing to avoid false positives</li>
+          <li>Provide visual feedback for all detected gestures</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.3 - Multi-Finger Gestures</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const arena = document.getElementById('gestureArena');
+    const gestureDisplay = document.getElementById('gestureDisplay');
+    const fingerCount = document.getElementById('fingerCount');
+    const logContainer = document.getElementById('logContainer');
+
+    let touchPoints = new Map();
+    let gestureCount = 0;
+    let maxFingers = 0;
+    let initialTouches = null;
+    let gestureTimeout = null;
+
+    // Update stats
+    function updateStats(current) {
+      document.getElementById('currentFingers').textContent = current;
+
+      if (current > maxFingers) {
+        maxFingers = current;
+        document.getElementById('maxFingers').textContent = maxFingers;
+      }
+    }
+
+    // Show gesture
+    function showGesture(icon, name) {
+      gestureDisplay.innerHTML = `
+        <div class="gesture-icon">${icon}</div>
+        <div class="gesture-name">${name}</div>
+      `;
+
+      gestureCount++;
+      document.getElementById('gestureCount').textContent = gestureCount;
+
+      logGesture(name);
+      TouchUtils.vibrate([20, 50, 20]);
+
+      clearTimeout(gestureTimeout);
+      gestureTimeout = setTimeout(() => {
+        gestureDisplay.innerHTML = '';
+      }, 2000);
+    }
+
+    // Log gesture
+    function logGesture(gesture) {
+      const time = new Date().toLocaleTimeString();
+      const logItem = document.createElement('div');
+      logItem.className = 'log-item';
+      logItem.innerHTML = `
+        <span class="log-time">${time}</span>
+        <span class="log-gesture">${gesture}</span>
+      `;
+      logContainer.insertBefore(logItem, logContainer.firstChild);
+
+      // Keep only last 20 logs
+      while (logContainer.children.length > 20) {
+        logContainer.removeChild(logContainer.lastChild);
+      }
+    }
+
+    // Create touch point visual
+    function createTouchPoint(id, x, y) {
+      const point = document.createElement('div');
+      point.className = 'touch-point';
+      point.textContent = touchPoints.size + 1;
+      point.style.left = `${x}px`;
+      point.style.top = `${y}px`;
+      point.style.transform = 'translate(-50%, -50%)';
+      point.dataset.id = id;
+      arena.appendChild(point);
+      touchPoints.set(id, { element: point, x, y });
+    }
+
+    // Update touch point position
+    function updateTouchPoint(id, x, y) {
+      const point = touchPoints.get(id);
+      if (point) {
+        point.element.style.left = `${x}px`;
+        point.element.style.top = `${y}px`;
+        point.x = x;
+        point.y = y;
+      }
+    }
+
+    // Remove touch point
+    function removeTouchPoint(id) {
+      const point = touchPoints.get(id);
+      if (point) {
+        point.element.remove();
+        touchPoints.delete(id);
+      }
+    }
+
+    // Detect gesture type
+    function detectGesture(touches) {
+      const count = touches.length;
+
+      if (count < 3) return null;
+
+      // Store initial touch positions
+      if (!initialTouches) {
+        initialTouches = Array.from(touches).map(t => ({
+          id: t.identifier,
+          x: t.clientX,
+          y: t.clientY
+        }));
+        return null;
+      }
+
+      // Calculate movement
+      const movements = Array.from(touches).map((t, i) => {
+        const initial = initialTouches.find(it => it.identifier === t.identifier);
+        if (!initial) return null;
+
+        return {
+          dx: t.clientX - initial.x,
+          dy: t.clientY - initial.y
+        };
+      }).filter(m => m !== null);
+
+      if (movements.length < count) return null;
+
+      // Average movement
+      const avgDx = movements.reduce((sum, m) => sum + m.dx, 0) / movements.length;
+      const avgDy = movements.reduce((sum, m) => sum + m.dy, 0) / movements.length;
+      const distance = Math.sqrt(avgDx * avgDx + avgDy * avgDy);
+
+      // Detect swipe
+      if (distance > 50) {
+        const angle = Math.atan2(avgDy, avgDx) * 180 / Math.PI;
+        let direction = '';
+
+        if (angle > -45 && angle <= 45) direction = 'Right';
+        else if (angle > 45 && angle <= 135) direction = 'Down';
+        else if (angle > -135 && angle <= -45) direction = 'Up';
+        else direction = 'Left';
+
+        return {
+          type: 'swipe',
+          direction,
+          fingers: count
+        };
+      }
+
+      // Detect rotation (simplified)
+      if (count >= 3) {
+        const centerX = movements.reduce((sum, m) => sum + m.dx, 0) / count;
+        const centerY = movements.reduce((sum, m) => sum + m.dy, 0) / count;
+
+        // Check if fingers are rotating around center
+        let rotationScore = 0;
+        for (let i = 0; i < movements.length; i++) {
+          const m = movements[i];
+          const angle = Math.atan2(m.dy - centerY, m.dx - centerX);
+          rotationScore += Math.abs(angle);
+        }
+
+        if (rotationScore > 2) {
+          return {
+            type: 'rotate',
+            fingers: count
+          };
+        }
+      }
+
+      return null;
+    }
+
+    // Handle touch events
+    arena.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const rect = arena.getBoundingClientRect();
+
+      Array.from(e.touches).forEach(touch => {
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        createTouchPoint(touch.identifier, x, y);
+      });
+
+      const count = e.touches.length;
+      updateStats(count);
+
+      if (count === 1) {
+        fingerCount.textContent = '👆 1 Finger';
+      } else if (count === 2) {
+        fingerCount.textContent = '👆👆 2 Fingers';
+      } else if (count === 3) {
+        fingerCount.textContent = '👆👆👆 3 Fingers';
+        showGesture('👆👆👆', '3-Finger Touch');
+      } else if (count === 4) {
+        fingerCount.textContent = '👆👆👆👆 4 Fingers';
+        showGesture('👆👆👆👆', '4-Finger Touch');
+      } else if (count >= 5) {
+        fingerCount.textContent = '✋ 5 Fingers!';
+        showGesture('✋', '5-Finger Touch');
+      }
+
+      initialTouches = null;
+      TouchUtils.vibrate(10);
+    });
+
+    arena.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const rect = arena.getBoundingClientRect();
+
+      Array.from(e.touches).forEach(touch => {
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        updateTouchPoint(touch.identifier, x, y);
+      });
+
+      // Detect gestures
+      const gesture = detectGesture(e.touches);
+      if (gesture && e.touches.length >= 3) {
+        if (gesture.type === 'swipe') {
+          const emoji = gesture.direction === 'Up' ? '⬆️' :
+                       gesture.direction === 'Down' ? '⬇️' :
+                       gesture.direction === 'Left' ? '⬅️' : '➡️';
+          showGesture(
+            emoji,
+            `${gesture.fingers}-Finger Swipe ${gesture.direction}`
+          );
+          initialTouches = null; // Reset
+        } else if (gesture.type === 'rotate') {
+          showGesture('🔄', `${gesture.fingers}-Finger Rotate`);
+          initialTouches = null; // Reset
+        }
+      }
+    });
+
+    arena.addEventListener('touchend', (e) => {
+      e.preventDefault();
+
+      Array.from(e.changedTouches).forEach(touch => {
+        removeTouchPoint(touch.identifier);
+      });
+
+      const count = e.touches.length;
+      updateStats(count);
+
+      if (count === 0) {
+        fingerCount.textContent = '👆 Touch with multiple fingers';
+        initialTouches = null;
+      } else if (count === 1) {
+        fingerCount.textContent = '👆 1 Finger';
+      } else if (count === 2) {
+        fingerCount.textContent = '👆👆 2 Fingers';
+      }
+    });
+  </script>
+</body>
+</html>

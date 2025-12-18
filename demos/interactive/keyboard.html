@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Virtual Keyboard - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .keyboard-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .display {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      box-shadow: var(--shadow-lg);
+      margin-bottom: var(--space-xl);
+      min-height: 120px;
+    }
+
+    .display-input {
+      width: 100%;
+      font-size: 2rem;
+      border: none;
+      outline: none;
+      font-family: 'Monaco', monospace;
+      color: var(--gray-900);
+      padding: var(--space-md);
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      min-height: 80px;
+    }
+
+    .keyboard-modes {
+      display: flex;
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: var(--space-md);
+      border: 2px solid var(--gray-300);
+      background: white;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .mode-btn:hover {
+      border-color: var(--primary);
+    }
+
+    .mode-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .keyboard {
+      background: white;
+      padding: var(--space-lg);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .keyboard-row {
+      display: flex;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-xs);
+      justify-content: center;
+    }
+
+    .key {
+      min-width: 50px;
+      height: 60px;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 1.125rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .key:hover {
+      background: var(--gray-200);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .key:active {
+      transform: translateY(0) scale(0.95);
+      background: var(--primary);
+      color: white;
+    }
+
+    .key.wide {
+      flex: 1;
+      min-width: 100px;
+    }
+
+    .key.action {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+
+    .key.action:active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-sm);
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .num-key {
+      height: 80px;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      user-select: none;
+    }
+
+    .num-key:hover {
+      background: var(--gray-200);
+      transform: scale(1.05);
+    }
+
+    .num-key:active {
+      transform: scale(0.95);
+      background: var(--primary);
+      color: white;
+    }
+
+    .num-key.zero {
+      grid-column: span 2;
+    }
+
+    .num-key.action {
+      background: var(--danger);
+      color: white;
+    }
+
+    .num-key.action:hover {
+      background: var(--primary-dark);
+    }
+
+    .calculator-display {
+      background: var(--gray-900);
+      color: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-lg);
+      text-align: right;
+      font-family: 'Monaco', monospace;
+      font-size: 2.5rem;
+      font-weight: 700;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container keyboard-container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Virtual Keyboard</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Touch-optimized virtual keyboards for text input and calculations.
+      </p>
+
+      <!-- Mode Selector -->
+      <div class="keyboard-modes">
+        <button class="mode-btn active" onclick="switchMode('qwerty')">⌨️ QWERTY</button>
+        <button class="mode-btn" onclick="switchMode('numpad')">🔢 Numpad</button>
+        <button class="mode-btn" onclick="switchMode('calculator')">🧮 Calculator</button>
+      </div>
+
+      <!-- QWERTY Keyboard -->
+      <div id="qwertyMode">
+        <div class="display">
+          <input type="text" class="display-input" id="textInput" placeholder="Start typing..." readonly>
+        </div>
+
+        <div class="keyboard">
+          <div class="keyboard-row">
+            <div class="key" data-key="Q">Q</div>
+            <div class="key" data-key="W">W</div>
+            <div class="key" data-key="E">E</div>
+            <div class="key" data-key="R">R</div>
+            <div class="key" data-key="T">T</div>
+            <div class="key" data-key="Y">Y</div>
+            <div class="key" data-key="U">U</div>
+            <div class="key" data-key="I">I</div>
+            <div class="key" data-key="O">O</div>
+            <div class="key" data-key="P">P</div>
+          </div>
+          <div class="keyboard-row">
+            <div class="key" data-key="A">A</div>
+            <div class="key" data-key="S">S</div>
+            <div class="key" data-key="D">D</div>
+            <div class="key" data-key="F">F</div>
+            <div class="key" data-key="G">G</div>
+            <div class="key" data-key="H">H</div>
+            <div class="key" data-key="J">J</div>
+            <div class="key" data-key="K">K</div>
+            <div class="key" data-key="L">L</div>
+          </div>
+          <div class="keyboard-row">
+            <div class="key" data-key="Z">Z</div>
+            <div class="key" data-key="X">X</div>
+            <div class="key" data-key="C">C</div>
+            <div class="key" data-key="V">V</div>
+            <div class="key" data-key="B">B</div>
+            <div class="key" data-key="N">N</div>
+            <div class="key" data-key="M">M</div>
+            <div class="key action" onclick="backspace()">⌫</div>
+          </div>
+          <div class="keyboard-row">
+            <div class="key wide" data-key=" ">SPACE</div>
+            <div class="key action" onclick="clearInput()">CLEAR</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Numpad -->
+      <div id="numpadMode" style="display: none;">
+        <div class="display">
+          <input type="text" class="display-input" id="numInput" placeholder="Enter numbers..." readonly>
+        </div>
+
+        <div class="numpad">
+          <div class="num-key" data-num="1">1</div>
+          <div class="num-key" data-num="2">2</div>
+          <div class="num-key" data-num="3">3</div>
+          <div class="num-key" data-num="4">4</div>
+          <div class="num-key" data-num="5">5</div>
+          <div class="num-key" data-num="6">6</div>
+          <div class="num-key" data-num="7">7</div>
+          <div class="num-key" data-num="8">8</div>
+          <div class="num-key" data-num="9">9</div>
+          <div class="num-key zero" data-num="0">0</div>
+          <div class="num-key action" onclick="backspaceNum()">⌫</div>
+        </div>
+      </div>
+
+      <!-- Calculator -->
+      <div id="calculatorMode" style="display: none;">
+        <div class="calculator-display" id="calcDisplay">0</div>
+
+        <div class="numpad">
+          <div class="num-key" onclick="calcInput('7')">7</div>
+          <div class="num-key" onclick="calcInput('8')">8</div>
+          <div class="num-key" onclick="calcInput('9')">9</div>
+          <div class="num-key" onclick="calcInput('4')">4</div>
+          <div class="num-key" onclick="calcInput('5')">5</div>
+          <div class="num-key" onclick="calcInput('6')">6</div>
+          <div class="num-key" onclick="calcInput('1')">1</div>
+          <div class="num-key" onclick="calcInput('2')">2</div>
+          <div class="num-key" onclick="calcInput('3')">3</div>
+          <div class="num-key zero" onclick="calcInput('0')">0</div>
+          <div class="num-key action" onclick="clearCalc()">C</div>
+        </div>
+        <div class="keyboard-row" style="margin-top: var(--space-md);">
+          <div class="key" onclick="calcInput('+')">+</div>
+          <div class="key" onclick="calcInput('-')">−</div>
+          <div class="key" onclick="calcInput('*')">×</div>
+          <div class="key" onclick="calcInput('/')">÷</div>
+          <div class="key wide action" onclick="calculate()">=</div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Features</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>QWERTY:</strong> Full alphabetic keyboard with space and backspace</li>
+          <li><strong>Numpad:</strong> Number input pad for numeric entry</li>
+          <li><strong>Calculator:</strong> Basic calculator with operations</li>
+          <li><strong>Touch feedback:</strong> Visual and haptic feedback on key press</li>
+          <li><strong>Large keys:</strong> Optimized for touch accuracy</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.2 - Virtual Keyboard</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    // Mode switching
+    function switchMode(mode) {
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      document.getElementById('qwertyMode').style.display = mode === 'qwerty' ? 'block' : 'none';
+      document.getElementById('numpadMode').style.display = mode === 'numpad' ? 'block' : 'none';
+      document.getElementById('calculatorMode').style.display = mode === 'calculator' ? 'block' : 'none';
+
+      TouchUtils.vibrate(10);
+    }
+
+    // QWERTY Keyboard
+    const textInput = document.getElementById('textInput');
+
+    document.querySelectorAll('.key[data-key]').forEach(key => {
+      key.addEventListener('click', () => {
+        textInput.value += key.dataset.key;
+        TouchUtils.vibrate(5);
+      });
+    });
+
+    function backspace() {
+      textInput.value = textInput.value.slice(0, -1);
+      TouchUtils.vibrate(10);
+    }
+
+    function clearInput() {
+      textInput.value = '';
+      TouchUtils.vibrate(20);
+    }
+
+    // Numpad
+    const numInput = document.getElementById('numInput');
+
+    document.querySelectorAll('.num-key[data-num]').forEach(key => {
+      key.addEventListener('click', () => {
+        numInput.value += key.dataset.num;
+        TouchUtils.vibrate(5);
+      });
+    });
+
+    function backspaceNum() {
+      numInput.value = numInput.value.slice(0, -1);
+      TouchUtils.vibrate(10);
+    }
+
+    // Calculator
+    const calcDisplay = document.getElementById('calcDisplay');
+    let calcExpression = '';
+
+    function calcInput(value) {
+      if (calcExpression === '0') calcExpression = '';
+      calcExpression += value;
+      calcDisplay.textContent = calcExpression || '0';
+      TouchUtils.vibrate(5);
+    }
+
+    function calculate() {
+      try {
+        const result = eval(calcExpression.replace('×', '*').replace('÷', '/'));
+        calcDisplay.textContent = result;
+        calcExpression = result.toString();
+        TouchUtils.vibrate([20, 50, 20]);
+      } catch (e) {
+        calcDisplay.textContent = 'Error';
+        calcExpression = '';
+        TouchUtils.vibrate(50);
+      }
+    }
+
+    function clearCalc() {
+      calcExpression = '';
+      calcDisplay.textContent = '0';
+      TouchUtils.vibrate(20);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>3D Object Manipulation - TouchScreen Demo</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <style>
+    .canvas-container {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      padding: var(--space-xl);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      margin-bottom: var(--space-xl);
+      position: relative;
+    }
+
+    #canvas3d {
+      width: 100%;
+      border-radius: var(--radius-lg);
+      touch-action: none;
+      cursor: move;
+      background: #0f1419;
+    }
+
+    .controls-panel {
+      background: white;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .control-group {
+      margin-bottom: var(--space-lg);
+    }
+
+    .control-label {
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: var(--space-sm);
+      display: block;
+    }
+
+    .object-selector {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-md);
+    }
+
+    .object-btn {
+      aspect-ratio: 1;
+      background: var(--gray-100);
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+    }
+
+    .object-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .object-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .object-icon {
+      font-size: 2rem;
+    }
+
+    .object-name {
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-md);
+    }
+
+    .stat-card {
+      background: var(--gray-50);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Monaco', monospace;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-top: var(--space-xs);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .gesture-hint {
+      position: absolute;
+      top: var(--space-lg);
+      left: var(--space-lg);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .color-picker-row {
+      display: flex;
+      gap: var(--space-sm);
+      margin-top: var(--space-md);
+    }
+
+    .color-swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all var(--transition-fast);
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.1);
+    }
+
+    .color-swatch.active {
+      border-color: var(--gray-900);
+      transform: scale(1.2);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>3D Object Manipulation</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Rotate, zoom, and interact with 3D objects using intuitive touch gestures.
+      </p>
+
+      <!-- 3D Canvas -->
+      <div class="canvas-container">
+        <div class="gesture-hint">
+          Drag to rotate • Pinch to zoom • Double-tap to reset
+        </div>
+        <canvas id="canvas3d" width="800" height="600"></canvas>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls-panel">
+        <div class="control-group">
+          <label class="control-label">Select 3D Object</label>
+          <div class="object-selector">
+            <button class="object-btn active" data-object="cube" onclick="changeObject('cube')">
+              <div class="object-icon">📦</div>
+              <div class="object-name">Cube</div>
+            </button>
+            <button class="object-btn" data-object="pyramid" onclick="changeObject('pyramid')">
+              <div class="object-icon">🔺</div>
+              <div class="object-name">Pyramid</div>
+            </button>
+            <button class="object-btn" data-object="sphere" onclick="changeObject('sphere')">
+              <div class="object-icon">⚽</div>
+              <div class="object-name">Sphere</div>
+            </button>
+            <button class="object-btn" data-object="torus" onclick="changeObject('torus')">
+              <div class="object-icon">💍</div>
+              <div class="object-name">Torus</div>
+            </button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Object Color</label>
+          <div class="color-picker-row">
+            <div class="color-swatch active" style="background: #6366f1;" onclick="changeColor('#6366f1')"></div>
+            <div class="color-swatch" style="background: #10b981;" onclick="changeColor('#10b981')"></div>
+            <div class="color-swatch" style="background: #f59e0b;" onclick="changeColor('#f59e0b')"></div>
+            <div class="color-swatch" style="background: #ef4444;" onclick="changeColor('#ef4444')"></div>
+            <div class="color-swatch" style="background: #8b5cf6;" onclick="changeColor('#8b5cf6')"></div>
+            <div class="color-swatch" style="background: #ec4899;" onclick="changeColor('#ec4899')"></div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="resetView()">Reset View</button>
+          <button class="btn btn-secondary" onclick="toggleWireframe()">
+            <span id="wireframeText">Enable Wireframe</span>
+          </button>
+          <button class="btn btn-secondary" onclick="toggleAutoRotate()">
+            <span id="autoRotateText">Auto Rotate</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="rotationX">0°</div>
+          <div class="stat-label">Rotation X</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="rotationY">0°</div>
+          <div class="stat-label">Rotation Y</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="zoomLevel">100%</div>
+          <div class="stat-label">Zoom Level</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="fps">60</div>
+          <div class="stat-label">FPS</div>
+        </div>
+      </div>
+
+      <!-- Demo Info -->
+      <div class="demo-info mt-xl">
+        <h3>Touch Gestures for 3D</h3>
+        <ul style="margin-left: var(--space-lg);">
+          <li><strong>Single finger drag:</strong> Rotate object around X and Y axes</li>
+          <li><strong>Pinch:</strong> Zoom in/out on the object</li>
+          <li><strong>Double-tap:</strong> Reset to default view</li>
+          <li><strong>Momentum:</strong> Object continues rotating after release</li>
+        </ul>
+
+        <h4 style="margin-top: var(--space-xl);">3D Rendering Techniques</h4>
+        <ul style="margin-left: var(--space-lg);">
+          <li>Perspective projection for realistic depth</li>
+          <li>Z-buffer sorting for correct face rendering</li>
+          <li>Back-face culling for performance</li>
+          <li>Smooth shading based on light direction</li>
+          <li>Real-time transformation matrices</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.4 - 3D Object Manipulation</p>
+    </div>
+  </footer>
+
+  <script src="../../js/touch-utils.js"></script>
+  <script>
+    const canvas = document.getElementById('canvas3d');
+    const ctx = canvas.getContext('2d');
+
+    let rotation = { x: 0.3, y: 0.3 };
+    let scale = 1;
+    let currentObject = 'cube';
+    let objectColor = '#6366f1';
+    let wireframeMode = false;
+    let autoRotate = false;
+
+    let isDragging = false;
+    let lastTouchX = 0;
+    let lastTouchY = 0;
+    let velocity = { x: 0, y: 0 };
+    let initialPinchDistance = 0;
+    let initialScale = 1;
+
+    let lastFrameTime = Date.now();
+    let frameCount = 0;
+    let fps = 60;
+
+    // 3D to 2D projection
+    function project(point) {
+      const fov = 500;
+      const distance = 4;
+
+      const scale3d = fov / (fov + point.z + distance);
+      return {
+        x: point.x * scale3d * scale + canvas.width / 2,
+        y: point.y * scale3d * scale + canvas.height / 2,
+        z: point.z
+      };
+    }
+
+    // Rotate point
+    function rotatePoint(point, rx, ry) {
+      // Rotate around X
+      let y = point.y * Math.cos(rx) - point.z * Math.sin(rx);
+      let z = point.y * Math.sin(rx) + point.z * Math.cos(rx);
+      let x = point.x;
+
+      // Rotate around Y
+      let x2 = x * Math.cos(ry) - z * Math.sin(ry);
+      let z2 = x * Math.sin(ry) + z * Math.cos(ry);
+
+      return { x: x2, y: y, z: z2 };
+    }
+
+    // Generate vertices for different objects
+    function getCubeVertices() {
+      return [
+        [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],  // Front
+        [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]       // Back
+      ];
+    }
+
+    function getPyramidVertices() {
+      return [
+        [0, -1.5, 0],    // Apex
+        [-1, 1, -1], [1, 1, -1], [1, 1, 1], [-1, 1, 1]  // Base
+      ];
+    }
+
+    function getSphereVertices() {
+      const vertices = [];
+      const rings = 12;
+      const segments = 16;
+
+      for (let ring = 0; ring <= rings; ring++) {
+        const theta = (ring / rings) * Math.PI;
+        const sinTheta = Math.sin(theta);
+        const cosTheta = Math.cos(theta);
+
+        for (let seg = 0; seg <= segments; seg++) {
+          const phi = (seg / segments) * 2 * Math.PI;
+          const x = Math.cos(phi) * sinTheta;
+          const y = cosTheta;
+          const z = Math.sin(phi) * sinTheta;
+          vertices.push([x * 1.2, y * 1.2, z * 1.2]);
+        }
+      }
+      return vertices;
+    }
+
+    function getTorusVertices() {
+      const vertices = [];
+      const majorRadius = 1;
+      const minorRadius = 0.4;
+      const majorSegments = 24;
+      const minorSegments = 16;
+
+      for (let i = 0; i <= majorSegments; i++) {
+        const theta = (i / majorSegments) * 2 * Math.PI;
+        for (let j = 0; j <= minorSegments; j++) {
+          const phi = (j / minorSegments) * 2 * Math.PI;
+
+          const x = (majorRadius + minorRadius * Math.cos(phi)) * Math.cos(theta);
+          const y = minorRadius * Math.sin(phi);
+          const z = (majorRadius + minorRadius * Math.cos(phi)) * Math.sin(theta);
+
+          vertices.push([x, y, z]);
+        }
+      }
+      return vertices;
+    }
+
+    function getCubeFaces() {
+      return [
+        [0, 1, 2, 3], [4, 5, 6, 7],  // Front, Back
+        [0, 1, 5, 4], [2, 3, 7, 6],  // Bottom, Top
+        [0, 3, 7, 4], [1, 2, 6, 5]   // Left, Right
+      ];
+    }
+
+    function getPyramidFaces() {
+      return [
+        [1, 2, 3, 4],  // Base
+        [0, 1, 2],     // Sides
+        [0, 2, 3],
+        [0, 3, 4],
+        [0, 4, 1]
+      ];
+    }
+
+    // Draw 3D object
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      let vertices, faces;
+
+      switch (currentObject) {
+        case 'cube':
+          vertices = getCubeVertices();
+          faces = getCubeFaces();
+          break;
+        case 'pyramid':
+          vertices = getPyramidVertices();
+          faces = getPyramidFaces();
+          break;
+        case 'sphere':
+        case 'torus':
+          vertices = currentObject === 'sphere' ? getSphereVertices() : getTorusVertices();
+          faces = null; // Draw as points/lines
+          break;
+      }
+
+      // Rotate and project vertices
+      const projectedPoints = vertices.map(v => {
+        const rotated = rotatePoint({ x: v[0], y: v[1], z: v[2] }, rotation.x, rotation.y);
+        return project(rotated);
+      });
+
+      // Draw based on object type
+      if (faces) {
+        // Sort faces by average Z for painter's algorithm
+        const sortedFaces = faces.map(face => {
+          const avgZ = face.reduce((sum, i) => sum + projectedPoints[i].z, 0) / face.length;
+          return { face, avgZ };
+        }).sort((a, b) => b.avgZ - a.avgZ);
+
+        // Draw faces
+        sortedFaces.forEach(({ face }) => {
+          ctx.beginPath();
+          face.forEach((vertexIndex, i) => {
+            const point = projectedPoints[vertexIndex];
+            if (i === 0) {
+              ctx.moveTo(point.x, point.y);
+            } else {
+              ctx.lineTo(point.x, point.y);
+            }
+          });
+          ctx.closePath();
+
+          if (wireframeMode) {
+            ctx.strokeStyle = objectColor;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          } else {
+            // Calculate lighting
+            const lightness = 0.5 + (face[0] / vertices.length) * 0.5;
+            ctx.fillStyle = adjustColor(objectColor, lightness);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        });
+      } else {
+        // Draw sphere/torus as connected points
+        if (wireframeMode) {
+          projectedPoints.forEach((point, i) => {
+            if (i > 0) {
+              const prev = projectedPoints[i - 1];
+              ctx.beginPath();
+              ctx.moveTo(prev.x, prev.y);
+              ctx.lineTo(point.x, point.y);
+              ctx.strokeStyle = objectColor;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+          });
+        } else {
+          projectedPoints.forEach(point => {
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 2, 0, Math.PI * 2);
+            ctx.fillStyle = objectColor;
+            ctx.fill();
+          });
+        }
+      }
+
+      // Update stats
+      document.getElementById('rotationX').textContent = Math.round(rotation.x * 180 / Math.PI) + '°';
+      document.getElementById('rotationY').textContent = Math.round(rotation.y * 180 / Math.PI) + '°';
+      document.getElementById('zoomLevel').textContent = Math.round(scale * 100) + '%';
+
+      // FPS counter
+      frameCount++;
+      const now = Date.now();
+      if (now - lastFrameTime >= 1000) {
+        fps = frameCount;
+        document.getElementById('fps').textContent = fps;
+        frameCount = 0;
+        lastFrameTime = now;
+      }
+    }
+
+    function adjustColor(color, lightness) {
+      const hex = color.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+
+      const adjust = (val) => Math.round(Math.max(0, Math.min(255, val * lightness)));
+
+      return `rgb(${adjust(r)}, ${adjust(g)}, ${adjust(b)})`;
+    }
+
+    // Touch handlers
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+
+      if (e.touches.length === 1) {
+        isDragging = true;
+        lastTouchX = e.touches[0].clientX;
+        lastTouchY = e.touches[0].clientY;
+        velocity = { x: 0, y: 0 };
+      } else if (e.touches.length === 2) {
+        initialPinchDistance = TouchUtils.getPinchDistance(e.touches);
+        initialScale = scale;
+      }
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+
+      if (e.touches.length === 1 && isDragging) {
+        const deltaX = e.touches[0].clientX - lastTouchX;
+        const deltaY = e.touches[0].clientY - lastTouchY;
+
+        rotation.y += deltaX * 0.01;
+        rotation.x += deltaY * 0.01;
+
+        velocity.x = deltaY * 0.01;
+        velocity.y = deltaX * 0.01;
+
+        lastTouchX = e.touches[0].clientX;
+        lastTouchY = e.touches[0].clientY;
+      } else if (e.touches.length === 2) {
+        const currentDistance = TouchUtils.getPinchDistance(e.touches);
+        const scaleChange = currentDistance / initialPinchDistance;
+        scale = Math.max(0.5, Math.min(3, initialScale * scaleChange));
+      }
+    });
+
+    canvas.addEventListener('touchend', () => {
+      isDragging = false;
+    });
+
+    // Mouse support
+    canvas.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      lastTouchX = e.clientX;
+      lastTouchY = e.clientY;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+
+      const deltaX = e.clientX - lastTouchX;
+      const deltaY = e.clientY - lastTouchY;
+
+      rotation.y += deltaX * 0.01;
+      rotation.x += deltaY * 0.01;
+
+      lastTouchX = e.clientX;
+      lastTouchY = e.clientY;
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    // Double-tap to reset
+    TouchUtils.detectDoubleTap(canvas, resetView);
+
+    // Functions
+    function changeObject(obj) {
+      currentObject = obj;
+      document.querySelectorAll('.object-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.object === obj);
+      });
+      TouchUtils.vibrate(10);
+    }
+
+    function changeColor(color) {
+      objectColor = color;
+      document.querySelectorAll('.color-swatch').forEach(swatch => {
+        swatch.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      TouchUtils.vibrate(5);
+    }
+
+    function resetView() {
+      rotation = { x: 0.3, y: 0.3 };
+      scale = 1;
+      velocity = { x: 0, y: 0 };
+      TouchUtils.vibrate(20);
+    }
+
+    function toggleWireframe() {
+      wireframeMode = !wireframeMode;
+      document.getElementById('wireframeText').textContent =
+        wireframeMode ? 'Disable Wireframe' : 'Enable Wireframe';
+      TouchUtils.vibrate(10);
+    }
+
+    function toggleAutoRotate() {
+      autoRotate = !autoRotate;
+      document.getElementById('autoRotateText').textContent =
+        autoRotate ? 'Stop Auto Rotate' : 'Auto Rotate';
+      TouchUtils.vibrate(10);
+    }
+
+    // Animation loop
+    function animate() {
+      // Apply momentum
+      if (!isDragging && (Math.abs(velocity.x) > 0.001 || Math.abs(velocity.y) > 0.001)) {
+        rotation.x += velocity.x;
+        rotation.y += velocity.y;
+        velocity.x *= 0.95;
+        velocity.y *= 0.95;
+      }
+
+      // Auto-rotate
+      if (autoRotate) {
+        rotation.y += 0.01;
+      }
+
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    // Initialize
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    animate();
+
+    // Resize handler
+    window.addEventListener('resize', () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Hammer.js Demo - TouchScreen</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/components.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo">TouchScreen Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <a href="../../index.html" class="back-link">← Back to Home</a>
+
+      <h1>Hammer.js Gesture Library</h1>
+      <p class="mb-lg" style="color: var(--gray-600); font-size: 1.125rem;">
+        Advanced gesture recognition library for touch interactions
+      </p>
+
+      <div class="demo-info" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border-left: none;">
+        <h2 style="color: white;">🔨 Hammer.js</h2>
+        <p style="opacity: 0.9;">
+          Hammer.js is a powerful JavaScript library that recognizes touch gestures made by touch, mouse, and pointer events. It's lightweight, has no dependencies, and is perfect for mobile-first development.
+        </p>
+      </div>
+
+      <section class="mt-2xl">
+        <h2>Key Features</h2>
+        <div class="card-grid">
+          <div class="card">
+            <h3 class="card-title">👆 Multi-touch</h3>
+            <p class="card-description">
+              Recognizes multiple simultaneous touch points and complex gestures like pinch, rotate, and multi-finger swipes.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">🎯 Gesture Recognition</h3>
+            <p class="card-description">
+              Built-in recognizers for pan, pinch, press, rotate, swipe, and tap gestures with customizable thresholds.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">⚡ Lightweight</h3>
+            <p class="card-description">
+              Only ~7KB minified and gzipped with no dependencies, making it perfect for performance-critical applications.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">🔧 Customizable</h3>
+            <p class="card-description">
+              Fine-tune gesture recognition with options for direction, threshold, velocity, and simultaneous gesture handling.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-2xl">
+        <h2>Supported Gestures</h2>
+        <div class="card" style="background: var(--gray-50);">
+          <ul style="margin-left: var(--space-lg); line-height: 2;">
+            <li><strong>Pan:</strong> Touch and move in any direction</li>
+            <li><strong>Pinch:</strong> Two-finger zoom in/out</li>
+            <li><strong>Press:</strong> Long press (touch and hold)</li>
+            <li><strong>Rotate:</strong> Two-finger rotation</li>
+            <li><strong>Swipe:</strong> Quick directional flick</li>
+            <li><strong>Tap:</strong> Single or double tap recognition</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="mt-2xl">
+        <h2>Installation & Usage</h2>
+        <div class="card" style="background: var(--gray-900); color: white;">
+          <h3 style="color: white;">Install via npm</h3>
+          <pre style="background: var(--gray-800); padding: var(--space-md); border-radius: var(--radius-sm); overflow-x: auto;"><code>npm install hammerjs</code></pre>
+
+          <h3 style="color: white; margin-top: var(--space-xl);">CDN Link</h3>
+          <pre style="background: var(--gray-800); padding: var(--space-md); border-radius: var(--radius-sm); overflow-x: auto;"><code>&lt;script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"&gt;&lt;/script&gt;</code></pre>
+
+          <h3 style="color: white; margin-top: var(--space-xl);">Basic Example</h3>
+          <pre style="background: var(--gray-800); padding: var(--space-md); border-radius: var(--radius-sm); overflow-x: auto; font-size: 0.875rem;"><code>const element = document.getElementById('myElement');
+const hammer = new Hammer(element);
+
+// Listen for tap
+hammer.on('tap', (e) => {
+  console.log('Tapped!');
+});
+
+// Listen for swipe
+hammer.on('swipe', (e) => {
+  console.log('Swiped in direction:', e.direction);
+});
+
+// Listen for pinch
+hammer.get('pinch').set({ enable: true });
+hammer.on('pinch', (e) => {
+  console.log('Pinch scale:', e.scale);
+});</code></pre>
+        </div>
+      </section>
+
+      <section class="mt-2xl">
+        <h2>Why Use Hammer.js?</h2>
+        <div class="card-grid">
+          <div class="card">
+            <div class="card-title">✅ Cross-browser</div>
+            <p>Works consistently across all modern browsers and devices</p>
+          </div>
+          <div class="card">
+            <div class="card-title">✅ Mobile-first</div>
+            <p>Optimized for touch but also works with mouse and pointer events</p>
+          </div>
+          <div class="card">
+            <div class="card-title">✅ Battle-tested</div>
+            <p>Used by major companies and in production applications worldwide</p>
+          </div>
+          <div class="card">
+            <div class="card-title">✅ Well-documented</div>
+            <p>Comprehensive documentation with examples and API reference</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-2xl">
+        <div class="card" style="background: var(--primary); color: white; text-align: center;">
+          <h2 style="color: white;">Learn More</h2>
+          <p style="opacity: 0.9; margin-bottom: var(--space-xl);">
+            Check out the official documentation and examples
+          </p>
+          <div style="display: flex; gap: var(--space-md); justify-content: center; flex-wrap: wrap;">
+            <a href="https://hammerjs.github.io/" target="_blank" class="btn btn-large" style="background: white; color: var(--primary);">
+              Official Website
+            </a>
+            <a href="https://github.com/hammerjs/hammer.js" target="_blank" class="btn btn-large" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white;">
+              GitHub Repository
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <div class="demo-info mt-2xl">
+        <h3>💡 Implementation Note</h3>
+        <p>
+          This page provides an overview of Hammer.js. To see a full implementation, you would need to:
+        </p>
+        <ol style="margin-left: var(--space-lg); margin-top: var(--space-md);">
+          <li>Include the Hammer.js library via CDN or npm</li>
+          <li>Initialize Hammer on your target elements</li>
+          <li>Configure gesture recognizers and event listeners</li>
+          <li>Handle gesture events in your application logic</li>
+        </ol>
+        <p style="margin-top: var(--space-md);">
+          Many of the gestures demonstrated in the vanilla JavaScript demos can be simplified using Hammer.js!
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>TouchScreen Demo Showcase v0.1 - Hammer.js</p>
+    </div>
+  </footer>
+</body>
+</html>
